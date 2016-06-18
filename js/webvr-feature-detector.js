@@ -367,8 +367,11 @@
 
     var err_ = function (s, msg) {
       console.error('in err_:' + typeof s + ' ' + msg);
-      console.error('in err_:' + typeof s.nodeType )
-      if (s) {
+      console.error('in err_:' + typeof s.nodeType );
+      for (var i in s) {
+        alert("s " + i + ":" + s[i]);
+      }
+      if (s && s.nodeType) {
         head.removeChild(s);
       }
       if(failFn) {
