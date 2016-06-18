@@ -174,6 +174,9 @@ https://help.github.com/articles/creating-project-pages-manually/
 https://pages.github.com/
 http://www.damian.oquanta.info/posts/one-line-deployment-of-your-site-to-gh-pages.html
 
+METHOD 0 (not for groups)
+http://brettterpstra.com/2012/09/26/github-tip-easily-sync-your-master-to-github-pages/
+
 METHOD 1
 git checkout master # you can avoid this line if you are in master...
 git subtree split --prefix dist -b gh-pages # create a local gh-pages branch containing the splitted output folder
