@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>WebVRFeatureDetector</title>
+<meta charset="utf-8">
+<!--set the viewport, shrink-to-fit fixes safari bug-->
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0 shrink-to-fit=no">
+<!--handle iOS and android mobile
+http://www.html5rocks.com/en/mobile/fullscreen/ -->
+<!--ios fullscreen-->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<!--android fullscreen-->
+<meta name="mobile-web-app-capable" content="yes">
+<!--hide the Apple status bar-->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--add polyfills that should run in head here-->
+
+<!--load the detector-->
+<script src="js/webvr-feature-detector.js"></script>
+<!--put polyfills here if you want to see the results after pressing the (Re)test button-->
+</head>
+<body>
+  <header>
+    <h1>WebVRFeatureDetector</h1>
+    <nav>
+      <ul>
+        <li>Detector Test</li>
+        <li><a href="example.html">Example Loading Polyfills</a></li>
+      </ul>
+    </nav>
+  </header>
+  <section id="content">
+    <h2>Detector Features</h2>
+    <p>This Detector does three things:</p>
+    <ol>
+      <li>Check if browser supports features needed for WebVR.</li>
+      <li>Tries to determine the specific hardware device it is running on.</li>
+      <li>Optionally, cue polyfills for sequential loading</li>
+    </ol>
+    <p>WebVR Detector is NOT a general-purpose browser or feature detector. Its goal is to find the subset of cellphones which can be used in VR headsets. It has an integration feature so that hardware-specific features needed to set up a VR display can be adapted for the device.</p>
+    <p>To see how to load polyfills and VR worlds, check <a href="example.html">the example</a>.</p>
+    <hr>
+    <article>
+        <h2>Feature Test for Your Device</h2>
+        <form id="test">
+          <button id="run-test">(Re)Test</button>
+        </form>
+        <!--results are listed here-->
+        <p id="results"></p>
+            <script>
+
+            var results = document.getElementById('results');
+            var resultList = '<ul>\n';
+
+            function toStr (val) {
+                if (val === true) return 'true';
+                else if (val === false) return 'false';
+                else if (val === undefined) return 'undefined';
+                else if (val === null) return 'null';
+                else if (typeof val === 'string') return val;
+                else if (typeof val === 'number') return val;
+                else return '"' + typeof val + '"';
+            };
+
+            function styleStr (str) {
+              var b = 'style="color:';
+               if (!!str) {
+                    b += 'green;"';
+                } else {
+                    b +=  'red;"';
+                }
+                return b;
+            };
+
+            function dumpProps(obj, list) {
+              // Go through all the properties of the passed-in object
+              for (var i in obj) {
+                if (obj.hasOwnProperty(i)) {
+                  var o = obj[i];
+                  ////////console.log('local object ' + i + ', type:' + typeof o)
+                  if (typeof o != 'function') {
+                    if (typeof o == 'object') {
+                      ////////console.log('adding object:' + i)
+                      list += '<li>' + '<span>' + i + '</span>:<ul>';
+                      list = dumpProps(o, list);
+                      list += '</ul>';
+                    } else {
+                      ///////console.log('adding string:' + i)
+                      var prop = toStr(o);
+                      list += '<li>' + '<em ' + styleStr(o) +'>' + i + '</em>:' + prop;
+                    }
+                    list += '</li>';
+                  }
+                }
+              }
+              return list;
+            }
+
+
+          function detect (list) {
+            if(results && WebVRFeatureDetector) {
+              return '<ul>' + dumpProps(WebVRFeatureDetector, resultsList) + '</ul>';
+            } else {
+                console.log('WebVRFeatureDetecor did not run correctly');
+                document.write('WebVRFeatureDetector did not run correctly');
+            }
+          }
+          var resultsList = '';
+          resultsList = detect(resultsList);
+
+          // Appending the HTML to a dynamically-created element makes this work in old IE
+          var t = document.createElement('div');
+          t.innerHTML = resultsList;
+          results.appendChild(t);
+
+          // Attach retest event handler
+          var runTest = document.getElementById('run-test');
+          runTest.onclick = detect;
+        </script>
+    </article>
+    <hr>
+  </section>
+  <footer>
+    <p>&copy; Pete Markiewicz.</p>
+  </footer>
+  <!--add additional polyfills here-->
+</body>
+</html>

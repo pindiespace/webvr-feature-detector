@@ -1,0 +1,61 @@
+{
+  "name": "webvr-feature-detector",
+  "version": "1.0.0",
+  "description": "lightweight feature detector and microloader for webvr",
+  "main": "index.html",
+  "config": {
+    "unsafe-perm": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pindiespace/webvr-feature-detector.git"
+  },
+  "keywords": [
+    "es6"
+  ],
+  "author": "pete markiewicz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ccoenraets/es6-tutorial/issues"
+  },
+  "homepage": "https://github.com/pindiespace/webvr-feature-detector",
+  "scripts": { 
+    "prebuild": "npm run clean -s && mkdirp dist/js && mkdirp dist/img mkdirp dist/css && mkdirp dist/models",
+    "build:detector": "copyfiles -f src/index.html dist && stripify src/webvr-feature-detector.js > src/bundle.js && browserify -t -d src/bundle.js -d -p [minifyify . --drop_console . --compressPath . --map webvr-feature-detector.js.map --output dist/js/webvr-feature-detector.js.map] > dist/js/webvr-feature-detector.js && copyfiles -f src/pngfallback.js dist/js",
+    "build:debug": "copyfiles -f src/index.html dist && copyfiles -f src/webvr-feature-detector.js -d -p [minifyify . --drop_console . --compressPath . --map webvr-feature-detector.js.map --output dist/js/webvr-feature-detector.js.map] > dist/js/webvr-feature-detector.js && copyfiles -f src/pngfallback.js dist/js",
+    "build:debugfull": "copyfiles -f src/index.html dist && copyfiles -f src/webvr-feature-detector.js dist/js && copyfiles -f src/pngfallback.js dist/js",
+    "build:three": "copyfiles -f node_modules/three/build/three.min.js node_modules/three/examples/js/Detector.js node_modules/three/examples/js/controls/OrbitControls.js node_modules/three/examples/js/controls/VRControls.js node_modules/three/examples/js/effects/VREffect.js node_modules/three/examples/js/renderers/CanvasRenderer.js node_modules/three/examples/js/renderers/Projector.js dist/js/three",
+
+    "build:polyfills": "copyfiles -f node_modules/webvr-polyfill/build/webvr-polyfill.js node_modules/whatwg-fetch/fetch.js node_modules/html5shiv/dist/html5shiv.min.js node_modules/promise-polyfill/Promise.min.js node_modules/js-polyfills/es5.js node_modules/js-polyfills/dom.js node_modules/js-polyfills/typedarray.js node_modules/ie8/build/ie8.js node_modules/custom-event-polyfill/custom-event-polyfill.js node_modules/gamepad-plus/dist/gamepads.js dist/js/polyfills",
+    "build:html": "copyfiles -f src/index.html dist/",
+    "build:exhtml": "copyfiles -f src/example.html dist/ && copyfiles -f src/WebVRUi.js dist/js && copyfiles -f src/styles.css dist/css/",
+    "build:assets": "copyfiles -f assets/icons/* dist/img/icons/ && copyfiles -f assets/images/* dist/img/ && copyfiles -f assets/models/* dist/models/ && copyfiles -f assets/favicon.ico dist/",
+    "build:dist": "npm run build:html && npm run build:detector",
+    "build:example": "npm run build:exhtml && npm run build:assets && npm run build:detector && npm run build:polyfills && npm run build:three",
+    "build": "npm run build:assets && npm run build:three && npm run build:dist && npm run build:example",
+    "clean": "rimraf -r dist/*",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "git subtree push --prefix dist origin gh-pages"
+  },
+  "dependencies": {
+    "three": "latest",
+    "promise-polyfill": "latest",
+    "webvr-polyfill": "latest",
+    "html5shiv": "latest",
+    "js-polyfills": "latest",
+    "whatwg-fetch": "latest",
+    "custom-event-polyfill": "latest",
+    "ie8": "latest"
+  },
+  "devDependencies": {
+    "browserify": "^6.3.2",
+    "copyfiles": "latest",
+    "express": "^4.13.4",
+    "minifyify": "^6.4.0",
+    "mkdirp": "latest",
+    "rimraf": "latest",
+    "serve-favicon": "^2.3.0",
+    "stripify": "^4.0.0"
+  }
+}

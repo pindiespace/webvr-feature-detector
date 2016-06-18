@@ -1,0 +1,111 @@
+/* Styles.css Responsive pattern for web page
+ * http://mydevice.io/devices/
+ * http://learn.shayhowe.com/advanced-html-css/responsive-web-design/
+ * https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+ */
+ html {
+   box-sizing: border-box;
+ }
+ *, *:before, *:after {
+   box-sizing: inherit;
+ }
+
+body {
+	margin:0;
+	padding:0;
+	overflow: hidden;
+	height: 100vh;
+}
+
+/* container for canvas, here a figure element */
+#vr-world {
+	margin:0;
+	width:80%;
+}
+
+/* make <canvas> respond to window size changes, unless the
+user is in VR mode. Then, fill the screen */
+
+#vr-world canvas: -webkit-full-screen {
+  width:100%;
+	height:100%;
+}
+#vr-world canvas: -moz-full-screen {
+  width:100%;
+	height:100%;
+}
+#vr-world canvas: -ms-fullscreen {
+  width:100%;
+	height:100%;
+}
+#vr-world canvas: fullscreen {
+  width:100%;
+	height:100%;
+}
+
+/* While in fullscreen, hide any children with class 'tohide' */
+:-webkit-full-screen .tohide {
+  display: none;
+}
+:-moz-full-screen .tohide {
+  display: none;
+}
+:-ms-fullscreen .tohide {
+  display: none;
+}
+:fullscreen .tohide {
+  display: none;
+}
+
+/* Default canvas properties */
+#vr-world canvas {
+	border: 4px solid #aaa;
+	margin:0;
+	width: 100%;
+	height: 100%;
+	display:block;    /* remove scrollbars */
+	overflow: hidden;
+}
+
+#vr-world canvas:focus {
+	outline:0; /* remove blue outline around canvas */
+}
+
+
+/*
+#vr-world canvas:after {
+	content: "<div style='height:1px;'></div>";
+}
+*/
+
+/* Responsive styles (desktop) */
+/*
+@media all and (max-width: 767px) {
+	#vr-world {
+		width: 100%;
+		height: auto;
+		border:2px solid green;
+	}
+
+}
+
+@media all and (min-width: 768px) {
+	#vr-world {
+		width: 80%;
+		height: auto;
+		border:2px solid red;
+	}
+
+}
+*/
+/*
+@media all and (orientation: landscape) {
+	#vr-world canvas {
+		width: 100%;
+		height:100%;
+		overflow: hidden;
+		position:fixed;
+		padding-bottom: 80px;
+	}
+}
+*/
