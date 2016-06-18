@@ -31,10 +31,10 @@
       XMLHttpRequest.prototype.overrideMimeType = function (type) {};
     }
   }
-
+ 
   /* 
    * Remove errors for console.log or console.error on ancient browsers.
-   * Add 'alert' if debugging desired.
+   * Add 'alert' if debugging is desired.
    */
   (function (con) {
     if (!con.log) con.log = function () {};
@@ -367,6 +367,7 @@
 
     var err_ = function (s, msg) {
       console.error('in err_:' + typeof s + ' ' + msg);
+      console.error('in err_:' + typeof s.nodeType )
       if (s) {
         head.removeChild(s);
       }

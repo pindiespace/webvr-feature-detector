@@ -367,6 +367,7 @@
 
     var err_ = function (s, msg) {
       console.error('in err_:' + typeof s + ' ' + msg);
+      console.error('in err_:' + typeof s.nodeType )
       if (s) {
         head.removeChild(s);
       }
