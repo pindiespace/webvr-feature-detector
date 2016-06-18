@@ -68,25 +68,6 @@ var WebVRUi = (function () {
     };
 
     /**
-     * @method replaceCanvasWithImage
-     * @description replace <canvas> tags with images in
-     * browsers that can't support THREE or other libraries
-     * with a 3d canvas context.
-     * @param String imgPath the path to the replacement image.
-     */
-    function replaceCanvasWithImage (imgPath) {
-      var c = document.getElementsByTagName('canvas');
-      // Replace each canvas with a default image.
-      for(var i = 0; i < c.length; i++) {
-        var img = document.createElement('img');
-        img.src = imgPath;
-        var parentNode = c[i].parentNode;
-        parentNode.insertBefore(img, c[i]);
-        parentNode.removeChild(c[i]);
-      }
-    };
-
-    /**
      * @method setupDOMForSwap
      * @description find all the elements on the page to hide
      * @param DOMElement Canvas the <canvas> element to 'fullscreen'
@@ -597,7 +578,6 @@ var WebVRUi = (function () {
       isDOM: isDOM,
       getScreenWidth: getScreenWidth,
       getScreenHeight: getScreenHeight,
-      replaceCanvasWithImage: replaceCanvasWithImage,
       swapDOM: swapDOM,
       resetDOM: resetDOM,
       init: init,
