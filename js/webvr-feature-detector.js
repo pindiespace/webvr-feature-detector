@@ -457,7 +457,7 @@
               err_(e.target, 'error in onload for:' + e.target);
             }
           } else {
-            err_(s,'script loading not supported for:' + scr.path);
+            err_(s,'script loading not supported for:' + scr.path, ' type:' + typeof s + ' nodeType:' + typeof s.nodeType);
           }
 
         // Add script to document.head.
