@@ -367,7 +367,7 @@
 
     var err_ = function (s, msg) {
       console.error('in err_:' + typeof s + ' ' + msg);
-      console.error('in err_:' + typeof s.nodeType );
+      console.error('in err_ type of s:' + typeof s.nodeType );
       if (s && s.nodeType) {
         head.removeChild(s);
       }
@@ -417,8 +417,8 @@
           clear_();
         } else {
           console.log('running batchScript:' + scr.name)
-          scr.script = document.createElement('script');
-          var s = scr.script;
+          //scr.script = document.createElement('script');
+          var s = document.createElement('script'); //scr.script;
           s.type = 'text\/javascript';
           s.charset = 'utf8';
           s.async = true;
