@@ -419,7 +419,7 @@
           console.log('running batchScript:' + scr.name)
           scr.script = document.createElement('script');
           var s = scr.script;
-          s.type = 'text/javascript';
+          s.type = 'text\/javascript';
           s.charset = 'utf8';
           s.async = true;
           s.src = scr.path;
@@ -454,10 +454,10 @@
               return;
             }
             s.onerror = function (e) {
-              err_(s, 'error in onload for:' + e.target);
+              err_(e.target, 'error in onload for:' + e.target);
             }
           } else {
-          err_(s,'script loading not supported');
+            err_(e.target,'script loading not supported');
           }
 
         // Add script to document.head.
