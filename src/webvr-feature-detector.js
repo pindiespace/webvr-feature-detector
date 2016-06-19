@@ -38,7 +38,7 @@
    */
   (function (con) {
     if (!con.log) con.log = function () {};
-    if (!con.error) con.error = function (val) {alert(val)};
+    if (!con.error) con.error = function (val) {}; // debug with alert(val)
   })(window.console = window.console || {});
 
   /*
@@ -325,12 +325,46 @@
 
   /*
    * Test for IE and Edge versions.
+   * @link http://tanalin.com/en/articles/ie-version-js/
    * @link https://codepen.io/gapcode/pen/vEJNZN
    * @returns if IE or Edge, the version number, else false.
    */
   tests['ie'] = function () {
     var ua = window.navigator.userAgent.toLowerCase();
+    //alert("IN TEST, document.all:" + document.all + " compat:" + document.compatMode)
+    if (typeof document.all !== undefined && !window.opera) {
+      alert("IS IE")
+      if (document.compatMode && !window.atob) {
+        alert("OLD IE")
+        if (!!window.XMLHttpRequest) { //ie7 text
+          return 6;
+        } else if (!document.querySelector) {
+          return 7;
+        } else if (!document.addEventListener) {
+          return 8;
+        } else {
+          return 9;
+        }
+      } else {
+        alert("MODERN IE")
+          if(!!window.Promise) {
+            //Edge
+            var x = ua.indexOf('edge/');
+            return parseInt(ua.substring(x + 5, ua.indexOf('.', x)), 10);
+          } else if (window.atob) {
+          if (!(window.ActiveXObject) && "ActiveXObject" in window) {
+            return 11;
+          } else {
+            return 10;
+          }
+        }
+        return 5;
+      }
+    } else {
+      alert ('OOPS: document.all:' + document.all)
+    }
 
+    /*
     // IE 10 or older
     if (ua.indexOf('msie ') >= 0) {
       var re  = new RegExp("msie ([0-9]{1,}[\.0-9]{0,})");
@@ -348,6 +382,7 @@
       // Edge (IE 12+) => return version number
       return parseInt(ua.substring(x + 5, ua.indexOf('.', x)), 10);
     }
+    */
     return false;
   };
 
@@ -356,22 +391,7 @@
    */
   tests['ff'] = function () {
     var ua = window.navigator.userAgent.toLowerCase();
-    if('MozAppearance' in document.documentElement.style) {
-    if (!!navigator.userAgent.match(/firefox/i) {
-      // FF < 13
-      var isFF = !!window.globalStorage;
-      // FF < 1.5
-      // FF 2
-      var isFF = (function x(){})[-6]=='x';
-      // FF 3 (can't handle Promise)
-      // FF 4 (can't handle Promise)
-      // FF 5 (import reserved identifier)
-      var isFF = (function x(){})[-5]=='x';
-      // FF < 9.0
-      if (document.body.compareDocumentPosition) {
-
-      }
-    }
+    
     return false;
   };
 

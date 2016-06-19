@@ -38,7 +38,7 @@
    */
   (function (con) {
     if (!con.log) con.log = function () {};
-    if (!con.error) con.error = function (val) {}; // debug with alert(val)
+    if (!con.error) con.error = function (val) {alert(val)};
   })(window.console = window.console || {});
 
   /*
@@ -312,10 +312,10 @@
    */
   tests['webvr'] = function () {
     if ('getVRDisplays' in navigator) {
-      ;
+      console.log('found getVRDisplays');
       return true;
     } else if ('getVRDevices' in navigator || 'mozGetVRDevices' in navigator) {
-      ;
+      console.log('found getVRDevices in navigator (obsolete, in Firefox)');
       return false;
     }
     else {
@@ -325,46 +325,12 @@
 
   /*
    * Test for IE and Edge versions.
-   * @link http://tanalin.com/en/articles/ie-version-js/
    * @link https://codepen.io/gapcode/pen/vEJNZN
    * @returns if IE or Edge, the version number, else false.
    */
   tests['ie'] = function () {
     var ua = window.navigator.userAgent.toLowerCase();
-    //alert("IN TEST, document.all:" + document.all + " compat:" + document.compatMode)
-    if (typeof document.all !== undefined && !window.opera) {
-      alert("IS IE")
-      if (document.compatMode && !window.atob) {
-        alert("OLD IE")
-        if (!!window.XMLHttpRequest) { //ie7 text
-          return 6;
-        } else if (!document.querySelector) {
-          return 7;
-        } else if (!document.addEventListener) {
-          return 8;
-        } else {
-          return 9;
-        }
-      } else {
-        alert("MODERN IE")
-          if(!!window.Promise) {
-            //Edge
-            var x = ua.indexOf('edge/');
-            return parseInt(ua.substring(x + 5, ua.indexOf('.', x)), 10);
-          } else if (window.atob) {
-          if (!(window.ActiveXObject) && "ActiveXObject" in window) {
-            return 11;
-          } else {
-            return 10;
-          }
-        }
-        return 5;
-      }
-    } else {
-      alert ('OOPS: document.all:' + document.all)
-    }
 
-    /*
     // IE 10 or older
     if (ua.indexOf('msie ') >= 0) {
       var re  = new RegExp("msie ([0-9]{1,}[\.0-9]{0,})");
@@ -382,7 +348,6 @@
       // Edge (IE 12+) => return version number
       return parseInt(ua.substring(x + 5, ua.indexOf('.', x)), 10);
     }
-    */
     return false;
   };
 
@@ -410,8 +375,8 @@
     scriptsToLoad = 0;
 
     var err_ = function (s, msg) {
-      ;
-      ;
+      console.error('in err_:' + typeof s + ' ' + msg);
+      console.error('in err_ type of s:' + typeof s.nodeType );
       if (s && s.nodeType) {
         try {
           head.removeChild(s);
@@ -425,12 +390,12 @@
 
     var clear_ = function (s) {
       //clear the event and prevent memory leaks
-      
+      console.log('clearing event:' + typeof s)
       if (s) {
       // Progress report.
         gScriptCount++;
         progressFn(parseInt(100 * gScriptCount / scriptsToLoad), s.src);
-        
+        console.log("CLEARING:" + s.src)
         try {
           head.removeChild(s);
         } catch (e) {};
@@ -445,14 +410,14 @@
         if (batchCount < batchLength) {
           runScriptBatch(batches[batchCount])
         } else {
-          
+          console.log("ALL DONE")
           callback();
         }
       }
     };
 
     function runScriptBatch (batchScript) {
-      
+      console.log('scriptLength:' + scriptLength)
       for (var i = 0; i < batchScript.length; i++) {
         scriptLength = batchScript.length; //NOTE: if done outside for (), incorrect value in old IE.
         var scr = batchScript[i];
@@ -462,10 +427,10 @@
         }
         // If we don't need the polyfill, don't load it
         if (scr.poly === true && self.results[scr.name] === true) {
-          ;
+          console.log("No polyfill needed:" + scr.name);
           clear_();
         } else {
-          
+          console.log('running batchScript:' + scr.name)
           //scr.script = document.createElement('script');
           var s = document.createElement('script'); //scr.script;
           s.type = 'text\/javascript';
@@ -475,13 +440,13 @@
           // Old IE version.
           if (s.onreadystatechange !== undefined) {
             s.onreadystatechange = function () {
-              
-              
+              console.log('value of scriptLength:' + scriptLength)
+              console.log('IE readyState:' + this.readyState + ' for:' + this.src)
               if (/loaded|complete/.test(this.readyState)) {
-                  ;
+                  console.log('IE loaded:' + this.src);
                   //head.insertBefore(s, head.firstChild);
                   this.onreadystatechange = null;
-                  
+                  console.log('scriptCount:' + scriptCount)
                   clear_(this);
 
                 // IE hack to stop loading
@@ -497,8 +462,8 @@
             }
           } else if (s.onload !== undefined) {
             s.onload = function (e) {
-              ;
-              
+              console.log('loaded:' + this.src);
+              console.log('scriptCount:' + scriptCount)
               clear_(this);
               return;
             }
@@ -524,7 +489,7 @@
     }; // end of function
 
     // Main program. Count scripts to load.
-    ;
+    console.log('Loader: starting batches:' + batches.length);
 
     // Scripts is an array of arrays
     for (var i = 0, len = batches.length; i < len; i++) {
@@ -563,16 +528,16 @@
   // Redetect after loading complete
   function reDetect () {
     for (var i in retests) {
-      ;
+      console.log('retesting ' + i);
       if (self.results[i] === undefined) {
-        ;
+        console.error('error retest ' + i + ' not in original results!');
       } else if (!self.results[i]) {
-        ;
+        console.log('checking if polyfill ' + i + ' added functionality to browser');
         self.results[i] = tests[i]();
         if (self.results[i]) {
-          ;
+          console.log('polyfill ' + i + ' added browser functionality');
         } else {
-          ;
+          console.error('polyfill ' + i + ' failed to fix browser!');
         }
       }
     }
