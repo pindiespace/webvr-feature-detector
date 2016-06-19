@@ -331,8 +331,10 @@
    */
   tests['ie'] = function () {
     var ua = window.navigator.userAgent.toLowerCase();
-    //alert("IN TEST, document.all:" + document.all + " compat:" + document.compatMode)
-    if (typeof document.all !== undefined && !window.opera) {
+    //alert('IN TEST, document.all:' + document.all + ' compat:' + document.compatMode)
+    if (typeof document.all !== undefined 
+      && !('netscape' in window) 
+      && !window.opera) {
       alert("IS IE")
       if (document.compatMode && !window.atob) {
         alert("OLD IE")
@@ -360,40 +362,32 @@
         }
         return 5;
       }
-    } else {
-      alert ('OOPS: document.all:' + document.all)
     }
-
-    /*
-    // IE 10 or older
-    if (ua.indexOf('msie ') >= 0) {
-      var re  = new RegExp("msie ([0-9]{1,}[\.0-9]{0,})");
-      if (re.exec(ua) != null)
-        console.log(RegExp.$1)
-        return parseFloat(RegExp.$1);
-    }
-    else if (ua.indexOf('trident/') >= 0) {
-      // IE 11 => return version number
-      var x = ua.indexOf('rv:');
-      return parseInt(ua.substring(x + 3, ua.indexOf('.', x)), 10);
-    }
-    var x = ua.indexOf('edge/');
-    if (x >= 0) {
-      // Edge (IE 12+) => return version number
-      return parseInt(ua.substring(x + 5, ua.indexOf('.', x)), 10);
-    }
-    */
     return false;
-  };
+  }
 
   /** 
-   * Test for old versions of Gecko/Firefox
+   * Test for firefox
+   * @link http://browserhacks.com/
+   * @link https://davidwalsh.name/check-parent-node
+   * @link http://stackoverflow.com/questions/7000190/detect-all-firefox-versions-in-js
    */
-  tests['ff'] = function () {
-    var ua = window.navigator.userAgent.toLowerCase();
-    
+  tests['firefox'] = function () {
+    var ua = navigator.userAgent.toLowerCase();
+    if ('netscape in window' || 
+      'MozAppearance' in document.documentElement.style) {
+      verOffset = ua.indexOf("firefox")
+      if (verOffset !== -1) {
+        x = navigator.userAgent.substring(verOffset+8);
+        return parseInt(x);
+      }
+
+      // Old ff
+
+    }
     return false;
   };
+
 
   /*
    * Microloader. Store polyfills to load. Deliberately old-school for maximum browser support.
