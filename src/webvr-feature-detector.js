@@ -369,7 +369,9 @@
       console.error('in err_:' + typeof s + ' ' + msg);
       console.error('in err_ type of s:' + typeof s.nodeType );
       if (s && s.nodeType) {
-        head.removeChild(s);
+        try {
+          head.removeChild(s);
+        } catch (e) {}
       }
       if(failFn) {
         failFn('error at script #:', batchCount, scriptCount, s);
