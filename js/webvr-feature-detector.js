@@ -1,6 +1,601 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-!function(t){function n(t,n,r,o){function i(t){for(var n=0;n<t.length;n++){s=t.length;var r=t[n];if(!r){p();break}if(r.poly===!0&&c.results[r.name]===!0)p();else{var i=document.createElement("script");i.type="text/javascript",i.charset="utf8",i.async=!0,i.src=r.path,void 0!==i.onreadystatechange?i.onreadystatechange=function(){if(/loaded|complete/.test(this.readyState)){this.onreadystatechange=null,p(this);var t=this.readyState;if(this.children,"loaded"==t&&"loading"==this.readyState)return v(this,"error in readyState load for:"+e.srcElement.baseURI),this.onreadystatechange=null,void p(this)}}:void 0!==i.onload?(i.onload=function(e){p(this)},i.onerror=function(e){v(e.target,"error in onload for:"+e.target)}):v(i,"script loading not supported for:"+r.path," type:"+typeof i+" nodeType:"+typeof i.nodeType),a.insertBefore(i,a.firstChild)}}0==t.length&&o("Loader: empty batch [] at index:",l,0,0,"undefined")}for(var a=document.getElementsByTagName("head")[0]||document.documentElement,u=0,l=0,s=0,d=0,f=0,m=0,v=function(e,t){if(e&&e.nodeType)try{a.removeChild(e)}catch(n){}o&&(o("error at script #:",l,d,e),e=null)},p=function(e){if(e){f++,r(parseInt(100*f/m),e.src);try{a.removeChild(e)}catch(o){}e.onreadystatechange=e.onload=null,e=null}d++,d>=s&&(d=0,l++,u>l?i(t[l]):n())},y=0,g=t.length;g>y;y++)for(var h=0,b=t[y].length;b>h;h++){var E=t[y][h];if(E){if(!E.name||!E.path||void 0===E.poly)return E.name&&(E=E.name),o("Loader: incorrect batch syntax for batch index:",y,h,E),!1;E.poly===!0?c.results[E.name]||m++:m++}else o("Loader: missing object (probably trailing comma) for batch index:",y,h,E)}u=t.length,i(t[l])}function r(){for(var e in s)void 0===c.results[e]||c.results[e]||(c.results[e]=l[e](),c.results[e])}function o(){c.results={deviceorientation:f(t,"deviceorientation"),devicemotion:f(t,"devicemotion"),load:n,detect:o,reDetect:r};for(var e in l)"function"==typeof l[e]?c.results[e]=l[e]():c.results[e]=l[e];return c.results}var a,u,c=this,l=[],s={};c.results={};var d=["3d","webgl","experimental-webgl","experimental-webgl2","moz-webgl"];t.XMLHttpRequest&&(XMLHttpRequest.overrideMimeType||(XMLHttpRequest.prototype.overrideMimeType=function(e){})),function(e){e.log||(e.log=function(){}),e.error||(e.error=function(e){})}(t.console=t.console||{}),l.vendorPrefix=function(){if(t.getComputedStyle){var e=t.getComputedStyle(document.documentElement,""),n=(Array.prototype.slice.call(e).join("").match(/-(moz|webkit|ms|o|xv)-/)||["",""])[1];return{js:n,css:"-"+n+"-"}}return{js:"",css:""}},l.createElement=function(){return!!document.createElement},l.html5=function(){if(l.createElement()){var e=document.createElement("a");e.innerHTML="<xyz></xyz>";var t="hidden"in e;return e=e.innerHTML=null,t}return!1},l.canvas=function(){return!!t.CanvasRenderingContext2D},l.webGL=function(){if(l.canvas()&&document.createElement){a=document.createElement("canvas");for(i in d)try{if(u=a.getContext(d[i]),u&&"function"==typeof u.getParameter)return a=u=null,!0}catch(e){}}return a=u=null,!1},l.glVersion=function(){if(l.canvas()&&document.createElement){a=document.createElement("canvas");for(i in d)try{if(u=a.getContext(d[i]),u&&"function"==typeof u.getParameter){var e=u.getParameter(u.VERSION).toLowerCase();return a=u=null,e}}catch(t){}}return a=u=null,!1},l.promise=function(){return"Promise"in t},l.workers=function(){return!!t.Worker},l.fileapi=function(){return!!(t.File&&t.FileReader&&t.FileList&&t.Blob)},l.localStorage=function(){var e="test";try{return localStorage.setItem(e,e),localStorage.removeItem(e),!0}catch(t){return!1}},l.fetch=function(){return"fetch"in t},l.querySelectorAll=function(){return!!document.querySelectorAll},l.addEventListener=function(){return"addEventListener"in t},l.CustomEvent=function(){try{new CustomEvent("test")}catch(e){return!1}return!0};var f=function(e,t){t="on"+t;var n=t in e;return!n&&"setAttribute"in e&&(e.setAttribute(t,"return;"),n="function"==typeof e[t],e.removeAttribute(t)),n};l.defineProperty=function(){return"defineProperty"in Object},l.defineProperties=function(){return"defineProperties"in Object},l.typedArray=function(){return"ArrayBuffer"in t},l.fullScreen=function(){return!!document.documentElement.requestFullscreen},l.touch=function(){return!!("ontouchstart"in t||t.DocumentTouch&&document instanceof DocumentTouch)},l.requestAnimationFrame=function(){return"requestAnimationFrame"in t},l.gamepad=function(){return!!navigator.getGamepads},l.webvr=function(){return"getVRDisplays"in navigator?!0:"getVRDevices"in navigator||"mozGetVRDevices"in navigator?!1:!1},l.ie=function(){var e=t.navigator.userAgent.toLowerCase();if(void 0!==typeof document.all&&!t.opera){if(alert("IS IE"),document.compatMode&&!t.atob)return alert("OLD IE"),t.XMLHttpRequest?6:document.querySelector?document.addEventListener?9:8:7;if(alert("MODERN IE"),t.Promise){var n=e.indexOf("edge/");return parseInt(e.substring(n+5,e.indexOf(".",n)),10)}return t.atob?!t.ActiveXObject&&"ActiveXObject"in t?11:10:5}return alert("OOPS: document.all:"+document.all),!1},l.ff=function(){t.navigator.userAgent.toLowerCase();return!1},t.WebVRFeatureDetector=o()}(window);
-},{}]},{},[1])
+/*
+ * Device and feature detector for WebVR projects needing to provide
+ * graceful decay for old and obsolete browsers.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+(function (window) {
+  var self = this; // Scope.
+  var cs, ctx, tests = [], retests = {}; self.results = {};
+
+  var names = ['3d', 'webgl', 'experimental-webgl', 'experimental-webgl2', 'moz-webgl'];
+
+  /*
+   * Patches and fixes.
+   *
+   * This hack lets IE10 render to canvas with newer versions of
+   * of THREE.js which use overrideMimeType in the Object loader.
+   */
+  if(window.XMLHttpRequest) {
+    if (!XMLHttpRequest.overrideMimeType) {
+      XMLHttpRequest.prototype.overrideMimeType = function (type) {};
+    }
+  }
+ 
+  /* 
+   * Remove errors for console.log or console.error on ancient browsers.
+   * Add 'alert' if debugging is desired.
+   */
+  (function (con) {
+    if (!con.log) con.log = function () {};
+    if (!con.error) con.error = function (val) {}; // debug with alert(val)
+  })(window.console = window.console || {});
+
+  /*
+   * Feature detection.
+   *
+   * Our feature detectors are wrapped in named functions so they
+   * can be re-tested after loading polyfills.
+   *
+   * Client vendor prefixes.
+   * @link https://davidwalsh.name/vendor-prefix
+   */
+  tests['vendorPrefix'] = function () {
+    // Get the vendor prefix for the client.
+    if (!window.getComputedStyle) {
+      return {
+        js: '',
+        css: ''
+      };
+    } else {
+    var styles = window.getComputedStyle(document.documentElement, ''),
+    pre = (Array.prototype.slice
+        .call(styles)
+        .join('')
+        .match(/-(moz|webkit|ms|o|xv)-/) || ['',''])[1]; // Default to nothing.
+      return {
+          js: pre,
+          css: '-' + pre + '-',
+        };
+    }
+  };
+
+  /*
+   * Test for document.createElement presence,
+   * missing in IE < 7, FF < 2.
+   */
+  tests['createElement'] = function () {
+    return !!(document.createElement);
+  };
+
+  /*
+   * Test for basic HTML5 tag support.
+   * Adapted from HTML5Shiv
+   * @link https://github.com/aFarkas/html5shiv/blob/master/dist/html5shiv.js
+   */
+  tests['html5'] = function () {
+    if(tests['createElement']()) {
+      var a = document.createElement('a');
+      a.innerHTML = '<xyz></xyz>';
+      //if the hidden property is implemented we can assume, that the browser supports basic HTML5 Styles
+      var res = ('hidden' in a);
+      a = a.innerHTML = null;
+      return res;
+    }
+    return false;
+  };
+
+  /*
+   * Test for HTML5 canvas.
+   * Note: No compatible polyfill (Flash-based ones won't work for WebVR).
+   */
+  tests['canvas'] = function () {
+    return !!window.CanvasRenderingContext2D;
+  };
+
+  /*
+   * Test for WebGL support in browsers supporting HTML5 canvas.
+   * IE 9, 10 Polyfill available (non-Flash).
+   * @link https://github.com/iewebgl/iewebgl
+   */
+  tests['webGL'] = function () {
+    if (tests['canvas']() && document.createElement) {
+        cs = document.createElement('canvas');
+        for (i in names) {
+          try {
+            ctx = cs.getContext(names[i]);
+            if (ctx && typeof ctx.getParameter == 'function') {
+              cs = ctx = null;
+              return true;
+            }
+          } catch (e) {}
+        }
+    }
+    cs = ctx = null;
+    return false;
+  };
+
+  /*
+   * It is easier to re-create the WebGL context when
+   * extraction version data, instead of trying to add it
+   * to tests[] array.
+   */
+  tests['glVersion'] = function () {
+    if (tests['canvas']() && document.createElement) {
+        cs = document.createElement('canvas');
+        for (i in names) {
+          try {
+            ctx = cs.getContext(names[i]);
+            if (ctx && typeof ctx.getParameter == 'function') {
+              var vers = ctx.getParameter(ctx.VERSION).toLowerCase();
+              cs = ctx = null;
+              return vers;
+            }
+          } catch (e) {}
+        }
+    }
+    cs = ctx = null;
+    return false;
+  };
+
+  /*
+   * Detect Promise object support, missing in
+   * all IE, Chrome < 33, FF < 29, Safari < 7.1,
+   * iOS < 8, Android < 4.4.4.
+   */
+  tests['promise'] = function () {
+    return ('Promise' in window);
+  };
+
+  /*
+   * Detect support for WebWorkers, used in many 3D libraries, missing in
+   * IE < 11, FF < 3.5, Safari < 4, iOS < 5.1, Android < 4.4.
+   */
+  tests['workers'] = function () {
+    return !!window.Worker;
+  };
+
+  /*
+   * Detect FileAPI support, may be usefulf or object
+   * management in VR spaces, missing in
+   * IE < 10, Chrome < 38, FF < 28, Safari < 5.1, iOS < 6,
+   * Android < 3
+   */
+  tests['fileapi'] = function () {
+    return !!(window.File && window.FileReader && window.FileList && window.Blob);
+  };
+
+  /*
+  * Detect localStorage support, may be useful for object
+  * management in VR spaces, not supported in
+  * IE < 8, FF < 3.5, Safari < 4.
+  */
+  tests['localStorage'] = function () {
+    var mod = 'test';
+      try {
+           localStorage.setItem(mod, mod);
+           localStorage.removeItem(mod);
+           return true;
+       } catch(e) {
+           return false;
+       }
+   };
+
+   /*
+    * Detect fetch (alternative to XHR) API support, better for
+    * dynamic object requests than Ajax, missing in
+    * All IE, Edge < 14, Chrome < 42, FF < 39, All Safari,
+    * Android < 5.6.
+    */
+  tests['fetch'] = function () {
+    return ('fetch' in window);
+  };
+
+  /*
+   * Detect support for .querySelectorAll, missing in
+   * IE < 9, FF < 3.5
+   */
+  tests['querySelectorAll'] = function () {
+    return !!document.querySelectorAll;
+  };
+
+  /*
+   * Detect support for addEventListener, missing in
+   * IE < 9.
+   */
+  tests['addEventListener'] = function () {
+    return ('addEventListener' in window);
+  };
+
+  /*
+   * Detect support for CustomEvents, missing in
+   * IE 9, 10, 11, Android < 4.4
+   */
+  tests['CustomEvent'] = function () {
+    try {
+      new CustomEvent('test');
+    } catch(e) {
+      return false;
+    }
+    return true;
+  };
+
+  /*
+   * Detect support for a specific event type.
+   * @link http://perfectionkills.com/detecting-event-support-without-browser-sniffing/
+   */
+  var eventSupport_ = function(elem, eventName) {
+    eventName = 'on' + eventName;
+    var isSupported = (eventName in elem);
+    if (!isSupported && 'setAttribute' in elem) {
+      elem.setAttribute(eventName, 'return;');
+      isSupported = typeof elem[eventName] == 'function';
+      elem.removeAttribute(eventName);
+    }
+    return isSupported;
+  };
+
+  /*
+   * Support for ES5 properties, missing in
+   * IE < 9, Chrome < 23, FF < 21, Safari < 6,
+   * Android < 4.4
+   */
+  tests['defineProperty'] = function () {
+    return ('defineProperty' in Object);
+  };
+
+  tests['defineProperties'] = function () {
+    return ('defineProperties' in Object);
+  };
+
+  /*
+   * Detect typed arrays (needed for WebGL), missing in
+   * IE < 11, Chrome < 7, FF < 4, Safari < 6,
+   * Android < 4.
+   */
+  tests['typedArray'] = function () {
+    return ('ArrayBuffer' in window);
+  };
+
+  /*
+   * Detect support for W3C Fullscreen API. No browser completely
+   * and consistently supports the W3C standard. Partial support
+   * in IE Edge, Chrome > 14, FF > 9, Safari > 5. NO SUPPORT in
+   * Android and iOS Safari browser.
+   *
+   */
+  tests['fullScreen'] = function () {
+    return !!(document.documentElement.requestFullscreen);
+  };
+
+  /*
+   * Detect touch support.
+   * useful for changing the Ui if touch is used, missing in
+   * IE, Edge, Chrome < 22, FF, Safari. Full support in iOS
+   * Safari and Android.
+   */
+  tests['touch'] = function () {
+    return !!(('ontouchstart' in window) || (window.DocumentTouch && document instanceof DocumentTouch));
+  };
+
+  /*
+   * Detect native support for requestAnimationFrame, missing in
+   * IE < 11, Chrome < 10, FF < 4, Safari < 6, Android < 4.4
+   */
+  tests['requestAnimationFrame'] = function () {
+    return ('requestAnimationFrame' in window);
+  };
+
+  /*
+   * Gamepad API, used by haptic controllers.
+   * No IE Support, Chrome < 21, FF < 29, no iOS or
+   * Android support. Wii has its own non-W3C version,
+   * window.wiiu.gamepad
+   */
+  tests['gamepad'] = function () {
+    return !!navigator.getGamepads;
+  };
+
+  /*
+   * Test for WebVR API.
+   * @link https://iswebvrready.org/
+   */
+  tests['webvr'] = function () {
+    if ('getVRDisplays' in navigator) {
+      console.log('found getVRDisplays');
+      return true;
+    } else if ('getVRDevices' in navigator || 'mozGetVRDevices' in navigator) {
+      console.log('found getVRDevices in navigator (obsolete, in Firefox)');
+      return false;
+    }
+    else {
+      return false;
+    }
+  };
+
+  /*
+   * Test for IE and Edge versions. UA string is so abused that 
+   * we test features to confirm.
+   * IE10 : CanvasRenderer
+   * IE11+: WebGL
+   * @link http://tanalin.com/en/articles/ie-version-js/
+   * @link https://codepen.io/gapcode/pen/vEJNZN
+   * @returns if IE or Edge, the version number, else false.
+   */
+  tests['ie'] = function () {
+    var ua = window.navigator.userAgent.toLowerCase();
+    if (ua.indexOf('msie ') >= 0 || 
+      ua.indexOf('trident') >= 0 || 
+      ua.indexOf('edge/') >= 0) {
+      if (!('netscape' in window) && !window.opera) {
+        if (document.compatMode && !window.atob) {
+          alert("OLD IE")
+          if (!!window.XMLHttpRequest) { //ie7 text
+            return 6;
+          } else if (!document.querySelector) {
+            return 7;
+          } else if (!document.addEventListener) {
+            return 8;
+          } else {
+            return 9;
+          }
+        } else {
+          if(!!window.Promise) {
+            //Edge, supports THREE WebGL
+            var x = ua.indexOf('edge/');
+            return parseInt(ua.substring(x + 5, ua.indexOf('.', x)), 10);
+          } else if (window.atob) {
+            if (!(window.ActiveXObject) && "ActiveXObject" in window) {
+              return 11; // Supports THREE WebGL
+            } else {
+              return 10; // Supports THREE CanvasRenderer
+            }
+          }
+          return 5;
+        }
+      }
+    }
+    return false;
+  }
+
+  /** 
+   * Test for firefox. The user agent strings are more consistent, so we 
+   * detect versions by the ua.
+   * Compatible:
+   * FF 15+ : CanvasRenderer
+   * @link http://browserhacks.com/
+   * @link https://davidwalsh.name/check-parent-node
+   * @link http://stackoverflow.com/questions/7000190/detect-all-firefox-versions-in-js
+   */
+  tests['firefox'] = function () {
+    if (!('netscape' in window)) {
+      return false;
+    }
+    // TODO: FEATURES REQUIRE TRY...CATCH
+    var ua = navigator.userAgent.toLowerCase();
+    verOffset = ua.indexOf('firefox');
+    if (verOffset !== -1) {
+      x = navigator.userAgent.substring(verOffset+8);
+      return parseInt(x);
+    }
+    return false;
+  };
 
 
-//# sourceMappingURL=webvr-feature-detector.js.map
+  /*
+   * Microloader. Store polyfills to load. Deliberately old-school for maximum browser support.
+   * @link https://css-tricks.com/snippets/javascript/async-script-loader-with-callback/
+   * @link https://www.nczonline.net/blog/2009/07/28/the-best-way-to-load-external-javascript/
+  */
+  function load (batches, callback, progressFn, failFn) {
+    var head = document.getElementsByTagName('head')[0] || document.documentElement,
+    batchLength = 0,
+    batchCount = 0,
+    scriptLength = 0,
+    scriptCount = 0,
+    gScriptCount = 0,
+    scriptsToLoad = 0;
+
+    var err_ = function (s, msg) {
+      console.error('in err_:' + typeof s + ' ' + msg);
+      console.error('in err_ type of s:' + typeof s.nodeType );
+      if (s && s.nodeType) {
+        try {
+          head.removeChild(s);
+        } catch (e) {};
+      }
+      if(failFn) {
+        failFn('error at script #:', batchCount, scriptCount, s);
+        s = null;
+      }
+    };
+
+    var clear_ = function (s) {
+      //clear the event and prevent memory leaks
+      console.log('clearing event:' + typeof s)
+      if (s) {
+      // Progress report.
+        gScriptCount++;
+        progressFn(parseInt(100 * gScriptCount / scriptsToLoad), s.src);
+        console.log('CLEARING:' + s.src)
+        try {
+          head.removeChild(s);
+        } catch (e) {};
+
+        s.onreadystatechange = s.onload = null;
+        s = null;
+      }
+      // Increment script and possibly batch.
+      scriptCount++;
+      if (scriptCount >= scriptLength) {
+        scriptCount = 0; batchCount++;
+        if (batchCount < batchLength) {
+          runScriptBatch(batches[batchCount])
+        } else {
+          console.log('ALL DONE')
+          callback();
+        }
+      }
+    };
+
+    function runScriptBatch (batchScript) {
+      console.log('scriptLength:' + scriptLength)
+      for (var i = 0; i < batchScript.length; i++) {
+        scriptLength = batchScript.length; //NOTE: if done outside for (), incorrect value in old IE.
+        var scr = batchScript[i];
+        if (!scr) {
+          clear_(); //empty script
+          break;
+        }
+        // If we don't need the polyfill, don't load it
+        if (scr.poly === true && self.results[scr.name] === true) {
+          console.log('No polyfill needed:' + scr.name);
+          clear_();
+        } else {
+          console.log('running batchScript:' + scr.name)
+          //scr.script = document.createElement('script');
+          var s = document.createElement('script'); //scr.script;
+          s.type = 'text\/javascript';
+          s.charset = 'utf8';
+          s.async = true;
+          s.src = scr.path;
+          // Old IE version.
+          if (s.onreadystatechange !== undefined) {
+            s.onreadystatechange = function () {
+              console.log('value of scriptLength:' + scriptLength)
+              console.log('IE readyState:' + this.readyState + ' for:' + this.src)
+              if (/loaded|complete/.test(this.readyState)) {
+                  console.log('IE loaded:' + this.src);
+                  //head.insertBefore(s, head.firstChild);
+                  this.onreadystatechange = null;
+                  console.log('scriptCount:' + scriptCount)
+                  clear_(this);
+
+                // IE hack to stop loading
+                var firstState = this.readyState;
+                this.children;
+                if (firstState == 'loaded' && this.readyState == 'loading') {
+                  err_(this, 'error in readyState load for:' + e.srcElement.baseURI);
+                  this.onreadystatechange = null;
+                  clear_(this);
+                  return;
+                }
+              } //loaded or complete
+            }
+          } else if (s.onload !== undefined) {
+            s.onload = function (e) {
+              console.log('loaded:' + this.src);
+              console.log('scriptCount:' + scriptCount)
+              clear_(this);
+              return;
+            }
+            s.onerror = function (e) {
+              err_(e.target, 'error in onload for:' + e.target);
+            }
+          } else {
+            err_(s,'script loading not supported for:' + scr.path, ' type:' + typeof s + ' nodeType:' + typeof s.nodeType);
+          }
+
+        // Add script to document.head.
+        //console.log('self.head is a:' + self.head)
+        //TODO: TEST ON OLD IE FOR COMPLETION.
+        //TODO: may need to use createNode like below
+        //@link http://stackoverflow.com/questions/6946631/dynamically-creating-script-readystate-never-complete
+          head.insertBefore(s, head.firstChild);
+        } //end of batch[i].name test
+      } // end of for () loop
+      //We only go here if there's an empty batch!
+      if(batchScript.length == 0) {
+        failFn('Loader: empty batch [] at index:', batchCount, 0, 0, 'undefined');
+      }
+    }; // end of function
+
+    // Main program. Count scripts to load.
+    console.log('Loader: starting batches:' + batches.length);
+
+    // Scripts is an array of arrays
+    for (var i = 0, len = batches.length; i < len; i++) {
+      for (var j = 0, len2 = batches[i].length; j < len2; j++) {
+        var scr = batches[i][j];
+        if (!scr) {
+          failFn('Loader: missing object (probably trailing comma) for batch index:', i, j, scr);
+          //return false;
+        } else {
+
+        // Make sure the necessary data is present.
+        if (!scr.name || !scr.path || scr.poly === undefined) {
+            if (scr.name) {
+              scr = scr.name;
+            }
+            failFn('Loader: incorrect batch syntax for batch index:', i, j, scr);
+            return false;
+          }
+        if (scr.poly === true) {
+          if (!self.results[scr.name]) {
+            scriptsToLoad++;
+          }
+        } else {
+          scriptsToLoad++;
+        }
+      }
+      }
+    }
+
+    // Set starting length of batches.
+    batchLength = batches.length;
+    // Load scripts
+    runScriptBatch(batches[batchCount]);
+  }; // End of microloader.
+
+  // Redetect after loading complete
+  function reDetect () {
+    for (var i in retests) {
+      console.log('retesting ' + i);
+      if (self.results[i] === undefined) {
+        console.error('error retest ' + i + ' not in original results!');
+      } else if (!self.results[i]) {
+        console.log('checking if polyfill ' + i + ' added functionality to browser');
+        self.results[i] = tests[i]();
+        if (self.results[i]) {
+          console.log('polyfill ' + i + ' added browser functionality');
+        } else {
+          console.error('polyfill ' + i + ' failed to fix browser!');
+        }
+      }
+    }
+  };
+
+  // Detect features. Export so we can re-detect after polyfills are loaded.
+  // tests used by other tests can be pre-computed.
+  function detect() {
+    self.results = {
+      deviceorientation: eventSupport_(window, 'deviceorientation'),
+      devicemotion: eventSupport_(window, 'devicemotion'),
+      load: load,
+      detect: detect,
+      reDetect: reDetect
+    };
+    for (var i in tests) {
+      if (typeof(tests[i]) === 'function') { // this allows us to pre-compute some results.
+        self.results[i] = tests[i]();
+      } else {
+        self.results[i] = tests[i];
+      }
+    };
+    return self.results;
+  }
+
+  // Fire first detection and report results.
+  window.WebVRFeatureDetector = detect();
+
+})(window);
