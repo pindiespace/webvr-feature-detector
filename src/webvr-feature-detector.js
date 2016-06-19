@@ -324,7 +324,7 @@
   };
 
   /*
-   * Test for IE and Edge
+   * Test for IE and Edge versions.
    * @link https://codepen.io/gapcode/pen/vEJNZN
    * @returns if IE or Edge, the version number, else false.
    */
@@ -349,7 +349,31 @@
       return parseInt(ua.substring(x + 5, ua.indexOf('.', x)), 10);
     }
     return false;
-  }
+  };
+
+  /** 
+   * Test for old versions of Gecko/Firefox
+   */
+  tests['ff'] = function () {
+    var ua = window.navigator.userAgent.toLowerCase();
+    if('MozAppearance' in document.documentElement.style) {
+    if (!!navigator.userAgent.match(/firefox/i) {
+      // FF < 13
+      var isFF = !!window.globalStorage;
+      // FF < 1.5
+      // FF 2
+      var isFF = (function x(){})[-6]=='x';
+      // FF 3 (can't handle Promise)
+      // FF 4 (can't handle Promise)
+      // FF 5 (import reserved identifier)
+      var isFF = (function x(){})[-5]=='x';
+      // FF < 9.0
+      if (document.body.compareDocumentPosition) {
+
+      }
+    }
+    return false;
+  };
 
   /*
    * Microloader. Store polyfills to load. Deliberately old-school for maximum browser support.
@@ -371,7 +395,7 @@
       if (s && s.nodeType) {
         try {
           head.removeChild(s);
-        } catch (e) {}
+        } catch (e) {};
       }
       if(failFn) {
         failFn('error at script #:', batchCount, scriptCount, s);
@@ -387,7 +411,10 @@
         gScriptCount++;
         progressFn(parseInt(100 * gScriptCount / scriptsToLoad), s.src);
         console.log("CLEARING:" + s.src)
-        head.removeChild(s);
+        try {
+          head.removeChild(s);
+        } catch (e) {};
+
         s.onreadystatechange = s.onload = null;
         s = null;
       }
