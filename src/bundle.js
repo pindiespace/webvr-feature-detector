@@ -324,66 +324,136 @@
   };
 
   /*
-   * Test for IE and Edge versions.
+   * Test for IE and Edge versions. UA string is so abused that 
+   * we test features to confirm.
+   * IE10 : CanvasRenderer
+   * IE11+: WebGL
    * @link http://tanalin.com/en/articles/ie-version-js/
    * @link https://codepen.io/gapcode/pen/vEJNZN
    * @returns if IE or Edge, the version number, else false.
    */
   tests['ie'] = function () {
     var ua = window.navigator.userAgent.toLowerCase();
-    //alert('IN TEST, document.all:' + document.all + ' compat:' + document.compatMode)
-    if (typeof document.all !== undefined 
-      && !('netscape' in window) 
-      && !window.opera) {
-      alert("IS IE")
-      if (document.compatMode && !window.atob) {
-        alert("OLD IE")
-        if (!!window.XMLHttpRequest) { //ie7 text
-          return 6;
-        } else if (!document.querySelector) {
-          return 7;
-        } else if (!document.addEventListener) {
-          return 8;
+    if (ua.indexOf('msie ') >= 0 || 
+      ua.indexOf('trident') >= 0 || 
+      ua.indexOf('edge/') >= 0) {
+      if (!('netscape' in window) && !window.opera) {
+        // Old browsers that can't run THREE
+        if (document.compatMode && !window.atob) {
+          if (!!window.XMLHttpRequest) { //ie7 text
+            return 6;
+          } else if (!document.querySelector) {
+            return 7;
+          } else if (!document.addEventListener) {
+            return 8;
+          } else {
+            return 9;
+          }
         } else {
-          return 9;
-        }
-      } else {
-        alert("MODERN IE")
           if(!!window.Promise) {
-            //Edge
+            //Edge, implements Promise object
             var x = ua.indexOf('edge/');
             return parseInt(ua.substring(x + 5, ua.indexOf('.', x)), 10);
           } else if (window.atob) {
-          if (!(window.ActiveXObject) && "ActiveXObject" in window) {
-            return 11;
-          } else {
-            return 10;
+            if (!(window.ActiveXObject) && "ActiveXObject" in window) {
+              return 11; // Supports THREE WebGL
+            } else {
+              return 10; // Supports THREE CanvasRenderer
+            }
           }
+          return 5;
         }
-        return 5;
       }
     }
     return false;
   }
 
   /** 
-   * Test for firefox
+   * Test for firefox. The user agent strings are more consistent, so we 
+   * detect versions by the ua.
+   * Compatible:
+   * FF 15+ : CanvasRenderer
    * @link http://browserhacks.com/
    * @link https://davidwalsh.name/check-parent-node
    * @link http://stackoverflow.com/questions/7000190/detect-all-firefox-versions-in-js
    */
   tests['firefox'] = function () {
+    if (!('netscape' in window)) {
+      return false;
+    }
     var ua = navigator.userAgent.toLowerCase();
-    if ('netscape in window' || 
-      'MozAppearance' in document.documentElement.style) {
-      verOffset = ua.indexOf("firefox")
-      if (verOffset !== -1) {
-        x = navigator.userAgent.substring(verOffset+8);
-        return parseInt(x);
-      }
-
-      // Old ff
-
+    verOffset = ua.indexOf('firefox');
+    // Feature test old browsers that can't run THREE
+    if (typeof window.devicePixelRatio === undefined) {
+      try {
+        if (typeof window.alert !== undefined && 
+          typeof window.XPCNativeWrapper === undefined &&
+          typeof window.URL === undefined) {
+            return 1;
+        } else if(typeof window.XPCNativeWrapper !== undefined) {
+            return 1.5
+        } else if (typeof window.globalStorage !== undefined && 
+            typeof window.postMessage === undefined) {
+            return 2;
+        } else if (typeof window.postMessage !== undefined &&
+            typeof document.querySelector === undefined) {
+            return 3;
+        } else if (typeof document.querySelector !== undefined &&
+            typeof window.mozRequestAnimationFrame === undefined) {
+            return 3.5;
+        } else if (typeof window.URL !== undefined &&
+            typeof createdElement.style.MozAnimation === undefined) {
+            return 4;
+        } else if (typeof createdElement.style.MozAnimation !== undefined &&
+            typeof WeakMap === undefined) {
+            return 5;
+        } else if (typeof WeakMap !== undefined &&
+            typeof createdElement.style.textOverflow === undefined) {
+            return 6;
+        } else if (typeof createdElement.style.textOverflow !== undefined &&
+            typeof createdElement.insertAdjacentHTML === undefined) {
+            return 7;
+        } else if (typeof createdElement.insertAdjacentHTML !== undefined &&
+            typeof navigator.doNotTrack === undefined) {
+            return 8;
+        } else if (typeof window.mozIndexedDB !== undefined &&
+            typeof document.mozFullScreenEnabled === undefined) {
+            return 9;
+        } else if (typeof document.mozFullScreenEnabled !== undefined &&
+            typeof window.mozCancelAnimationFrame === undefined &&
+            typeof Reflect === undefined) {
+            return 10;
+        } else if (typeof window.mozCancelAnimationFrame !== undefined &&
+            typeof createdElement.style.MozTextAlignLast === undefined) {
+            return 11;
+        } else if (typeof createdElement.style.MozTextAlignLast !== undefined &&
+            typeof createdElement.style.MozOpacity !== undefined) {
+            return 12;
+        } else if (typeof createdElement.style.MozOpacity === undefined &&
+            typeof window.globalStorage !== undefined) {
+            return 13;
+        } else if (typeof window.globalStorage === undefined &&
+            typeof createdElement.style.borderImage === undefined &&
+            typeof document.querySelector !== undefined) {
+            return 14;
+        } else if (typeof createdElement.style.borderImage !== undefined &&
+            typeof createdElement.style.animation === undefined) {
+            return 15; // First version that works with CanvasRenderer
+        } else if (typeof createdElement.style.animation !== undefined &&
+            typeof createdElement.style.iterator === undefined &&
+            typeof Math.hypot === undefined) {
+            return 16;
+        } else {
+            return 17;
+        }
+      } catch (e) {
+        ;
+      } // end of try...catch
+    } // end of device.pixelRatio test
+    // for new browsers and old browsers with console.config features disabled
+    if (verOffset !== -1) {
+      x = navigator.userAgent.substring(verOffset+8);
+      return parseInt(x);
     }
     return false;
   };
