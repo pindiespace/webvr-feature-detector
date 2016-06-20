@@ -122,11 +122,12 @@ Document.write() is used here for extreme back-compatibility.
 
     /**
      * ===================================
-     * Replace <canvas> with fallback image if not supported
+     * Replace <canvas> with fallback image for browsers that 
+     * can't run THREE v76, or will crash on polyfill loads.
      * ===================================
      */
     if(WebVRFeatureDetector && !WebVRFeatureDetector.canvas ||
-      WebVRFeatureDetector.ie == 9) {
+      WebVRFeatureDetector.ie == 9 || WebVRFeatureDetector.firefox < 15) {
         replaceCanvasWithImage('img/icons/no-vr.gif');
     } else {
 

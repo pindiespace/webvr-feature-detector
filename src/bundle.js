@@ -19,6 +19,7 @@
   var cs, ctx, tests = [], retests = {}; self.results = {};
 
   var names = ['3d', 'webgl', 'experimental-webgl', 'experimental-webgl2', 'moz-webgl'];
+  var ua = navigator.userAgent.toLowerCase();
 
   /*
    * Patches and fixes.
@@ -333,7 +334,6 @@
    * @returns if IE or Edge, the version number, else false.
    */
   tests['ie'] = function () {
-    var ua = window.navigator.userAgent.toLowerCase();
     if (ua.indexOf('msie ') >= 0 || 
       ua.indexOf('trident') >= 0 || 
       ua.indexOf('edge/') >= 0) {
@@ -369,8 +369,8 @@
   }
 
   /** 
-   * Test for firefox. The user agent strings are more consistent, so we 
-   * detect versions by the ua.
+   * Test for firefox. To handle Gecko clones, we feature-detect old browsers, and 
+   * use the user-agent for newer ones able to run THREE.
    * Compatible:
    * FF 15+ : CanvasRenderer
    * @link http://browserhacks.com/
@@ -381,7 +381,6 @@
     if (!('netscape' in window)) {
       return false;
     }
-    var ua = navigator.userAgent.toLowerCase();
     verOffset = ua.indexOf('firefox');
     // Feature test old browsers that can't run THREE
     if (typeof window.devicePixelRatio === undefined) {
@@ -403,10 +402,10 @@
             return 3.5;
         } else if (typeof window.URL !== undefined &&
             typeof createdElement.style.MozAnimation === undefined) {
-            return 4;
+            return 4; // WebGL available.
         } else if (typeof createdElement.style.MozAnimation !== undefined &&
             typeof WeakMap === undefined) {
-            return 5;
+            return 5; // WebGL available CORS textures disabled.
         } else if (typeof WeakMap !== undefined &&
             typeof createdElement.style.textOverflow === undefined) {
             return 6;
@@ -415,7 +414,7 @@
             return 7;
         } else if (typeof createdElement.insertAdjacentHTML !== undefined &&
             typeof navigator.doNotTrack === undefined) {
-            return 8;
+            return 8; // CORS re-enabled for WebGL textures.
         } else if (typeof window.mozIndexedDB !== undefined &&
             typeof document.mozFullScreenEnabled === undefined) {
             return 9;
@@ -458,6 +457,54 @@
     return false;
   };
 
+  /* 
+   * Feature test for chrome. We feature-detect out non-chrome browsers, 
+   * then do some feature-testing for individual versions of chrome. Otherwise, 
+   * trust the user agent string.
+   * Compatible:
+   * Chrome 24+ : CanvasRenderer
+   * @link http://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
+   */
+  tests['chrome'] = function () {
+    // ua wrapper, trap out Edge, which HAS window.chrome === true, also some 
+    // versions of Chrome which return a undefined instead of object.
+    if ((window.chrome !== null && 
+      window.chrome !== undefined && 
+      !ua.indexOf('opr') > -1 && 
+      !ua.indexOf('edge/') > -1) || 
+      ua.match('crios')) {
+      // feature-test chrome candidate.
+        if (window.onhashchange === undefined) {
+          return 4;
+        } else if (typeof window.performance === undefined) {
+          return 5;
+        } else if (('ArrayBuffer' in window) === undefined) {
+          return 6;
+        } else if (window.URL !== undefined && 
+          window.URL.createObjectURL === undefined) {
+          return 7;
+        } else if (window.matchMedia === undefined) {
+          return 8;
+        } else if (window.AudioContext === undefined && 
+          window.webkitAudioContext === undefined) {
+          return 9;
+        } else if (window.crypto === undefined) {
+          return 10;
+        }
+
+////////////
+       if(typeof document['hidden'] === undefined) {
+          // 11, 12, 13 don't have page visiblity API
+       }
+
+////////////
+        if (typeof window.Intl !== undefined ) {
+          return 24;
+        }
+    }
+
+    return false;
+  }
 
   /*
    * Microloader. Store polyfills to load. Deliberately old-school for maximum browser support.
