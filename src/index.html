@@ -15,14 +15,19 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!--CSS styles-->
 <style>
+#ua {
+  width: 100%;
+}
 #results {
   width:100%;
   font-size:1.5em; 
 }
 .results-col {
   width:30%;
+  display:inline; /* old IE */
   display:inline-block;
   vertical-align:top;
+  float:left;
 }
 </style>
 <!--add polyfills that should run in head here-->
@@ -58,13 +63,15 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
           <button id="run-test">(Re)Test</button>
         </form>
         <!--results are listed here-->
-        <p id="results"></p>
+        <div id="results"></div>
+        <div style="clear:both;"></div>
             <script>
             var count = 0; // number of features
             var MAX_COL = 20;
             var results = document.getElementById('results');
             var resultList = ''; // holds <ul> result columnx to MAX_COL
 
+            // Feature printout functions.
             function toStr (val) {
                 if (val === true) return 'true';
                 else if (val === false) return 'false';
@@ -114,20 +121,29 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
               return list;
             }
 
-
           function detect (list) {
             if(results && WebVRFeatureDetector) {
               return '<ul class="results-col">' + dumpProps(WebVRFeatureDetector, resultsList) + '</ul>';
             } else {
-                console.log('WebVRFeatureDetecor did not run correctly');
-                document.write('WebVRFeatureDetector did not run correctly');
+              if(window.console) {
+                console.log('WebVRFeatureDetector member readout did not run correctly');
+              } else {
+                document.write('WebVRFeatureDetector member readout did not run correctly');
+              }
             }
           }
           var resultsList = '';
           resultsList = detect(resultsList);
 
           // Appending the HTML to a dynamically-created element makes this work in old IE
-          var t = document.createElement('div');
+
+          // User-agent.
+          var s = document.createElement('div');
+          s.id = 'ua';
+          s.innerHTML = 'Agent:' + navigator.userAgent;
+          results.appendChild(s);
+          // Results.
+          t = document.createElement('div');
           t.innerHTML = resultsList;
           results.appendChild(t);
 

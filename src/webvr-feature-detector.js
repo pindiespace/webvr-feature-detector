@@ -25,7 +25,7 @@
    * @link https://jsfiddle.net/9atsffau/
    * @link http://www.opentechguides.com/how-to/article/javascript/99/browser-detect.html
    */
-  var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false;
+  var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false, verReg = new RegExp('[0-9]+');
 
   // Opera 8.0+
   var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || ua.indexOf(' opr/') >= 0;
@@ -61,6 +61,14 @@
     if (!con.error) con.error = function (val) {}; // debug with alert(val)
   })(window.console = window.console || {});
 
+  function getVer (str) {
+    var result = verReg.exec(str);
+    if (result && result[0]) {
+      return parseInt(result[0]);
+    }
+    return false;
+  }
+
   /*
    * Feature detection.
    *
@@ -85,7 +93,7 @@
         .match(/-(moz|webkit|ms|o|xv)-/) || ['',''])[1]; // Default to nothing.
       return {
           js: pre,
-          css: '-' + pre + '-',
+          css: '-' + pre + '-'
         };
     }
   };
@@ -357,7 +365,7 @@
     // Fallback for new browsers with undefined feature-testing
     verOffset = ua.indexOf('edge/')
     if (verOffset !== -1) {
-      return parseInt(navigator.userAgent.substring(verOffset+8));
+      return getVer(ua.substring(verOffset+8));
     }
     return false;
   };
@@ -478,7 +486,7 @@
     // fallback for new browsers, and old browsers with console.config features disabled
     verOffset = ua.indexOf('firefox');
     if (verOffset !== -1) {
-      return parseInt(navigator.userAgent.substring(verOffset+8));
+      return getVer(navigator.userAgent.substring(verOffset+8));
     }
     return false;
   };
@@ -490,6 +498,7 @@
    * Compatible:
    * Chrome 24+ : CanvasRenderer
    * @link http://browsershots.org/
+   * @link http://oldversion.com
    * @link http://browserstack.com
    * @link http://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
    */
@@ -498,7 +507,7 @@
       // get a version from the user-agent first, since some versions, don't have differentiating features.
       verOffset = ua.indexOf('chrome/');
       if (verOffset !== -1) {
-        ver = parseInt(navigator.userAgent.substring(verOffset+7));
+        ver = getVer(ua.substring(verOffset+7));
       }
       // feature-test Chrome candidate, fallback to user-agent if fails
       try {
@@ -525,7 +534,7 @@
         //} 
         else if (window.webkitAudioContext) {
           var a = document.createElement('audio');
-          var playMsg = myAudio.canPlayType('audio/mpeg');
+          var playMsg = a.canPlayType('audio/mpeg');
           if (playMsg == '') {
             a = null;
             return 11;
@@ -583,14 +592,14 @@
     // detect version in old and new versions
      verOffset = ua.indexOf('opr/');
       if (verOffset !== -1) {
-        ver = parseInt(ua.substring(verOffset+6));
+        ver = getVer(ua.substring(verOffset+4));
       } else {
         if (window.opera && window.opera.version) { // ask old Opera its version
           return parseInt(window.opera.version());
         }
         verOffset = ua.indexOf('opera/'); // fallback to ua-sniffing
         if(verOffset !== -1) {
-          ver = parseInt(ua.substring(verOffset+7));
+          ver = getVer(ua.substring(verOffset+6));
         }
       }
     // Feature-detect
@@ -654,7 +663,7 @@
     }
      verOffset = ua.indexOf('safari/');
       if (verOffset !== -1) {
-        return parseInt(ua.substring(verOffset+7));
+        return getVer(ua.substring(verOffset+7));
      }
      return false;
   }
@@ -773,11 +782,6 @@
             err_(s,'script loading not supported for:' + scr.path, ' type:' + typeof s + ' nodeType:' + typeof s.nodeType);
           }
 
-        // Add script to document.head.
-        //console.log('self.head is a:' + self.head)
-        //TODO: TEST ON OLD IE FOR COMPLETION.
-        //TODO: may need to use createNode like below
-        //@link http://stackoverflow.com/questions/6946631/dynamically-creating-script-readystate-never-complete
           head.insertBefore(s, head.firstChild);
         } //end of batch[i].name test
       } // end of for () loop
