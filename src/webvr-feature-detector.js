@@ -489,7 +489,6 @@
    * trust the user agent string.
    * Compatible:
    * Chrome 24+ : CanvasRenderer
-   * @link http://www.browserscope.org/
    * @link https://developer.chrome.com/apps/api_index
    * @link https://developer.chrome.com/extensions/whats_new
    * @link http://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
@@ -520,46 +519,51 @@
             return 9;
         } else if (!window.crypto) { // crypto undefined
             return 10;
-        } else if (!window.webkitAudioContext) {
-            var a = document.createElement('audio');
-            if (!a.canPlayType('audio/mp4; codecs="mp4a.40.5"')) {
-              a = null;
-              return 11;
-            }
+        }
+        //} else if (!window.webkitSpeechRecognition) {
+        //    return 11;
+        //} 
+        else if (window.webkitAudioContext) {
+          var a = document.createElement('audio');
+          var playMsg = myAudio.canPlayType('audio/mpeg');
+          if (playMsg == '') {
             a = null;
+            return 11;
           }
-        } else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
+          a = null;
+        }
+        else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
             return 12;
         } else if (!window.CustomEvent && 
             typeof document['hidden'] === undefined) { // Page visibility enabled in 14
             return 13;
         } else if(!window.CustomEvent && 
           !document.documentElement.scrollIntoViewIfNeeded) { //scrollIntoView enabled in 15
-          return 14;
+            return 14;
         } else if (document.documentElement.webkitRequestFullScreen && 
           !window.CustomEvent) { //CustomEvent re-enabled in 15
-          return 15;
+            return 15;
         } else if (ver === 16) { //No undefined test, WebSockets goes from partial to full
-          return 16;
+            return 16;
         } else if (!window.MutationObserver) { //MutationObserver undefined
-          return 17;
+            return 17;
         } else if (window.MutationObserver && 
           !(window.performance && window.performance.now)) { //No undefined test, MutationObserver enabled
-          return 18;
+            return 18;
         } else if (!(window.performance && window.performance.now)) { //High-Resolution timeAPI disabled
-          return 19;
+            return 19;
         } else if (!navigator.getGamepads) { //, no gamePads, High-Resolution time API enabled
-          return 20;
+            return 20;
         } else if (!document.documentElement.requestPointerLock) { //no pointerLock, GamePad API enabled
-          return 21;
+            return 21;
         } else if (!window.Intl && 
           document.documentElement.requestPointerLock) { //no undefined test, PointerLock API enabled
-          return 22;
+            return 22;
         } else if (!window.Intl && 
           document.implementation.hasFeature('org.w3c.dom.mathml', '2.0') === false) { //intl enabled, Media Source extensions disabled
-          return 23;
+            return 23;
         } else if (!window.performance.mark) { //Media source entensions enabled
-          return 24;
+            return 24;
         }
       } catch (e) {
         console.error('chrome feature test failed:' + e)
@@ -579,7 +583,7 @@
     // detect version in old and new versions
      verOffset = ua.indexOf('opr/');
       if (verOffset !== -1) {
-        ver = parseInt(ua.substring(verOffset+4));
+        ver = parseInt(ua.substring(verOffset+6));
       } else {
         if (window.opera && window.opera.version) { // ask old Opera its version
           return parseInt(window.opera.version());
