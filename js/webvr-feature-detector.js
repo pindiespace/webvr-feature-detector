@@ -489,6 +489,7 @@
    * trust the user agent string.
    * Compatible:
    * Chrome 24+ : CanvasRenderer
+   * @link http://www.browserscope.org/
    * @link https://developer.chrome.com/apps/api_index
    * @link https://developer.chrome.com/extensions/whats_new
    * @link http://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
@@ -519,8 +520,14 @@
             return 9;
         } else if (!window.crypto) { // crypto undefined
             return 10;
-        } else if (!window.webkitSpeechRecognition) {
-            return 11;
+        } else if (!window.webkitAudioContext) {
+            var a = document.createElement('audio');
+            if (!a.canPlayType('audio/mp4; codecs="mp4a.40.5"')) {
+              a = null;
+              return 11;
+            }
+            a = null;
+          }
         } else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
             return 12;
         } else if (!window.CustomEvent && 
