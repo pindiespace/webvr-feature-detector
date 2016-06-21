@@ -489,8 +489,8 @@
    * trust the user agent string.
    * Compatible:
    * Chrome 24+ : CanvasRenderer
-   * @link https://developer.chrome.com/apps/api_index
-   * @link https://developer.chrome.com/extensions/whats_new
+   * @link http://browsershots.org/
+   * @link http://browserstack.com
    * @link http://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
    */
   tests['chrome'] = function () {
