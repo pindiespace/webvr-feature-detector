@@ -101,16 +101,15 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
                   if (typeof o != 'function') {
                     if (typeof o == 'object') {
                       ////////console.log('adding object:' + i)
+                      if (i != 'vendorPrefix') {
+                        list += '</ul><ul class="results-col">'; // new column
+                      }
                       list += '<li>' + '<span>' + i + '</span>:<ul>';
                       list = dumpProps(o, list);
                       list += '</ul>';
                     } else {
                       ///////console.log('adding string:' + i)
                       count++;
-                      if (count > MAX_COL) {
-                        list += '</ul><ul class="results-col">'; // new column
-                        count = 0;
-                      }
                       var prop = toStr(o);
                       list += '<li>' + '<em ' + styleStr(o) +'>' + i + '</em>:' + prop;
                     }
@@ -146,7 +145,6 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
           t = document.createElement('div');
           t.innerHTML = resultsList;
           results.appendChild(t);
-
           // Attach retest event handler
           var runTest = document.getElementById('run-test');
           runTest.onclick = detect;
