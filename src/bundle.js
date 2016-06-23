@@ -53,13 +53,17 @@
     // At least Safari 3+: "[object HTMLElementConstructor]"
     safari: Object.prototype.toString.call(win.HTMLElement).indexOf('Constructor') > 0,
     // Internet Explorer 6-11
-    ie: /*@cc_on!@*/false || !!document.documentMode,
+    ie: /*@cc_on!@*/false || !!document.documentMode
     // Chrome 1+
-    chrome: !!win.chrome && !!win.chrome.webstore || ua.match('crios') || false
   };
   // Blink engine detection
   //blink: (isChrome || isOpera) && !!win.CSS
-  browser.edge = !browser.ie && !!win.Geolocation || !browser.chrome && !browser.firefox && !browser.opera && !!win.styleMedia && !!win.Promise;
+  browser.chrome = !browser.opera && (!!win.chrome && !win.Geolocation) || !!(win.chrome && win.chrome.webstore) || ua.match('crios') || false;
+  browser.edge = !browser.ie && !!win.Geolocation && !browser.chrome && !browser.firefox && !browser.opera && !!win.styleMedia && !!win.Promise;
+  browser.mobileSafari = false; //detect later
+  browser.mobileChrome = false;
+  browser.samsung = false; //impt for GearVR
+  browser.mobileFirefox
 
   /* 
    * Look for the browser version number in a user-agent string. 
@@ -106,12 +110,358 @@
 
   platform.console = platform.xbox || platform.wii || platform.playstation || false,
   platform.tv = /(google|apple|smart|hbb|opera|pov|net).*tv|(lg|aquos|inettv).*browser|(roku|kylo|aquos|viera|espial|boxee|dlnadoc|crkey|ce-html)/.test(ua) || false,
-  platform.mobile = !platform.tablet && !platform.tv && (os.ios || os.android || os.silk || os.sailfish || os.tizen || os.webos || /[^-]mobi/i.test(ua)) > -1 || false,
+  platform.mobile = !platform.tablet && !platform.tv && !(os.ios || os.android || os.silk || os.sailfish || os.tizen || os.webos || /[^-]mobi/i.test(ua) > -1) || false,
   platform.desktop = !platform.mobile && !platform.tablet && !platform.console && !platform.tv;
 
   // Test for features here that other feature tests depend on, to ensure they work.
   var createElement = !!document.createElement;
   var canvas = !!win.CanvasRenderingContext2D;
+
+  /* 
+   * Detect browsers by features (not user-agent)
+   *
+   * Test for Edge versions. All work with WeGL, 
+   * THREE v77 and WebVR-polyfill
+   */
+    if (browser.edge)  {
+      browser.edge = (function () {
+        if (!document.documentElement.requestPointerLock) {
+          return 12;
+        } else if (!navigator.sendBeacon) {
+          return 13;
+        }
+        // Fallback for new browsers with undefined feature-testing
+        verOffset = ua.indexOf('edge/')
+        if (verOffset !== -1) {
+          return getVer(ua.substring(verOffset+8));
+        }
+        return false;
+      })();
+    }
+
+  /*
+   * Test for IE versions. UA string is so abused that 
+   * we test features to confirm.
+   * IE10 : CanvasRenderer
+   * IE11+: WebGL
+   * @link http://tanalin.com/en/articles/ie-version-js/
+   * @link https://codepen.io/gapcode/pen/vEJNZN
+   * @returns if IE or Edge, the version number, else false.
+   */
+  if (browser.ie) {
+    browser.ie = (function () {
+    // Feature-test IE candidate, fallback to user-agent if fails.
+    if (document.compatMode && !win.atob) {
+      if (!win.XMLHttpRequest) { //ie7 test, only works in 'real' IE6
+        return 6;
+      } else if (!document.querySelector) {
+        return 7;
+      } else if (!document.addEventListener) {
+        return 8;
+      } else {
+        return 9;
+      }
+    } else { // Modern.IE
+      if(!win.Promise && win.atob) {
+        if (!(win.ActiveXObject) && "ActiveXObject" in win) {
+          return 11; // Supports THREE WebGL
+        } else {
+          return 10; // Supports THREE CanvasRenderer
+        }
+      }
+      return 5;
+    }
+    return false;
+    })();
+  }
+
+  /** 
+   * Test for firefox. To handle Gecko clones, we feature-detect old browsers, and 
+   * use the user-agent for newer ones able to run THREE.
+   * Compatible:
+   * FF 15+ : CanvasRenderer
+   * @link http://browserhacks.com/
+   * @link https://davidwalsh.name/check-parent-node
+   * @link http://stackoverflow.com/questions/7000190/detect-all-firefox-versions-in-js
+   */
+  if (browser.firefox) {
+    browser.firefox = (function () {
+    // Feature-test Firefox candidate, fallback to user-agent if fails.
+    if (typeof win.devicePixelRatio === undefined) {
+      try {
+        if (win.alert && !win.XPCNativeWrapper && !win.URL) {
+            return 1;
+        } else if(win.XPCNativeWrapper) {
+            return 1.5
+        } else if (win.globalStorage && !win.postMessage) {
+            return 2;
+        } else if (!document.querySelector) {
+            return 3;
+        } else if (!win.mozRequestAnimationFrame) {
+            return 3.5;
+        } else if (win.URL && !createdElement.style.MozAnimation) {
+            return 4; // WebGL available.
+        } else if (!typeof WeakMap) {
+            return 5; // WebGL available CORS textures disabled.
+        } else if (!createdElement.style.textOverflow) {
+            return 6;
+        } else if (!createdElement.insertAdjacentHTML) {
+            return 7;
+        } else if (!navigator.doNotTrack) {
+            return 8; // CORS re-enabled for WebGL textures.
+        } else if (win.mozIndexedDB &&
+            !document.mozFullScreenEnabled) {
+            return 9;
+        } else if (
+            !win.mozCancelAnimationFrame && !Reflect === undefined) {
+            return 10;
+        } else if (!createdElement.style.MozTextAlignLast) {
+            return 11;
+        } else if (!createdElement.style.MozOpacity) {
+            return 12;
+        } else if (!createdElement.style.MozOpacity &&
+            win.globalStorage) {
+            return 13;
+        } else if (!win.globalStorage && !createdElement.style.borderImage) {
+            return 14;
+        } else if (!createdElement.style.animation) {
+            return 15; // First version that works with CanvasRenderer
+        } else if (
+            !createdElement.style.iterator && !Math.hypot) {
+            return 16;
+        } else {
+            return 17; // last version with device.pixelRatio
+        }
+      } catch (e) {
+        ;
+      } // end of try...catch
+    } // end of device.pixelRatio test
+
+    // fallback for new browsers, and old browsers with console.config features disabled
+    verOffset = ua.indexOf('firefox');
+    if (verOffset !== -1) {
+      return getVer(navigator.userAgent.substring(verOffset+8));
+    }
+    return false;
+    })();
+  }
+
+  //TODO: research Firefox mobile https://en.wikipedia.org/wiki/Firefox_for_mobile
+  //TODO: https://html5test.com/compare/browser/android.samsung-3.0/nintendowiiu-4/xboxone-10.0/firefoxmobile-40.html
+  
+  /* 
+   * Feature test for Google Chrome. We feature-detect out non-chrome browsers, 
+   * then do some feature-testing for individual versions of chrome. Otherwise, 
+   * trust the user agent string.
+   * Compatible:
+   * Chrome 24+ : CanvasRenderer
+   * @link http://browsershots.org/
+   * @link http://oldversion.com
+   * @link http://browserstack.com
+   * @link http://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
+   */
+  if (browser.chrome) {
+    browser.chrome = (function () {
+      // get a version from the user-agent first, since some versions, don't have differentiating features.
+      verOffset = ua.indexOf('chrome/');
+      if (verOffset !== -1) {
+        ver = getVer(ua.substring(verOffset+7));
+      }
+      // Feature-test Chrome candidate, fallback to user-agent if fails.
+      try {
+        if (!('onhashchange' in win)) {
+            return 4;
+        } else if (win.EventSource === undefined) { //server-sent events undefined
+            return 5;
+        } else if (!win.ArrayBuffer) { //typed arrays undefined
+            return 6;
+        } else if (win.URL && 
+          !win.URL.createObjectURL) { // .createObjectURL undefined
+            return 7;
+        } else if (!win.matchMedia) { // .matchMedia undefined
+            return 8;
+        } else if (!win.webkitAudioContext) { // html5 audio undefined
+            return 9; //Note: CRASHES if trying to get WebGL context!
+        } else if (win.crypto && !win.crypto.getRandomValues) { // crypto undefined
+            return 10;
+        } else if (!win.webkitSpeechRecognition) {
+            return 11;
+        } 
+        else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
+            return 12;
+        } else if (!win.CustomEvent && 
+            typeof document['hidden'] === undefined) { // Page visibility enabled in 14
+            return 13;
+        } else if(!win.CustomEvent && 
+          !document.documentElement.scrollIntoViewIfNeeded) { //scrollIntoView enabled in 15
+            return 14;
+        } else if (document.documentElement.webkitRequestFullScreen && 
+          !win.CustomEvent) { //CustomEvent re-enabled in 15
+            return 15;
+        } else if (ver === 16) { //No undefined test, WebSockets goes from partial to full
+            return 16;
+        } else if (!win.MutationObserver) { //MutationObserver undefined
+            return 17;
+        } else if (win.MutationObserver && 
+          !(win.performance && win.performance.now)) { //No undefined test, MutationObserver enabled
+            return 18; // First version with valid WebGL
+        } else if (!(win.performance && win.performance.now)) { //High-Resolution timeAPI disabled
+            return 19;
+        } else if (!navigator.getGamepads) { //, no gamePads, High-Resolution time API enabled
+            return 20;
+        } else if (!document.documentElement.requestPointerLock) { //no pointerLock, GamePad API enabled
+            return 21;
+        } else if (!win.Intl && 
+          document.documentElement.requestPointerLock) { //no undefined test, PointerLock API enabled
+            return 22;
+        } else if (!win.Intl && 
+          document.implementation.hasFeature('org.w3c.dom.mathml', '2.0') === false) { //intl enabled, Media Source extensions disabled
+            return 23;
+        } else if (!win.performance.mark) { //Media source entensions enabled
+            return 24;
+        }
+      } catch (e) {
+        
+      }
+
+      // If we didn't feature detect, return guess based on user-agent
+      return ver;
+
+    return false; // not Chrome
+    })();
+  }
+
+  // TODO: Research chrome mobile
+
+  /* 
+   * Test for Opera versions (webkit) that work with WebGL
+   */
+  if (browser.opera) {
+    browser.opera = (function() {
+    // Detect version in old and new versions.
+    verOffset = ua.indexOf('opr/');
+    if (verOffset !== -1) {
+      ver = getVer(ua.substring(verOffset+4));
+    } else {
+      if (win.opera && win.opera.version) { // ask old Opera its version
+        return parseInt(win.opera.version());
+      }
+      verOffset = ua.indexOf('opera/'); // fallback to ua-sniffing
+      if(verOffset !== -1) {
+        ver = getVer(ua.substring(verOffset+6));
+      }
+    }
+    // Feature-test Opera candidate, fallback to user-agent if fails.
+    try {
+      if (!win.JSON) {
+          return 10;
+      } else if (!win.ArrayBuffer) { //typed arrays undefined
+          return 11;
+      } else if (!win.MutationObserver || (win.CSS && !win.CSS.supports)) { //MutationObserver undefined
+          return 12;
+      } else if (!navigator.geolocation) { // Enabled in 11-12, disabled 15, re-enabled 16
+          return 15;
+      } else if (!win.navigator.vibrate) {
+          return 16;
+      } else if (!win.webkitRTCPeerConnection) {
+          return 17;
+      } else if (!win.CustomEvent && !win.Promise) {
+        return 18;
+      } else if (!win.CustomEvent) {
+        return 19;
+      } else if (!document.documentElement.matches) {
+        return 20; // webkitmatches only
+      } else if (ver === 21) {
+        return 21;
+      } else if (ver === 22) {
+        return 22;
+      } else if (!navigator.getGamepads) {
+        return 23;
+      }
+    } catch (e) {
+      ;
+    }
+
+    // Fallthrough if not feature-detected.
+    if (ver !== -1) {
+      return ver;
+    }
+    return false;
+    })();
+  }
+
+  /* 
+   * Test for Apple Safari, esp. mobile iOS versions. 
+   * VASTLY more accurate than trying to sniff webkit version 
+   * in the user-agent.
+   */
+  if (browser.safari) {
+    browser.safari = (function () {
+    verOffset = ua.indexOf('safari/');
+    // Feature-test Safari candidate, fallback to user-agent if fails.
+    try {
+      if (!document.documentElement.insertAdjacentHTML) {
+          return 3.1;
+        } else if (!navigator.geolocation) {
+          return 4;
+        } else if (!window.matchMedia) {
+          return 5;
+        } else if (!win.MutationObserver) {
+          return 5.1;
+        } else if (!document['hidden']) {
+          return 6;
+        } else if (!win.SpeechSynthesisUtterance) {
+          return 6.1;
+        } else if (!win.crypto) {
+          return 7;
+        } else if (!win.performance.timing) {
+          return 7.1;
+        } else if (!document.documentElement.closest || !(win.CSS && win.CSS.supports)) {
+          return 8;
+        } else if (!window.CSS.supports('--fake-var', 0)) {
+          return 9;
+        } else if (!window.Intl) {
+          return 9.1
+        } else if (!document.documentElement.createShadowRoot) {
+          return 10;
+        }
+      } catch (e) {
+        ;
+      }
+      if (verOffset !== -1) {
+        return getVer(ua.substring(verOffset+7));
+      }
+      return false;
+    })();
+  }
+
+  /* 
+   * Mobile safari has a different featureset
+   */
+  if (browser.safari && platform.iOS) {
+    browser.mobileSafari = (function () {
+      verOffset = ua.indexOf('safari/');
+      try {
+        if (!win.JSON) {
+          return 3.2;
+        } else if (!win.ArrayBuffer) {
+          return 4.1;
+        } else if (!win.matchMedia) {
+          return 4.3;
+        } else if (!win.FileReader) {
+          return 5.1;
+        } else if(!win.crypto) {
+          return 6.1;
+        }
+      } catch (e) {
+        ;
+      }
+      if (verOffset !== -1) {
+        return getVer(ua.substring(verOffset+7));
+      }
+      return false;
+    })();
+  }
 
   /*
    * Environment Feature detection.
@@ -190,6 +540,7 @@
       if (!win.WebGLRenderingContext) {
         return false;
       }
+      var verOffset = ua.indexOf('chrome');
       //Flag for Google Chrome 9, which crashes if you try to access a 3d context.
       if (browser.chrome && getVer(ua.substring(verOffset+7)) < 18) {
         return false;
@@ -401,332 +752,32 @@
   };
 
   /* 
-   * Test for browser, os, platform
+   * Test if the device is mobile
    */
   tests['mobile'] = function () {
     return (platform.mobile || platform.tablet);
   };
 
+  /* 
+   * Browser types and versions
+   */
   tests['browser'] = function () {
     return browser;
   };
 
+  /* 
+   * Operating system.
+   */
   tests['os'] = function () {
     return os;
   };
 
+  /* 
+   * Hardware form-factor (e.g. mobile vs TV)
+   */
   tests['platform'] = function () {
     return platform;
   }
-
-  /* 
-   * Test for Edge versions. All work with WeGL, 
-   * THREE v77 and WebVR-polyfill
-   */
-    if (browser.edge)  {
-      browser.edge = (function () {
-        if (!document.documentElement.requestPointerLock) {
-          return 12;
-        } else if (!navigator.sendBeacon) {
-          return 13;
-        }
-        // Fallback for new browsers with undefined feature-testing
-        verOffset = ua.indexOf('edge/')
-        if (verOffset !== -1) {
-          return getVer(ua.substring(verOffset+8));
-        }
-        return false;
-      })();
-    }
-
-  /*
-   * Test for IE versions. UA string is so abused that 
-   * we test features to confirm.
-   * IE10 : CanvasRenderer
-   * IE11+: WebGL
-   * @link http://tanalin.com/en/articles/ie-version-js/
-   * @link https://codepen.io/gapcode/pen/vEJNZN
-   * @returns if IE or Edge, the version number, else false.
-   */
-  if (browser.ie) {
-    browser.ie = (function () {
-      if (document.compatMode && !win.atob) {
-      if (!win.XMLHttpRequest) { //ie7 test, only works in 'real' IE6
-        return 6;
-      } else if (!document.querySelector) {
-        return 7;
-      } else if (!document.addEventListener) {
-        return 8;
-      } else {
-        return 9;
-      }
-    } else {
-      if(!win.Promise && win.atob) {
-        if (!(win.ActiveXObject) && "ActiveXObject" in win) {
-          return 11; // Supports THREE WebGL
-        } else {
-          return 10; // Supports THREE CanvasRenderer
-        }
-      }
-      return 5;
-    }
-    return false;
-    })();
-  }
-
-  /** 
-   * Test for firefox. To handle Gecko clones, we feature-detect old browsers, and 
-   * use the user-agent for newer ones able to run THREE.
-   * Compatible:
-   * FF 15+ : CanvasRenderer
-   * @link http://browserhacks.com/
-   * @link https://davidwalsh.name/check-parent-node
-   * @link http://stackoverflow.com/questions/7000190/detect-all-firefox-versions-in-js
-   */
-  if (browser.firefox) {
-    browser.firefox = (function () {
-    // Feature test old browsers that can't run THREE
-    if (typeof win.devicePixelRatio === undefined) {
-      try {
-        if (win.alert && !win.XPCNativeWrapper && !win.URL) {
-            return 1;
-        } else if(win.XPCNativeWrapper) {
-            return 1.5
-        } else if (win.globalStorage && !win.postMessage) {
-            return 2;
-        } else if (!document.querySelector) {
-            return 3;
-        } else if (!win.mozRequestAnimationFrame) {
-            return 3.5;
-        } else if (win.URL && !createdElement.style.MozAnimation) {
-            return 4; // WebGL available.
-        } else if (!typeof WeakMap) {
-            return 5; // WebGL available CORS textures disabled.
-        } else if (!createdElement.style.textOverflow) {
-            return 6;
-        } else if (!createdElement.insertAdjacentHTML) {
-            return 7;
-        } else if (!navigator.doNotTrack) {
-            return 8; // CORS re-enabled for WebGL textures.
-        } else if (win.mozIndexedDB &&
-            !document.mozFullScreenEnabled) {
-            return 9;
-        } else if (
-            !win.mozCancelAnimationFrame && !Reflect === undefined) {
-            return 10;
-        } else if (!createdElement.style.MozTextAlignLast) {
-            return 11;
-        } else if (!createdElement.style.MozOpacity) {
-            return 12;
-        } else if (!createdElement.style.MozOpacity &&
-            win.globalStorage) {
-            return 13;
-        } else if (!win.globalStorage && !createdElement.style.borderImage) {
-            return 14;
-        } else if (!createdElement.style.animation) {
-            return 15; // First version that works with CanvasRenderer
-        } else if (
-            !createdElement.style.iterator && !Math.hypot) {
-            return 16;
-        } else {
-            return 17; // last version with device.pixelRatio
-        }
-      } catch (e) {
-        ;
-      } // end of try...catch
-    } // end of device.pixelRatio test
-    // fallback for new browsers, and old browsers with console.config features disabled
-    verOffset = ua.indexOf('firefox');
-    if (verOffset !== -1) {
-      return getVer(navigator.userAgent.substring(verOffset+8));
-    }
-    return false;
-    })();
-  }
-
-  /* 
-   * Feature test for chrome. We feature-detect out non-chrome browsers, 
-   * then do some feature-testing for individual versions of chrome. Otherwise, 
-   * trust the user agent string.
-   * Compatible:
-   * Chrome 24+ : CanvasRenderer
-   * @link http://browsershots.org/
-   * @link http://oldversion.com
-   * @link http://browserstack.com
-   * @link http://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
-   */
-  if (browser.chrome) {
-    browser.chrome = (function () {
-      // get a version from the user-agent first, since some versions, don't have differentiating features.
-      verOffset = ua.indexOf('chrome/');
-      if (verOffset !== -1) {
-        ver = getVer(ua.substring(verOffset+7));
-      }
-      // feature-test Chrome candidate, fallback to user-agent if fails
-      try {
-        if (!('onhashchange' in win)) {
-            return 4;
-        } else if (win.EventSource === undefined) { //server-sent events undefined
-            return 5;
-        } else if (!win.ArrayBuffer) { //typed arrays undefined
-            return 6;
-        } else if (win.URL && 
-          !win.URL.createObjectURL) { // .createObjectURL undefined
-            return 7;
-        } else if (!win.matchMedia) { // .matchMedia undefined
-            return 8;
-        } else if (!win.webkitAudioContext) { // html5 audio undefined
-            return 9; //Note: CRASHES if trying to get WebGL context!
-        } else if (win.crypto && !win.crypto.getRandomValues) { // crypto undefined
-            return 10;
-        } else if (!win.webkitSpeechRecognition) {
-            return 11;
-        } 
-        /*
-        else if (win.webkitAudioContext) {
-          var a = document.createElement('audio');
-          var playMsg = a.canPlayType('audio/mpeg');
-          if (playMsg == '') {
-            a = null;
-            return 11;
-          }
-          a = null;
-        }
-        */
-        else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
-            return 12;
-        } else if (!win.CustomEvent && 
-            typeof document['hidden'] === undefined) { // Page visibility enabled in 14
-            return 13;
-        } else if(!win.CustomEvent && 
-          !document.documentElement.scrollIntoViewIfNeeded) { //scrollIntoView enabled in 15
-            return 14;
-        } else if (document.documentElement.webkitRequestFullScreen && 
-          !win.CustomEvent) { //CustomEvent re-enabled in 15
-            return 15;
-        } else if (ver === 16) { //No undefined test, WebSockets goes from partial to full
-            return 16;
-        } else if (!win.MutationObserver) { //MutationObserver undefined
-            return 17;
-        } else if (win.MutationObserver && 
-          !(win.performance && win.performance.now)) { //No undefined test, MutationObserver enabled
-            return 18; // First version with valid WebGL
-        } else if (!(win.performance && win.performance.now)) { //High-Resolution timeAPI disabled
-            return 19;
-        } else if (!navigator.getGamepads) { //, no gamePads, High-Resolution time API enabled
-            return 20;
-        } else if (!document.documentElement.requestPointerLock) { //no pointerLock, GamePad API enabled
-            return 21;
-        } else if (!win.Intl && 
-          document.documentElement.requestPointerLock) { //no undefined test, PointerLock API enabled
-            return 22;
-        } else if (!win.Intl && 
-          document.implementation.hasFeature('org.w3c.dom.mathml', '2.0') === false) { //intl enabled, Media Source extensions disabled
-            return 23;
-        } else if (!win.performance.mark) { //Media source entensions enabled
-            return 24;
-        }
-      } catch (e) {
-        
-      }
-
-      // If we didn't feature detect, return guess based on user-agent
-      return ver;
-
-    return false; // not Chrome
-    })();
-  }
-
-
-  /* 
-   * Test for Opera versions (webkit) that work with WebGL
-   */
-  if (browser.opera) {
-    browser.opera = (function() {
-    // detect version in old and new versions
-     verOffset = ua.indexOf('opr/');
-      if (verOffset !== -1) {
-        ver = getVer(ua.substring(verOffset+4));
-      } else {
-        if (win.opera && win.opera.version) { // ask old Opera its version
-          return parseInt(win.opera.version());
-        }
-        verOffset = ua.indexOf('opera/'); // fallback to ua-sniffing
-        if(verOffset !== -1) {
-          ver = getVer(ua.substring(verOffset+6));
-        }
-      }
-    // Feature-detect
-    try {
-      if (!win.JSON) {
-          return 10;
-      } else if (!win.ArrayBuffer) { //typed arrays undefined
-          return 11;
-      } else if (!win.MutationObserver) { //MutationObserver undefined
-          return 12;
-      } else if (!navigator.geolocation) { // Enabled in 11-12, disabled 15, re-enabled 16
-          return 15;
-      } else if (!win.navigator.vibrate) {
-          return 16;
-      } else if (!win.webkitRTCPeerConnection) {
-          return 17;
-      } else if (!win.CustomEvent && !win.Promise) {
-        return 18;
-      } else if (!win.CustomEvent) {
-        return 19;
-      } else if (!document.documentElement.matches) {
-        return 20; // webkitmatches only
-      } else if (ver === 21) {
-        return 21;
-      } else if (ver === 22) {
-        return 22;
-      } else if (!navigator.getGamepads) {
-        return 23;
-      }
-    } catch (e) {
-      ;
-    }
-
-    if (ver !== -1) {
-      return ver;
-    }
-    return false;
-    })();
-  }
-
-  /* 
-   * Test for Apple Safari, esp. mobile iOS versions. 
-   * VASTLY more accurate than trying to sniff webkit version 
-   * in the user-agent.
-   */
-  if (browser.safari) {
-    browser.safari = (function () {
-    if (!browser.safari) return false;
-    try {
-      if (!document.documentElement.insertAdjacentHTML) {
-        return 3;
-      } else if (!navigator.geolocation) {
-        return 4;
-      } else if (!win.ArrayBuffer) {
-        alert('NO WIN ARRAYBUFFER')
-        return 5;
-      } else if (typeof document['hidden'] === undefined) {
-        return 6;
-      } else if (!win.crypto) {
-        return 7;
-      } else if (!document.documentElement.closest) {
-        return 8;
-      }
-    } catch (e) {
-      ;
-    }
-     verOffset = ua.indexOf('safari/');
-      if (verOffset !== -1) {
-        return getVer(ua.substring(verOffset+7));
-     }
-     return false;
-  })();
-}
 
   /*
    * Microloader. Store polyfills to load. Deliberately old-school for maximum browser support.
@@ -919,12 +970,12 @@
     };
     for (var i in tests) {
       if (typeof(tests[i]) === 'function') { // this allows us to pre-compute some results.
-        /////////////alert("test:" + i)
+        //alert("test:" + i)
         self.results[i] = tests[i]();
-        ////////////alert("test result:" + self.results[i])
+        //alert("test result:" + self.results[i])
       } else {
-        alert("prebuilt result:" + tests[i])
-        ////////////self.results[i] = tests[i];
+        //alert("prebuilt result:" + tests[i])
+        self.results[i] = tests[i];
       }
     };
     return self.results;

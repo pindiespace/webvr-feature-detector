@@ -53,14 +53,18 @@
     // At least Safari 3+: "[object HTMLElementConstructor]"
     safari: Object.prototype.toString.call(win.HTMLElement).indexOf('Constructor') > 0,
     // Internet Explorer 6-11
-    ie: /*@cc_on!@*/false || !!document.documentMode || !win.CSS,
+    ie: /*@cc_on!@*/false || !!document.documentMode
     // Chrome 1+
-    chrome: !!win.chrome && !!win.chrome.webstore || ua.match('crios') || false
   };
   // Blink engine detection
   //blink: (isChrome || isOpera) && !!win.CSS
-  browser.edge = !browser.ie && !!win.Geolocation || !browser.chrome && !browser.firefox && !browser.opera && !!win.styleMedia && !!win.Promise;
-  browser.iosSafari = false; //detect later
+  browser.chrome = !browser.opera && (!!win.chrome && !win.Geolocation) || !!(win.chrome && win.chrome.webstore) || ua.match('crios') || false;
+  browser.edge = !browser.ie && !!win.Geolocation && !browser.chrome && !browser.firefox && !browser.opera && !!win.styleMedia && !!win.Promise;
+  browser.mobileSafari = false; //detect later
+  browser.mobileChrome = false;
+  browser.samsung = false; //impt for GearVR
+  browser.mobileFirefox
+
   /* 
    * Look for the browser version number in a user-agent string. 
    * Fallback when browser feature detection doesn't work.
@@ -242,6 +246,9 @@
     })();
   }
 
+  //TODO: research Firefox mobile https://en.wikipedia.org/wiki/Firefox_for_mobile
+  //TODO: https://html5test.com/compare/browser/android.samsung-3.0/nintendowiiu-4/xboxone-10.0/firefoxmobile-40.html
+  
   /* 
    * Feature test for Google Chrome. We feature-detect out non-chrome browsers, 
    * then do some feature-testing for individual versions of chrome. Otherwise, 
@@ -324,6 +331,8 @@
     })();
   }
 
+  // TODO: Research chrome mobile
+
   /* 
    * Test for Opera versions (webkit) that work with WebGL
    */
@@ -392,7 +401,7 @@
     // Feature-test Safari candidate, fallback to user-agent if fails.
     try {
       if (!document.documentElement.insertAdjacentHTML) {
-          return 3;
+          return 3.1;
         } else if (!navigator.geolocation) {
           return 4;
         } else if (!window.matchMedia) {
@@ -409,7 +418,7 @@
           return 7.1;
         } else if (!document.documentElement.closest || !(win.CSS && win.CSS.supports)) {
           return 8;
-        } else if (!win.CSS.supports('--fake-var', 0)) {
+        } else if (!window.CSS.supports('--fake-var', 0)) {
           return 9;
         } else if (!window.Intl) {
           return 9.1
@@ -430,7 +439,7 @@
    * Mobile safari has a different featureset
    */
   if (browser.safari && platform.iOS) {
-    browser.iosSafari = (function () {
+    browser.mobileSafari = (function () {
       verOffset = ua.indexOf('safari/');
       try {
         if (!win.JSON) {
@@ -531,6 +540,7 @@
       if (!win.WebGLRenderingContext) {
         return false;
       }
+      var verOffset = ua.indexOf('chrome');
       //Flag for Google Chrome 9, which crashes if you try to access a 3d context.
       if (browser.chrome && getVer(ua.substring(verOffset+7)) < 18) {
         return false;
@@ -960,12 +970,12 @@
     };
     for (var i in tests) {
       if (typeof(tests[i]) === 'function') { // this allows us to pre-compute some results.
-        /////////////alert("test:" + i)
+        //alert("test:" + i)
         self.results[i] = tests[i]();
-        ////////////alert("test result:" + self.results[i])
+        //alert("test result:" + self.results[i])
       } else {
-        alert("prebuilt result:" + tests[i])
-        ////////////self.results[i] = tests[i];
+        //alert("prebuilt result:" + tests[i])
+        self.results[i] = tests[i];
       }
     };
     return self.results;
