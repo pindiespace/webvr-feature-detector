@@ -25,7 +25,7 @@
    * @link https://jsfiddle.net/9atsffau/
    * @link http://www.opentechguides.com/how-to/article/javascript/99/browser-detect.html
    */
-  var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false;
+  var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false, verReg = new RegExp('[0-9]+');
 
   // Opera 8.0+
   var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || ua.indexOf(' opr/') >= 0;
@@ -61,6 +61,14 @@
     if (!con.error) con.error = function (val) {}; // debug with alert(val)
   })(window.console = window.console || {});
 
+  function getVer (str) {
+    var result = verReg.exec(str);
+    if (result && result[0]) {
+      return parseInt(result[0]);
+    }
+    return false;
+  }
+
   /*
    * Feature detection.
    *
@@ -85,7 +93,7 @@
         .match(/-(moz|webkit|ms|o|xv)-/) || ['',''])[1]; // Default to nothing.
       return {
           js: pre,
-          css: '-' + pre + '-',
+          css: '-' + pre + '-'
         };
     }
   };
@@ -357,7 +365,7 @@
     // Fallback for new browsers with undefined feature-testing
     verOffset = ua.indexOf('edge/')
     if (verOffset !== -1) {
-      return parseInt(navigator.userAgent.substring(verOffset+8));
+      return getVer(ua.substring(verOffset+8));
     }
     return false;
   };
@@ -406,6 +414,7 @@
    * @link https://davidwalsh.name/check-parent-node
    * @link http://stackoverflow.com/questions/7000190/detect-all-firefox-versions-in-js
    */
+  /*
   tests['firefox'] = function () {
     if (!isFirefox) return false;
     // Feature test old browsers that can't run THREE
@@ -472,16 +481,17 @@
             return 17;
         }
       } catch (e) {
-        ;
+        console.error('firefox feature test failed:' + e);
       } // end of try...catch
     } // end of device.pixelRatio test
     // fallback for new browsers, and old browsers with console.config features disabled
     verOffset = ua.indexOf('firefox');
     if (verOffset !== -1) {
-      return parseInt(navigator.userAgent.substring(verOffset+8));
+      return getVer(navigator.userAgent.substring(verOffset+8));
     }
     return false;
   };
+  */
 
   /* 
    * Feature test for chrome. We feature-detect out non-chrome browsers, 
@@ -489,8 +499,9 @@
    * trust the user agent string.
    * Compatible:
    * Chrome 24+ : CanvasRenderer
-   * @link https://developer.chrome.com/apps/api_index
-   * @link https://developer.chrome.com/extensions/whats_new
+   * @link http://browsershots.org/
+   * @link http://oldversion.com
+   * @link http://browserstack.com
    * @link http://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
    */
   tests['chrome'] = function () {
@@ -498,7 +509,7 @@
       // get a version from the user-agent first, since some versions, don't have differentiating features.
       verOffset = ua.indexOf('chrome/');
       if (verOffset !== -1) {
-        ver = parseInt(navigator.userAgent.substring(verOffset+7));
+        ver = getVer(ua.substring(verOffset+7));
       }
       // feature-test Chrome candidate, fallback to user-agent if fails
       try {
@@ -517,42 +528,53 @@
             return 8;
         } else if (!window.webkitAudioContext) { // html5 audio undefined
             return 9;
-        } else if (!window.crypto) { // crypto undefined
+        } else if (window.crypto && !window.crypto.getRandomValues) { // crypto undefined
             return 10;
-        } else if (!window.webkitSpeechRecognition) {
+        }
+        //} else if (!window.webkitSpeechRecognition) {
+        //    return 11;
+        //} 
+        else if (window.webkitAudioContext) {
+          var a = document.createElement('audio');
+          var playMsg = a.canPlayType('audio/mpeg');
+          if (playMsg == '') {
+            a = null;
             return 11;
-        } else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
+          }
+          a = null;
+        }
+        else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
             return 12;
         } else if (!window.CustomEvent && 
             typeof document['hidden'] === undefined) { // Page visibility enabled in 14
             return 13;
         } else if(!window.CustomEvent && 
           !document.documentElement.scrollIntoViewIfNeeded) { //scrollIntoView enabled in 15
-          return 14;
+            return 14;
         } else if (document.documentElement.webkitRequestFullScreen && 
           !window.CustomEvent) { //CustomEvent re-enabled in 15
-          return 15;
+            return 15;
         } else if (ver === 16) { //No undefined test, WebSockets goes from partial to full
-          return 16;
+            return 16;
         } else if (!window.MutationObserver) { //MutationObserver undefined
-          return 17;
+            return 17;
         } else if (window.MutationObserver && 
           !(window.performance && window.performance.now)) { //No undefined test, MutationObserver enabled
-          return 18;
+            return 18;
         } else if (!(window.performance && window.performance.now)) { //High-Resolution timeAPI disabled
-          return 19;
+            return 19;
         } else if (!navigator.getGamepads) { //, no gamePads, High-Resolution time API enabled
-          return 20;
+            return 20;
         } else if (!document.documentElement.requestPointerLock) { //no pointerLock, GamePad API enabled
-          return 21;
+            return 21;
         } else if (!window.Intl && 
           document.documentElement.requestPointerLock) { //no undefined test, PointerLock API enabled
-          return 22;
+            return 22;
         } else if (!window.Intl && 
           document.implementation.hasFeature('org.w3c.dom.mathml', '2.0') === false) { //intl enabled, Media Source extensions disabled
-          return 23;
+            return 23;
         } else if (!window.performance.mark) { //Media source entensions enabled
-          return 24;
+            return 24;
         }
       } catch (e) {
         
@@ -572,14 +594,14 @@
     // detect version in old and new versions
      verOffset = ua.indexOf('opr/');
       if (verOffset !== -1) {
-        ver = parseInt(ua.substring(verOffset+7));
+        ver = getVer(ua.substring(verOffset+4));
       } else {
         if (window.opera && window.opera.version) { // ask old Opera its version
           return parseInt(window.opera.version());
         }
         verOffset = ua.indexOf('opera/'); // fallback to ua-sniffing
         if(verOffset !== -1) {
-          ver = parseInt(ua.substring(verOffset+7));
+          ver = getVer(ua.substring(verOffset+6));
         }
       }
     // Feature-detect
@@ -643,10 +665,11 @@
     }
      verOffset = ua.indexOf('safari/');
       if (verOffset !== -1) {
-        return parseInt(ua.substring(verOffset+7));
+        return getVer(ua.substring(verOffset+7));
      }
      return false;
   }
+
 
   /*
    * Microloader. Store polyfills to load. Deliberately old-school for maximum browser support.
@@ -762,11 +785,6 @@
             err_(s,'script loading not supported for:' + scr.path, ' type:' + typeof s + ' nodeType:' + typeof s.nodeType);
           }
 
-        // Add script to document.head.
-        //console.log('self.head is a:' + self.head)
-        //TODO: TEST ON OLD IE FOR COMPLETION.
-        //TODO: may need to use createNode like below
-        //@link http://stackoverflow.com/questions/6946631/dynamically-creating-script-readystate-never-complete
           head.insertBefore(s, head.firstChild);
         } //end of batch[i].name test
       } // end of for () loop

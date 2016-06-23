@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-(function (window) {
+(function (win) {
   var self = this; // Scope.
-  var cs, ctx, tests = [], retests = {}; self.results = {};
+  var cs, ctx, glType = '', tests = [], retests = {}; self.results = {};
 
-  var names = ['3d', 'webgl', 'experimental-webgl', 'experimental-webgl2', 'moz-webgl'];
+  var names = ['webgl', 'experimental-webgl', 'moz-webgl', 'experimental-webgl2', '3d'];
 
   /* 
    * feature detect browsers, modified from: 
@@ -28,19 +28,31 @@
   var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false, verReg = new RegExp('[0-9]+');
 
   // Opera 8.0+
-  var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || ua.indexOf(' opr/') >= 0;
+  var isOpera = (!!win.opr && !!opr.addons) || !!win.opera || ua.indexOf(' opr/') >= 0;
   // Firefox 1.0+
-  var isFirefox = !!window.netscape || typeof InstallTrigger !== 'undefined' || 'MozAppearance' in document.documentElement.style;
+  var isFirefox = !!win.netscape || typeof InstallTrigger !== 'undefined' || 'MozAppearance' in document.documentElement.style;
   // At least Safari 3+: "[object HTMLElementConstructor]"
-  var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+  var isSafari = Object.prototype.toString.call(win.HTMLElement).indexOf('Constructor') > 0;
   // Internet Explorer 6-11
   var isIE = /*@cc_on!@*/false || !!document.documentMode;
   // Chrome 1+
-  var isChrome = !!window.chrome && !!window.chrome.webstore || ua.match('crios');
+  var isChrome = !!win.chrome && !!win.chrome.webstore || ua.match('crios');
   // Blink engine detection
-  var isBlink = (isChrome || isOpera) && !!window.CSS;
-  // Edge 11+ (Edge and IE 8+ define window.Geolocation, as well as navigator.geolocation)
-  var isEdge = !isIE && !!window.Geolocation || !isChrome &&  !isFirefox && !isOpera && !!window.styleMedia && !!window.Promise;
+  var isBlink = (isChrome || isOpera) && !!win.CSS;
+  // Edge 11+ (Edge and IE 8+ define win.Geolocation, as well as navigator.geolocation)
+  var isEdge = !isIE && !!win.Geolocation || !isChrome &&  !isFirefox && !isOpera && !!win.styleMedia && !!win.Promise;
+
+  /* 
+   * Look for the version number in a user-agent string. 
+   * Fallback when browser feature detection doesn't work.
+   */
+  function getVer (str) {
+    var result = verReg.exec(str);
+    if (result && result[0]) {
+      return parseInt(result[0]);
+    }
+    return false;
+  }
 
   /*
    * Patches and fixes.
@@ -48,7 +60,7 @@
    * This hack lets IE10 render to canvas with newer versions of
    * of THREE.js which use overrideMimeType in the Object loader.
    */
-  if(window.XMLHttpRequest && !XMLHttpRequest.overrideMimeType) {
+  if(win.XMLHttpRequest && !XMLHttpRequest.overrideMimeType) {
       XMLHttpRequest.prototype.overrideMimeType = function (type) {};
     }
 
@@ -59,15 +71,7 @@
   (function (con) {
     if (!con.log) con.log = function (val) {}; // debug with alert(val)
     if (!con.error) con.error = function (val) {}; // debug with alert(val)
-  })(window.console = window.console || {});
-
-  function getVer (str) {
-    var result = verReg.exec(str);
-    if (result && result[0]) {
-      return parseInt(result[0]);
-    }
-    return false;
-  }
+  })(win.console = win.console || {});
 
   /*
    * Feature detection.
@@ -80,13 +84,13 @@
    */
   tests['vendorPrefix'] = function () {
     // Get the vendor prefix for the client.
-    if (!window.getComputedStyle) {
+    if (!win.getComputedStyle) {
       return {
         js: '',
         css: ''
       };
     } else {
-    var styles = window.getComputedStyle(document.documentElement, ''),
+    var styles = win.getComputedStyle(document.documentElement, ''),
     pre = (Array.prototype.slice
         .call(styles)
         .join('')
@@ -128,7 +132,7 @@
    * Note: No compatible polyfill (Flash-based ones won't work for WebVR).
    */
   tests['canvas'] = function () {
-    return !!window.CanvasRenderingContext2D;
+    return !!win.CanvasRenderingContext2D;
   };
 
   /*
@@ -138,19 +142,29 @@
    */
   tests['webGL'] = function () {
     if (tests['canvas']() && document.createElement) {
+        //Flag for Google Chrome 9, which crashes if you try to access a 3d context.
+        if (isChrome && getVer(ua.substring(verOffset+7)) < 18) {
+          return false;
+        } 
         cs = document.createElement('canvas');
         for (i in names) {
           try {
             ctx = cs.getContext(names[i]);
             if (ctx && typeof ctx.getParameter == 'function') {
               cs = ctx = null;
+              glType = names[i];
               return true;
             }
-          } catch (e) {}
+          } catch (e) {
+          }
         }
     }
     cs = ctx = null;
     return false;
+  };
+
+  tests['glType'] = function () {
+    return glType;
   };
 
   /*
@@ -182,7 +196,7 @@
    * iOS < 8, Android < 4.4.4.
    */
   tests['promise'] = function () {
-    return ('Promise' in window);
+    return ('Promise' in win);
   };
 
   /*
@@ -190,7 +204,7 @@
    * IE < 11, FF < 3.5, Safari < 4, iOS < 5.1, Android < 4.4.
    */
   tests['workers'] = function () {
-    return !!window.Worker;
+    return !!win.Worker;
   };
 
   /*
@@ -200,7 +214,7 @@
    * Android < 3
    */
   tests['fileapi'] = function () {
-    return !!(window.File && window.FileReader && window.FileList && window.Blob);
+    return !!(win.File && win.FileReader && win.FileList && win.Blob);
   };
 
   /*
@@ -226,7 +240,7 @@
     * Android < 5.6.
     */
   tests['fetch'] = function () {
-    return ('fetch' in window);
+    return ('fetch' in win);
   };
 
   /*
@@ -242,7 +256,7 @@
    * IE < 9.
    */
   tests['addEventListener'] = function () {
-    return ('addEventListener' in window);
+    return ('addEventListener' in win);
   };
 
   /*
@@ -292,7 +306,7 @@
    * Android < 4.
    */
   tests['typedArray'] = function () {
-    return ('ArrayBuffer' in window);
+    return ('ArrayBuffer' in win);
   };
 
   /*
@@ -313,7 +327,7 @@
    * Safari and Android.
    */
   tests['touch'] = function () {
-    return !!(('ontouchstart' in window) || (window.DocumentTouch && document instanceof DocumentTouch));
+    return !!(('ontouchstart' in win) || (win.DocumentTouch && document instanceof DocumentTouch));
   };
 
   /*
@@ -321,14 +335,14 @@
    * IE < 11, Chrome < 10, FF < 4, Safari < 6, Android < 4.4
    */
   tests['requestAnimationFrame'] = function () {
-    return ('requestAnimationFrame' in window);
+    return ('requestAnimationFrame' in win);
   };
 
   /*
    * Gamepad API, used by haptic controllers.
    * No IE Support, Chrome < 21, FF < 29, no iOS or
    * Android support. Wii has its own non-W3C version,
-   * window.wiiu.gamepad
+   * win.wiiu.gamepad
    */
   tests['gamepad'] = function () {
     return !!navigator.getGamepads;
@@ -382,8 +396,8 @@
   tests['ie'] = function () {
     if (! isIE) return false;
     // Old browsers that can't run THREE
-    if (document.compatMode && !window.atob) {
-      if (!window.XMLHttpRequest) { //ie7 test, only works in 'real' IE6
+    if (document.compatMode && !win.atob) {
+      if (!win.XMLHttpRequest) { //ie7 test, only works in 'real' IE6
         return 6;
       } else if (!document.querySelector) {
         return 7;
@@ -393,8 +407,8 @@
         return 9;
       }
     } else {
-      if(!window.Promise && window.atob) {
-        if (!(window.ActiveXObject) && "ActiveXObject" in window) {
+      if(!win.Promise && win.atob) {
+        if (!(win.ActiveXObject) && "ActiveXObject" in win) {
           return 11; // Supports THREE WebGL
         } else {
           return 10; // Supports THREE CanvasRenderer
@@ -417,67 +431,50 @@
   tests['firefox'] = function () {
     if (!isFirefox) return false;
     // Feature test old browsers that can't run THREE
-    if (typeof window.devicePixelRatio === undefined) {
+    if (typeof win.devicePixelRatio === undefined) {
       try {
-        if (typeof window.alert !== undefined && 
-          typeof window.XPCNativeWrapper === undefined &&
-          typeof window.URL === undefined) {
+        if (win.alert && !win.XPCNativeWrapper && !win.URL) {
             return 1;
-        } else if(typeof window.XPCNativeWrapper !== undefined) {
+        } else if(win.XPCNativeWrapper) {
             return 1.5
-        } else if (typeof window.globalStorage !== undefined && 
-            typeof window.postMessage === undefined) {
+        } else if (win.globalStorage && !win.postMessage) {
             return 2;
-        } else if (typeof window.postMessage !== undefined &&
-            typeof document.querySelector === undefined) {
+        } else if (!document.querySelector) {
             return 3;
-        } else if (typeof document.querySelector !== undefined &&
-            typeof window.mozRequestAnimationFrame === undefined) {
+        } else if (!win.mozRequestAnimationFrame) {
             return 3.5;
-        } else if (typeof window.URL !== undefined &&
-            typeof createdElement.style.MozAnimation === undefined) {
+        } else if (win.URL && !createdElement.style.MozAnimation) {
             return 4; // WebGL available.
-        } else if (typeof createdElement.style.MozAnimation !== undefined &&
-            typeof WeakMap === undefined) {
+        } else if (!typeof WeakMap) {
             return 5; // WebGL available CORS textures disabled.
-        } else if (typeof WeakMap !== undefined &&
-            typeof createdElement.style.textOverflow === undefined) {
+        } else if (!createdElement.style.textOverflow) {
             return 6;
-        } else if (typeof createdElement.style.textOverflow !== undefined &&
-            typeof createdElement.insertAdjacentHTML === undefined) {
+        } else if (!createdElement.insertAdjacentHTML) {
             return 7;
-        } else if (typeof createdElement.insertAdjacentHTML !== undefined &&
-            typeof navigator.doNotTrack === undefined) {
+        } else if (!navigator.doNotTrack) {
             return 8; // CORS re-enabled for WebGL textures.
-        } else if (typeof window.mozIndexedDB !== undefined &&
-            typeof document.mozFullScreenEnabled === undefined) {
+        } else if (win.mozIndexedDB &&
+            !document.mozFullScreenEnabled) {
             return 9;
-        } else if (typeof document.mozFullScreenEnabled !== undefined &&
-            typeof window.mozCancelAnimationFrame === undefined &&
-            typeof Reflect === undefined) {
+        } else if (
+            !win.mozCancelAnimationFrame && !Reflect === undefined) {
             return 10;
-        } else if (typeof window.mozCancelAnimationFrame !== undefined &&
-            typeof createdElement.style.MozTextAlignLast === undefined) {
+        } else if (!createdElement.style.MozTextAlignLast) {
             return 11;
-        } else if (typeof createdElement.style.MozTextAlignLast !== undefined &&
-            typeof createdElement.style.MozOpacity !== undefined) {
+        } else if (!createdElement.style.MozOpacity) {
             return 12;
-        } else if (typeof createdElement.style.MozOpacity === undefined &&
-            typeof window.globalStorage !== undefined) {
+        } else if (!createdElement.style.MozOpacity &&
+            win.globalStorage) {
             return 13;
-        } else if (typeof window.globalStorage === undefined &&
-            typeof createdElement.style.borderImage === undefined &&
-            typeof document.querySelector !== undefined) {
+        } else if (!win.globalStorage && !createdElement.style.borderImage) {
             return 14;
-        } else if (typeof createdElement.style.borderImage !== undefined &&
-            typeof createdElement.style.animation === undefined) {
+        } else if (!createdElement.style.animation) {
             return 15; // First version that works with CanvasRenderer
-        } else if (typeof createdElement.style.animation !== undefined &&
-            typeof createdElement.style.iterator === undefined &&
-            typeof Math.hypot === undefined) {
+        } else if (
+            !createdElement.style.iterator && !Math.hypot) {
             return 16;
         } else {
-            return 17;
+            return 17; // last version with device.pixelRatio
         }
       } catch (e) {
         console.error('firefox feature test failed:' + e);
@@ -511,28 +508,26 @@
       }
       // feature-test Chrome candidate, fallback to user-agent if fails
       try {
-        if (!('onhashchange' in window)) {
+        if (!('onhashchange' in win)) {
             return 4;
-        } else if (!window.performance && 
-          !window.webkitPerformance && 
-          !window.EventSource === undefined) { //server-sent events undefined
+        } else if (win.EventSource === undefined) { //server-sent events undefined
             return 5;
-        } else if (!window.ArrayBuffer) { //typed arrays undefined
+        } else if (!win.ArrayBuffer) { //typed arrays undefined
             return 6;
-        } else if (window.URL && 
-          !window.URL.createObjectURL) { // .createObjectURL undefined
+        } else if (win.URL && 
+          !win.URL.createObjectURL) { // .createObjectURL undefined
             return 7;
-        } else if (!window.matchMedia) { // .matchMedia undefined
+        } else if (!win.matchMedia) { // .matchMedia undefined
             return 8;
-        } else if (!window.webkitAudioContext) { // html5 audio undefined
-            return 9;
-        } else if (!window.crypto) { // crypto undefined
+        } else if (!win.webkitAudioContext) { // html5 audio undefined
+            return 9; //Note: CRASHES if trying to get WebGL context!
+        } else if (win.crypto && !win.crypto.getRandomValues) { // crypto undefined
             return 10;
-        }
-        //} else if (!window.webkitSpeechRecognition) {
-        //    return 11;
-        //} 
-        else if (window.webkitAudioContext) {
+        } else if (!win.webkitSpeechRecognition) {
+            return 11;
+        } 
+        /*
+        else if (win.webkitAudioContext) {
           var a = document.createElement('audio');
           var playMsg = a.canPlayType('audio/mpeg');
           if (playMsg == '') {
@@ -541,37 +536,38 @@
           }
           a = null;
         }
+        */
         else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
             return 12;
-        } else if (!window.CustomEvent && 
+        } else if (!win.CustomEvent && 
             typeof document['hidden'] === undefined) { // Page visibility enabled in 14
             return 13;
-        } else if(!window.CustomEvent && 
+        } else if(!win.CustomEvent && 
           !document.documentElement.scrollIntoViewIfNeeded) { //scrollIntoView enabled in 15
             return 14;
         } else if (document.documentElement.webkitRequestFullScreen && 
-          !window.CustomEvent) { //CustomEvent re-enabled in 15
+          !win.CustomEvent) { //CustomEvent re-enabled in 15
             return 15;
         } else if (ver === 16) { //No undefined test, WebSockets goes from partial to full
             return 16;
-        } else if (!window.MutationObserver) { //MutationObserver undefined
+        } else if (!win.MutationObserver) { //MutationObserver undefined
             return 17;
-        } else if (window.MutationObserver && 
-          !(window.performance && window.performance.now)) { //No undefined test, MutationObserver enabled
-            return 18;
-        } else if (!(window.performance && window.performance.now)) { //High-Resolution timeAPI disabled
+        } else if (win.MutationObserver && 
+          !(win.performance && win.performance.now)) { //No undefined test, MutationObserver enabled
+            return 18; // First version with valid WebGL
+        } else if (!(win.performance && win.performance.now)) { //High-Resolution timeAPI disabled
             return 19;
         } else if (!navigator.getGamepads) { //, no gamePads, High-Resolution time API enabled
             return 20;
         } else if (!document.documentElement.requestPointerLock) { //no pointerLock, GamePad API enabled
             return 21;
-        } else if (!window.Intl && 
+        } else if (!win.Intl && 
           document.documentElement.requestPointerLock) { //no undefined test, PointerLock API enabled
             return 22;
-        } else if (!window.Intl && 
+        } else if (!win.Intl && 
           document.implementation.hasFeature('org.w3c.dom.mathml', '2.0') === false) { //intl enabled, Media Source extensions disabled
             return 23;
-        } else if (!window.performance.mark) { //Media source entensions enabled
+        } else if (!win.performance.mark) { //Media source entensions enabled
             return 24;
         }
       } catch (e) {
@@ -594,8 +590,8 @@
       if (verOffset !== -1) {
         ver = getVer(ua.substring(verOffset+4));
       } else {
-        if (window.opera && window.opera.version) { // ask old Opera its version
-          return parseInt(window.opera.version());
+        if (win.opera && win.opera.version) { // ask old Opera its version
+          return parseInt(win.opera.version());
         }
         verOffset = ua.indexOf('opera/'); // fallback to ua-sniffing
         if(verOffset !== -1) {
@@ -604,21 +600,21 @@
       }
     // Feature-detect
     try {
-      if (!window.JSON) {
+      if (!win.JSON) {
           return 10;
-      } else if (!window.ArrayBuffer) { //typed arrays undefined
+      } else if (!win.ArrayBuffer) { //typed arrays undefined
           return 11;
-      } else if (!window.MutationObserver) { //MutationObserver undefined
+      } else if (!win.MutationObserver) { //MutationObserver undefined
           return 12;
       } else if (!navigator.geolocation) { // Enabled in 11-12, disabled 15, re-enabled 16
           return 15;
-      } else if (!window.navigator.vibrate) {
+      } else if (!win.navigator.vibrate) {
           return 16;
-      } else if (!window.webkitRTCPeerConnection) {
+      } else if (!win.webkitRTCPeerConnection) {
           return 17;
-      } else if (!window.CustomEvent && !window.Promise) {
+      } else if (!win.CustomEvent && !win.Promise) {
         return 18;
-      } else if (!window.CustomEvent) {
+      } else if (!win.CustomEvent) {
         return 19;
       } else if (!document.documentElement.matches) {
         return 20; // webkitmatches only
@@ -649,11 +645,11 @@
         return 3;
       } else if (!navigator.geolocation) {
         return 4;
-      } else if (!window.ArrayBuffer) {
+      } else if (!win.ArrayBuffer) {
         return 5;
       } else if (typeof document['hidden'] === undefined) {
         return 6;
-      } else if (!window.crypto) { // crypto undefined
+      } else if (!win.crypto) { // crypto undefined
         return 7;
       } else if (!document.documentElement.closest) {
         return 8;
@@ -699,14 +695,15 @@
     var clear_ = function (s) {
       //clear the event and prevent memory leaks
       console.log('clearing event:' + typeof s)
-      if (s) {
       // Progress report.
+
+      if (s) {
         gScriptCount++;
         progressFn(parseInt(100 * gScriptCount / scriptsToLoad), s.src);
         console.log('CLEARING:' + s.src)
-        try {
-          head.removeChild(s);
-        } catch (e) {};
+        //try {
+        //  head.removeChild(s);
+        //} catch (e) {};
 
         s.onreadystatechange = s.onload = null;
         s = null;
@@ -850,23 +847,26 @@
   // tests used by other tests can be pre-computed.
   function detect() {
     self.results = {
-      deviceorientation: eventSupport_(window, 'deviceorientation'),
-      devicemotion: eventSupport_(window, 'devicemotion'),
+      deviceorientation: eventSupport_(win, 'deviceorientation'),
+      devicemotion: eventSupport_(win, 'devicemotion'),
       load: load,
       detect: detect,
       reDetect: reDetect
     };
     for (var i in tests) {
       if (typeof(tests[i]) === 'function') { // this allows us to pre-compute some results.
+        /////////////alert("test:" + i)
         self.results[i] = tests[i]();
+        ////////////alert("test result:" + self.results[i])
       } else {
-        self.results[i] = tests[i];
+        alert("prebuilt result:" + tests[i])
+        ////////////self.results[i] = tests[i];
       }
     };
     return self.results;
   }
 
   // Fire first detection and report results.
-  window.WebVRFeatureDetector = detect();
+  win.WebVRFeatureDetector = detect();
 
 })(window);
