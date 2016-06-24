@@ -44,7 +44,7 @@
    * @link https://jsfiddle.net/9atsffau/
    * @link http://www.opentechguides.com/how-to/article/javascript/99/browser-detect.html
    */
-  var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false, verReg = new RegExp('[0-9]+');
+  var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false, m, verReg = new RegExp('[0-9]+');
 
   var browser = {
     opera: (!!win.opr && !!opr.addons) || !!win.opera || ua.indexOf(' opr/') > -1 || ua.indexOf('opios') > -1 || false,
@@ -59,19 +59,27 @@
   // Blink engine detection
   //blink: (isChrome || isOpera) && !!win.CSS
   browser.chrome = !browser.opera && (!!win.chrome && !win.Geolocation) || !!(win.chrome && win.chrome.webstore) || ua.match('crios') || false;
-  browser.edge = !browser.ie && !!win.Geolocation && !browser.chrome && !browser.firefox && !browser.opera && !!win.styleMedia && !!win.Promise;
-  browser.mobileSafari = false; //detect later
-  browser.mobileChrome = false;
-  browser.samsung = false; //impt for GearVR
-  browser.mobileFirefox
+  browser.edge = !browser.safari && !browser.ie && !!win.Geolocation && !browser.chrome && !browser.firefox && !browser.opera && !!win.styleMedia && !!win.Promise;
+  browser.mobileSafari = browser.safari && ua.indexOf('mobile') > -1 || false; //detect later
+  browser.mobileChrome = browser.chrome && ua.indexOf('mobile') > -1 || false;
+  //http://developer.samsung.com/technical-doc/view.do?v=T000000270&pi=1&ps=10&pb=Y&ct=CT330000&sc=javascript
+  browser.samsung = ua.indexOf('samsung') > -1 || false;
+  browser.samsungGearVR = ua.indexOf('mobile vr') > -1 || false; //impt for GearVR
+  browser.mobileFirefox = browser.firefox && ua.indexOf('mobile') > -1 || false;
 
   /* 
    * Look for the browser version number in a user-agent string. 
    * Fallback when browser feature detection doesn't work.
+   * @param String str the user-agent string.
+   * @param Boolean fflag if true, return float;
+   * @reaturns Number version number.
    */
-  function getVer (str) {
+  function getVer (str, fflag) {
     var result = verReg.exec(str);
     if (result && result[0]) {
+      if (fflag) {
+        return parseFloat(result[0]);
+      }
       return parseInt(result[0]);
     }
     return false;
@@ -96,9 +104,73 @@
       blackberry: /(blackberry|bb10|rim[0-9])/.test(ua),
       firefoxos: /mobile.*(firefox)/i.test(ua) || false
    };
+
+  // Additional matches.
   os.windows = !os.windowsphone && ua.indexOf('windows') > -1,
-  os.mac = !os.ios && !os.silk && ua.indexOf('macintosh') > -1,
+  os.mac = !os.ios && !os.silk && /(macintosh|mac os)/.test(ua) || false,
   os.linux = !os.android && !os.sailfish && !os.tizen && !os.webos && ua.indexOf('linux') > -1;
+
+  // OS Version detects (mobile only).
+  if (os.ios) {
+    m = (ua).match(/os (\d+)_(\d+)_?(\d+)?/);
+    if (m && m[1] && m[2]) {
+      os.ios = parseFloat(m[1] + '.' + m[2]);
+    }
+  } else if (os.crios) {
+    // TODO: CriOS detects here.
+  } else if (os.linux) {
+    // TODO: Linux detects here.
+  } else if (os.android) {
+    m = ua.match(/android (\d+(?:\.\d+)+)[;)]/);
+    if (m && m[0]) {
+      os.android = parseFloat(m[0]);
+    }
+  } else if (os.windowsphone) {
+    m = ua.match(/windows phone (\d+\.\d+)/);
+    if (m && m[1]) {
+      os.windowsphone = parseFloat(m[1]);
+    }
+  } else if (os.blackberry) {
+    if (ua.indexOf('bb10') >= 0) { // only Blackberry 10 phones would work (also support WebGL).
+      m = ua.match(/bb10.*version\/(\d+\.\d+)?/);
+      if (m && m[1]) {
+        os.blackberry = parseFloat(m[1]);
+      }
+    }
+  } else if (os.tizen) {
+      m = ua.match(/tizen.*(\d+\.\d+)/);
+      if (m && m[0]) {
+        os.tizen = parseFloat(m[0])
+      }
+  } else if (os.windows) {
+    verOffset = ua.indexOf('windows nt ');
+    //ver = parseFloat(ua.substring(verOffset+11));
+    ver = getVer(ua.substring(verOffset+11), true);
+    //alert("OFFSET:" + verOffset + "VER:" + ver)
+    switch (ver) {
+      case 10.0:
+        os.windows = '10';
+        break;
+      case 6.2:
+        os.windows = '8';
+        break;
+      case 6.1:
+        os.windows = '7';
+        break;
+      case 6.0:
+        os.windows = 'vista';
+        break;
+      case 5.1:
+        os.windows = 'xp';
+        break;
+      default:
+        break;
+    }
+  } else if (os.mac) {
+      // Not used.
+    }
+
+
 
   var platform = {
     tablet: ua.indexOf('tablet') > -1,
@@ -237,6 +309,8 @@
       } // end of try...catch
     } // end of device.pixelRatio test
 
+    // version 23 first support for CSS.supports();
+
     // fallback for new browsers, and old browsers with console.config features disabled
     verOffset = ua.indexOf('firefox');
     if (verOffset !== -1) {
@@ -248,7 +322,7 @@
 
   //TODO: research Firefox mobile https://en.wikipedia.org/wiki/Firefox_for_mobile
   //TODO: https://html5test.com/compare/browser/android.samsung-3.0/nintendowiiu-4/xboxone-10.0/firefoxmobile-40.html
-  
+
   /* 
    * Feature test for Google Chrome. We feature-detect out non-chrome browsers, 
    * then do some feature-testing for individual versions of chrome. Otherwise, 
@@ -280,45 +354,48 @@
             return 7;
         } else if (!win.matchMedia) { // .matchMedia undefined
             return 8;
-        } else if (!win.webkitAudioContext) { // html5 audio undefined
-            return 9; //Note: CRASHES if trying to get WebGL context!
-        } else if (win.crypto && !win.crypto.getRandomValues) { // crypto undefined
+        } else if (!win.webkitRequestAnimationFrame) { // .requestAnimationFrame undefined
+            return 9; //Note: This version CRASHES trying to get WebGL context!
+        } else if (!win.crypto) { // crypto undefined
             return 10;
-        } else if (!win.webkitSpeechRecognition) {
+        } else if (ver === 11) { // no reliable features!
             return 11;
         } 
         else if (!navigator.registerProtocolHandler) { //customEvent enabled in Chrome 9-12
             return 12;
-        } else if (!win.CustomEvent && 
-            typeof document['hidden'] === undefined) { // Page visibility enabled in 14
+        } else if (typeof document['hidden'] === undefined) { // Page visibility enabled in 14
             return 13;
-        } else if(!win.CustomEvent && 
-          !document.documentElement.scrollIntoViewIfNeeded) { //scrollIntoView enabled in 15
+        } else if(!document.documentElement.scrollIntoViewIfNeeded) { //scrollIntoView enabled in 15
             return 14;
         } else if (document.documentElement.webkitRequestFullScreen && 
           !win.CustomEvent) { //CustomEvent re-enabled in 15
             return 15;
-        } else if (ver === 16) { //No undefined test, WebSockets goes from partial to full
+        } else if (ver === 16) { // no reliable features!
             return 16;
         } else if (!win.MutationObserver) { //MutationObserver undefined
             return 17;
-        } else if (win.MutationObserver && 
-          !(win.performance && win.performance.now)) { //No undefined test, MutationObserver enabled
+        } else if (!(win.performance && win.performance.now)) { //No undefined test, MutationObserver enabled
             return 18; // First version with valid WebGL
-        } else if (!(win.performance && win.performance.now)) { //High-Resolution timeAPI disabled
+        } else if (!ver === 19) { // no reliable features!
             return 19;
         } else if (!navigator.getGamepads) { //, no gamePads, High-Resolution time API enabled
             return 20;
         } else if (!document.documentElement.requestPointerLock) { //no pointerLock, GamePad API enabled
             return 21;
-        } else if (!win.Intl && 
-          document.documentElement.requestPointerLock) { //no undefined test, PointerLock API enabled
-            return 22;
-        } else if (!win.Intl && 
-          document.implementation.hasFeature('org.w3c.dom.mathml', '2.0') === false) { //intl enabled, Media Source extensions disabled
+        } else if (!win.MediaSource) {
+            return 22
+        } else if (!win.Intl) { // Internationalization undefined
             return 23;
-        } else if (!win.performance.mark) { //Media source entensions enabled
+        } else if (!document.documentElement.createShadowRoot) { //shadow DOM undefined
             return 24;
+        } else if (ver === 25) { // no reliable features!
+            return 25;
+        }
+        else if (ver === 26) { // no reliable features!
+            return 26;
+        }
+        else if (!CSS.supports) {
+          return 27; // After this, easy to get version via css.supports() sniffing.
         }
       } catch (e) {
         
@@ -416,14 +493,12 @@
           return 7;
         } else if (!win.performance.timing) {
           return 7.1;
-        } else if (!document.documentElement.closest || !(win.CSS && win.CSS.supports)) {
+        } else if (!document.documentElement.closest) {
           return 8;
-        } else if (!window.CSS.supports('--fake-var', 0)) {
+        } else if (!window.CSS.supports('--all', 'unset')) { // css.supports() tests possible
           return 9;
-        } else if (!window.Intl) {
-          return 9.1
         } else if (!document.documentElement.createShadowRoot) {
-          return 10;
+          return 9.1
         }
       } catch (e) {
         ;
@@ -436,7 +511,7 @@
   }
 
   /* 
-   * Mobile safari has a different featureset
+   * Mobile Safari has a different featureset
    */
   if (browser.safari && platform.iOS) {
     browser.mobileSafari = (function () {
@@ -462,6 +537,24 @@
       return false;
     })();
   }
+
+  /* 
+   * Hardware detects.
+   */
+  tests['screen'] = function () {
+    var s = {
+      touch: !!(('ontouchstart' in win) || win.DocumentTouch && document instanceof DocumentTouch),
+      width: (Math.max(win.screen.width, win.screen.height)  || 0),
+      height: (Math.min(win.screen.width, win.screen.height) || 0),
+      pixelRatio: win.devicePixelRatio
+    };
+    // Define display pixels and retina.
+    s.pixelWidth = parseInt(s.width * s.pixelRatio);
+    s.pixelHeight = parseInt(s.height * s.pixelRatio);
+    s.retina = (s.pixelRatio > 1);
+    s.longest = Math.max(s.width, s.height);
+      return s;
+  };
 
   /*
    * Environment Feature detection.

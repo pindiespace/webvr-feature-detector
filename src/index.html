@@ -4,7 +4,7 @@
 <title>WebVRFeatureDetector</title>
 <meta charset="utf-8">
 <!--set the viewport, shrink-to-fit fixes safari bug-->
-<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0 shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.01 ,minimal-ui">
 <!--handle iOS and android mobile
 http://www.html5rocks.com/en/mobile/fullscreen/ -->
 <!--ios fullscreen-->
@@ -101,7 +101,7 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
                   if (typeof o != 'function') {
                     if (typeof o == 'object') {
                       ////////console.log('adding object:' + i)
-                      if (i != 'vendorPrefix') {
+                      if (i != 'screen') {
                         list += '</ul><ul class="results-col">'; // new column
                       }
                       list += '<li>' + '<span>' + i + '</span>:<ul>';
