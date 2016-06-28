@@ -31,7 +31,36 @@ In additon to detecting support for WebVR in the browser, WebVRFeatureDetector t
  2. WebVR Boilerplate
     - WebVR 1.0 version
 
-Mismatching versions will lead to grief.
+### Browser Support
+Browsers are FEATURE-DETECTED rather than simply sniffing the user-agent. This 
+handles browser clones, and ensures that detection of old browsers (i.e. the ones 
+that won't run) won't be foiled by a strange user-agent string. This in turns allows 
+fallbacks when you know a browser won't work, even if it is advertising the ability 
+to run WebGL.
+
+Safari
+Mobile Safari
+Chrome:
+ - All evergreen versions (after Chrome 24)
+Chrome Android/iOS
+Internet Explorer
+ - IE6-9: not supported
+ - IE10:  canvas rendering of one scene only
+ - IE11:  supported
+Opera
+
+Other browsers will typically register as one of these browsers. FOr example, 
+the Epiphany and Midori browsers (old Firefox clones) register as Safari.
+
+Mismatching versions of the boilerplate with THREE.js will lead to grief.
+
+Some Feature-detection sources:
+http://browsershots.org/
+https://saucelabs.com/beta/dashboard/manual (check it)
+https://html5test.com/compare/browser/index.html
+https://browshot.com
+https://www.browserstack.com (check it) 
+http://www.browseemall.com/Buy
 
 ### Installation
 
