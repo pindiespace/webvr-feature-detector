@@ -170,8 +170,6 @@
       // Not used.
     }
 
-
-
   var platform = {
     tablet: ua.indexOf('tablet') > -1,
     xbox: ua.indexOf('xbox') > -1, 

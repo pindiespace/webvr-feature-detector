@@ -14,33 +14,36 @@ body {
 	margin:0;
 	padding:0;
 	overflow: hidden;
-	height: 100vh;
+	/*width: 100vh;*/
+	/*height: 100vh;*/
 }
 
 /* container for canvas, here a figure element */
 #vr-world {
 	margin:0;
 	width:80%;
+	position:relative; /* size canvas to fit this element */
+	text-align:center; /* center canvas as inline element */
 }
 
 /* make <canvas> respond to window size changes, unless the
 user is in VR mode. Then, fill the screen */
 
 #vr-world canvas: -webkit-full-screen {
-  width:100%;
-	height:100%;
+  /*width:100%;
+	height:100%;*/
 }
 #vr-world canvas: -moz-full-screen {
-  width:100%;
-	height:100%;
+  /*width:100%;
+	height:100%;*/
 }
 #vr-world canvas: -ms-fullscreen {
-  width:100%;
-	height:100%;
+  /*width:100%;
+	height:100%;*/
 }
 #vr-world canvas: fullscreen {
-  width:100%;
-	height:100%;
+  /*width:100%;
+	height:100%;*/
 }
 
 /* While in fullscreen, hide any children with class 'tohide' */
@@ -59,7 +62,7 @@ user is in VR mode. Then, fill the screen */
 
 /* Default canvas properties */
 #vr-world canvas {
-	border: 4px solid #aaa;
+	/*border: 4px solid #aaa;*/
 	margin:0;
 	width: 100%;
 	height: 100%;

@@ -93,69 +93,19 @@ var WebVRUi = (function () {
 
     };
 
-    /**
-     * @method saveSwapStyles
-     * @description save the swap styles for our canvas, and its container element
+    /** 
+     * @method changeToFullScreen
      */
-    function saveSwapStyles () {
-      saveStyles.canvas.style.position = canvas.style.position;
-
-      saveStyles.canvas.style.top = canvas.style.top;
-      saveStyles.canvas.style.left = canvas.style.left;
-      saveStyles.canvas.style.bottom = canvas.style.bottom;
-      saveStyles.canvas.style.right = canvas.style.right;
-
-      saveStyles.canvas.style.width = canvas.style.width;
-      saveStyles.canvas.style.height = canvas.style.height;
-
-      saveStyles.canvas.width = canvas.width;
-      saveStyles.canvas.height = canvas.height;
-
-      saveStyles.canvas.style.margin = canvas.style.margin;
-      saveStyles.canvas.style.zIndex = canvas.style.zIndex;
+    function changeToFullScreen () {
+      console.log('changeToFullScreen')
+      //VREffect.setFullScreen(true);
     };
 
     /**
-     * @method restoreSwapStyles
-     * @description restore the original styles for the canvas and its container.
+     * @method changeToDOM
      */
-    function restoreSwapStyles () {
-      canvas.style.position = saveStyles.canvas.style.position;
-
-      canvas.style.top = saveStyles.canvas.style.top;
-      canvas.style.left = saveStyles.canvas.style.left;
-      canvas.style.bottom = saveStyles.canvas.style.bottom;
-      canvas.style.right = saveStyles.canvas.style.right;
-
-      canvas.style.width = saveStyles.canvas.style.width;
-      canvas.style.height = saveStyles.canvas.style.height;
-
-      canvas.width = saveStyles.canvas.width;
-      canvas.height = saveStyles.canvas.height;
-
-      canvas.style.margin = saveStyles.canvas.style.margin;
-      canvas.style.zIndex = saveStyles.canvas.style.zIndex;
-    };
-
-    function setSwapStyles () {
-      saveSwapStyles();
-      //canvas.style.position = 'absolute';
-      canvas.style.position = 'fixed';
-
-      canvas.style.top = 0;
-      canvas.style.left = 0;
-      canvas.style.bottom = getScreenWidth(); //screen.width; //document.body.clientHeight;
-      canvas.style.right = getScreenHeight(); //screen.height; //document.body.clientWidth;
-
-      //Extra from MDN
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-
-      canvas.width = getScreenWidth(); //screen.width;
-      canvas.height = getScreenHeight(); //screen.height;
-
-      canvas.style.margin = 0;
-      canvas.style.zIndex = 9999;
+    function changeToDOM () {
+      console.log('changeToDOM')
     };
 
     /**
@@ -219,7 +169,6 @@ var WebVRUi = (function () {
       }
     }
 
-
     /**
      * @method init
      * @description detects WebVR Ui, and adds appropriate controls and user messages.
@@ -276,8 +225,9 @@ var WebVRUi = (function () {
           polyfill = false;
         }
         createVRMessage(page, result.msg);
-        createVRButton(canvasContainer, effect);
         createVRCaption(canvasContainer);
+        createVRButton(canvasContainer, effect);
+
         // Set up the DOM for a swap
         setupDOMForSwap(canvas);
       })/*.catch (function (err) { // Rejected, doesn't work for IE8 Promise polyfill
@@ -455,49 +405,6 @@ var WebVRUi = (function () {
     };
 
     /**
-     * @method createVRButton
-     * @description create a button allowing the user to go to fullscreen. In
-     * THREE.js VREffect, going to fullscreen triggers a VR stereo view.
-     * @param DOMElement Canvas canvasContainer the part of the DOM to attach the button to.
-     * @param VREffect effect a THREE.js VREffect object. If this object is set
-     * to fullScreen, the VR stereo effect is triggered.
-     */
-    function createVRButton (canvasContainer, effect) {
-      // Create the button.
-      buttonContainer = document.createElement('div');
-      var button = document.createElement('button');
-      //button.style.position = 'absolute';
-      button.style.textAlign = 'center'
-      //button.style.left = 'calc(50% - 30px)'; //TODO: don't use calc()
-      button.style.bottom = '20px';
-      button.style.border = '0';
-      button.style.padding = '8px';
-      button.style.cursor = 'pointer';
-      button.style.backgroundColor = '#000';
-      button.style.color = '#fff';
-      button.style.fontFamily = 'sans-serif';
-      button.style.fontSize = '13px';
-      button.style.fontStyle = 'normal';
-      button.style.zIndex = '999';
-      button.textContent = 'ENTER VR';
-
-      // Button click handler.
-      button.onclick = function() {
-        console.log('clicked goto VR button')
-        if (window.orientation !== undefined && window.orientation == 0) {
-          //tell mobile users to use landscape mode
-          flipToLandscapeMessage();
-        } else {
-          VREffect.setFullScreen(true);
-          VRMode = true;
-        }
-      }
-      // Attach to the DOM.
-      buttonContainer.appendChild(button)
-      canvasContainer.appendChild(buttonContainer);
-    };
-
-    /**
      * @method createVRCaption
      * @description optional caption of VR element when in the DOM.
      * @param DOMElement Canvas canvasContainer the part of the DOM to attach the button to.
@@ -525,6 +432,70 @@ var WebVRUi = (function () {
       // Caption styles
       caption.style.width = '100%';
       caption.style.textAlign = 'center';
+    };
+
+    /**
+     * @method createVRButton
+     * @description create a button allowing the user to go to fullscreen. In
+     * THREE.js VREffect, going to fullscreen triggers a VR stereo view.
+     * @param DOMElement Canvas canvasContainer the part of the DOM to attach the button to.
+     * @param VREffect effect a THREE.js VREffect object. If this object is set
+     * to fullScreen, the VR stereo effect is triggered.
+     */
+    function createVRButton (canvasContainer, effect) {
+      // Create the button.
+      var button = document.createElement('button');
+      //button.style.position = 'absolute';
+      button.style.textAlign = 'center'
+      //button.style.bottom = '20px';
+      button.style.border = '0';
+      button.style.padding = '8px';
+      button.style.cursor = 'pointer';
+      button.style.backgroundColor = '#000';
+      button.style.color = '#fff';
+      button.style.fontFamily = 'sans-serif';
+      button.style.fontSize = '13px';
+      button.style.fontStyle = 'normal';
+      button.style.zIndex = '999';
+      button.textContent = 'ENTER VR';
+
+      // Button click handler.
+      button.onclick = function() {
+        console.log('clicked goto VR button')
+        if (window.orientation !== undefined && window.orientation == 0) {
+          //tell mobile users to use landscape mode
+          flipToLandscapeMessage();
+        } else {
+          //set desktop to fullscreen stereo
+          changeToFullScreen();
+          VRMode = true;
+        }
+      }
+
+      // Create a button container.
+      buttonContainer = document.createElement('div');
+      buttonContainer.id = 'vr-options';
+
+      // To position in a <figure> we need find the height of the <figcaption> element.
+      var captionOffset = parseFloat(getComputedStyle(caption).getPropertyValue('height'));
+
+      buttonContainer.style.width = '100%';
+      //buttonContainer.style.height= '40px';
+
+      buttonContainer.style.position = 'absolute';
+      buttonContainer.style.left = '0px';
+      buttonContainer.style.bottom = 20 + 'px';
+      buttonContainer.style.border = '1px solid red';
+      buttonContainer.style.padding = '8px';
+
+      buttonContainer.style.textAlign = 'center';
+
+      // Adjust the buttonContainter to enclose the created button
+      buttonContainer.style.height = button.style.height;
+
+      buttonContainer.appendChild(button);
+      canvasContainer.appendChild(buttonContainer);
+
     };
 
     /* show the canvasContainer Ui */
@@ -578,8 +549,10 @@ var WebVRUi = (function () {
       isDOM: isDOM,
       getScreenWidth: getScreenWidth,
       getScreenHeight: getScreenHeight,
-      swapDOM: swapDOM,
-      resetDOM: resetDOM,
+      changeToFullScreen: changeToFullScreen,
+      changeToDOM: changeToDOM,
+      swapDOM: swapDOM, //TODO: Debug only
+      resetDOM: resetDOM, //TODO: Debug only
       init: init,
       hasFullScreenElement: hasFullScreenElement,
       createVRMessage: createVRMessage,
