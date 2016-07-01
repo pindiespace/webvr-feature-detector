@@ -13,16 +13,17 @@
 var WebVRUi = (function () {
 
     var VRMode = false,
-    vrDisplay = false,
-    vrRenderer = null,
-    vrEffect = null,
     available = (navigator.getVRDisplays !== undefined || navigator.getVRDevices !== undefined),
     latest = (navigator.getVRDisplays !== undefined),
     polyfill = false,
     message = '',
     canvasPage = null, //entire page, usually document.body
     canvasContainer = null, // immediate parent of canvas
+    camera = null,
     canvas = null, // canvas inside container    msgContainer = null, // for VR messages
+    vrDisplay = false,
+    renderer = null,
+    vrEffect = null,
     buttonContainer = null, // for enter VR button
     captionContainer = null, // figure caption
     n = document.body.childNodes,
@@ -93,21 +94,6 @@ var WebVRUi = (function () {
 
     };
 
-    /** 
-     * @method changeToFullScreen
-     */
-    function changeToFullScreen () {
-      console.log('changeToFullScreen')
-      //VREffect.setFullScreen(true);
-    };
-
-    /**
-     * @method changeToDOM
-     */
-    function changeToDOM () {
-      console.log('changeToDOM')
-    };
-
     /**
      * @method swapDOMToFullscreen
      * @description Do the swap
@@ -169,6 +155,32 @@ var WebVRUi = (function () {
       }
     }
 
+    /** 
+     * @method changeToFullScreen
+     */
+    function changeToFullScreen () {
+      console.log('changeToFullScreen')
+      var w = parseInt(document.body.clientWidth);
+      var h = parseInt(document.body.clientHeight);
+      swapDOM(canvasContainer);
+      canvas.width = w;
+      canvas.height = h;
+
+      renderer.setViewport(0, 0, w, h); // this sets the drawing area correctly
+      vrEffect.setSize(w, h); // THIS is needed to change size
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    };
+
+    /**
+     * @method changeToDOM
+     */
+    function changeToDOM () {
+      console.log('changeToDOM')
+      resetDOM();
+      
+    };
+
     /**
      * @method init
      * @description detects WebVR Ui, and adds appropriate controls and user messages.
@@ -176,15 +188,16 @@ var WebVRUi = (function () {
      * @param VREffect effect a THREE.js specific effect giving stereo rendering.
      * @returns Promise result of WebVR test as a promise.
      */
-    function init (page, container, c, renderer, effect) {
+    function init (page, canvasContainer, sceneCanvas, sceneCamera, canvasRenderer, VREffect, figureCaption) {
       if(!isDOM(page)) {
         console.error('WebVRUi.init: did not pass in DOM element, ' + typeof page);
       }
       canvasPage = page,
-      canvasContainer = container,
-      canvas = c;
-      VRRenderer = renderer;
-      VREffect = effect;
+      container = canvasContainer,
+      canvas = sceneCanvas,
+      camera = sceneCamera,
+      renderer = canvasRenderer,
+      vrEffect = VREffect;
 
       // Collect WebVR data
       return new Promise (function (resolve, reject) {
@@ -225,8 +238,8 @@ var WebVRUi = (function () {
           polyfill = false;
         }
         createVRMessage(page, result.msg);
-        createVRCaption(canvasContainer);
-        createVRButton(canvasContainer, effect);
+        createVRCaption(figureCaption);
+        createVRButton();
 
         // Set up the DOM for a swap
         setupDOMForSwap(canvas);
@@ -410,12 +423,13 @@ var WebVRUi = (function () {
      * @param DOMElement Canvas canvasContainer the part of the DOM to attach the button to.
      * @param String captionText the caption text.
      */
-    function createVRCaption(canvasContainer, captionText) {
-      caption = canvasContainer.getElementsByTagName('figcaption')[0];
+    function createVRCaption(captionText) {
+      caption = container.getElementsByTagName('figcaption')[0];
       if (!caption) {
         caption = document.createElement('figcaption');
-        canvasContainer.appendChild(caption);
+        container.appendChild(caption);
       }
+
       if (captionText) {
         caption.innerHTML = captionText;
       } else if (caption.innerHTML == '') {
@@ -427,7 +441,7 @@ var WebVRUi = (function () {
       }
 
       // ARIA description
-      canvasContainer.setAttribute('aria-describedby', caption.id);
+      container.setAttribute('aria-describedby', caption.id);
 
       // Caption styles
       caption.style.width = '100%';
@@ -442,22 +456,13 @@ var WebVRUi = (function () {
      * @param VREffect effect a THREE.js VREffect object. If this object is set
      * to fullScreen, the VR stereo effect is triggered.
      */
-    function createVRButton (canvasContainer, effect) {
+    function createVRButton () {
       // Create the button.
       var button = document.createElement('button');
-      //button.style.position = 'absolute';
-      button.style.textAlign = 'center'
-      //button.style.bottom = '20px';
-      button.style.border = '0';
-      button.style.padding = '8px';
-      button.style.cursor = 'pointer';
-      button.style.backgroundColor = '#000';
-      button.style.color = '#fff';
-      button.style.fontFamily = 'sans-serif';
-      button.style.fontSize = '13px';
-      button.style.fontStyle = 'normal';
-      button.style.zIndex = '999';
-      button.textContent = 'ENTER VR';
+
+      // Set the button
+      button.className = 'vr-button-enter';
+      button.innerHTML = 'ENTER VR';
 
       // Button click handler.
       button.onclick = function() {
@@ -474,9 +479,9 @@ var WebVRUi = (function () {
 
       // Create a button container.
       buttonContainer = document.createElement('div');
-      buttonContainer.id = 'vr-options';
+      buttonContainer.id = 'vr-button-container';
 
-      // To position in a <figure> we need find the height of the <figcaption> element.
+      // To position the container in a <figure> we need find the height of the <figcaption> element.
       var captionOffset = parseFloat(getComputedStyle(caption).getPropertyValue('height'));
 
       buttonContainer.style.width = '100%';
@@ -494,7 +499,7 @@ var WebVRUi = (function () {
       buttonContainer.style.height = button.style.height;
 
       buttonContainer.appendChild(button);
-      canvasContainer.appendChild(buttonContainer);
+      container.appendChild(buttonContainer);
 
     };
 
@@ -503,7 +508,7 @@ var WebVRUi = (function () {
       canvasContainer.style.display = 'block';
     };
 
-    / * hide the canvasContainer Ui */
+    /* hide the canvasContainer Ui */
     function hideUi () {
       canvasContainer.style.display = 'none';
     };

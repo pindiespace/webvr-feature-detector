@@ -72,7 +72,7 @@ Document.write() is used here for extreme back-compatibility.
           </div>
           <figure id='vr-world'>
             <!--three.js vr sample here-->
-            <canvas id='vr-canvas' ></canvas>
+            <canvas id='vr-canvas' width="400" height="550"></canvas>
              <figcaption>The Plutonian System.</figcaption>
           </figure>
           <!--
@@ -271,7 +271,7 @@ Document.write() is used here for extreme back-compatibility.
     var dolly, camera, scene, raycaster, renderer;
     var group1, group2, group3, group4, group5;
     var room;
-    var effect, vrControls, controls;
+    var VREffect, vrControls, controls;
     var texLoader, modLoader;
 
     // Planetary data
@@ -406,12 +406,14 @@ Document.write() is used here for extreme back-compatibility.
     light.position.set(0, 25, 15).normalize();
     scene.add(light);
 
-    // Apply VR stereo rendering effect to renderer.
-    effect = new THREE.VREffect(renderer, function(err) {
+    // Apply VR stereo rendering VREffect to renderer.
+    VREffect = new THREE.VREffect(renderer, function(err) {
       if (err) {
         console.log("Error creating VREffect: ", err);
       }
     });
+
+    window.vrEffect = VREffect; //////////////////////
 
 //METHOD 3
 //Create a camera with orbit and follow-orbit features
@@ -425,11 +427,14 @@ Document.write() is used here for extreme back-compatibility.
      * page: The top-level DOM element (often document.body)
      * container: The canvas container
      * renderer: The THREE.js renderer
-     * effect: The THREE.js VREffect object
+     * VREffect: The THREE.js VREffect object
      */
     if (WebVRUi.available) {
-      WebVRUi.init(page, container, canvas, renderer, effect);
+      WebVRUi.init(page, container, canvas, camera, renderer, VREffect);
     }
+
+    window.container = container; /////////////////////////////////
+    window.canvas = canvas; //////////////////////////////////
 
     /**
      * Create groups to hold planets. We move the planets
@@ -783,22 +788,6 @@ Document.write() is used here for extreme back-compatibility.
       var fullScreenFlag = false;
 
       /**
-       * Make sure everything is resized correctly, since
-       * browsers differ in how they implement fullscreen
-       * styles
-       */
-      //function changeScreen (w, h, aspect) {
-      //  renderer.setViewport(0, 0, w, h);
-      //  renderer.setSize(w, h);
-      //  effect.setSize(w, h); //RENDERER REFUSES TO CHANGE SIZE in FF ONLY!
-      //  canvas.outerWidth = w;
-      //  canvas.outerHeight = h;
-      //  camera.aspect = aspect;
-      //  camera.updateProjectionMatrix();
-      //  console.log('IN ChANGE ScrEEN, new w:' + w + ' and h:' + h + ' aspect:' + aspect)
-      //};
-
-      /**
        * The fullscreenchange event is implemented consistently,
        * but its order with to respect to window resize events is not.
        * so change screen, even if we redundantly change the screen
@@ -877,8 +866,6 @@ Document.write() is used here for extreme back-compatibility.
             w = WebVRUi.getScreenWidth();
             h = WebVRUi.getScreenHeight();
             aspect = w / h;
-            //effect.setFullScreen();
-            //changeScreen(w, h, aspect);
             WebVRUi.changeToDOM();
             break;
         }
@@ -929,7 +916,7 @@ Document.write() is used here for extreme back-compatibility.
 
           if (WebVRUi.isVRMode()) {
             vrControls.update();
-            effect.render(scene, camera);
+            VREffect.render(scene, camera);
           }  else {
             renderer.render(scene, camera);
           }
