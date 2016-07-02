@@ -749,6 +749,21 @@
     return true;
   };
 
+  /* 
+   * Detect support for CSS PointerEvents, useful 
+   * for ui 
+   */
+  tests['CSSPointerEvent'] = function () {
+    if (document.createElement) {
+      var elem = document.createElement('x');
+      elem.style.cssText = 'pointer-events:auto';
+      var r = elem.style.pointerEvents === 'auto';
+      elem = null;
+      return r;
+    }
+    return false;
+  };
+
   /*
    * Detect support for a specific event type.
    * @link http://perfectionkills.com/detecting-event-support-without-browser-sniffing/

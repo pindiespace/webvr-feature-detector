@@ -228,8 +228,8 @@ var WebVRUi = (function () {
         } else {
           polyfill = false;
         }
-        createVRMessage(page, result.msg);
-        createVRCaption(figureCaption);
+        ////////////////////////////////createVRMessage(page, result.msg);
+        ////////////////////////////////createVRCaption(figureCaption);
         //createButton();
 
         // Set up the DOM for a swap
@@ -415,28 +415,28 @@ var WebVRUi = (function () {
      * @param String captionText the caption text.
      */
     function createVRCaption(captionText) {
-      caption = container.getElementsByTagName('figcaption')[0];
-      if (!caption) {
-        caption = document.createElement('figcaption');
-        container.appendChild(caption);
+      captionContainer = container.getElementsByTagName('figcaption')[0];
+      if (!captionContainer) {
+        captionContainer = document.createElement('figcaption');
+        container.appendChild(captionContainer);
       }
 
       if (captionText) {
-        caption.innerHTML = captionText;
-      } else if (caption.innerHTML == '') {
-        caption.innerHTML = '3d VR World';
+        captionContainer.innerHTML = captionText;
+      } else if (captionContainer.innerHTML == '') {
+        captionContainer.innerHTML = '3d VR World';
       }
 
-      if (!caption.id) {
-        caption.id = 'webvr-caption';
+      if (!captionContainer.id) {
+        captionContainer.id = 'webvr-caption';
       }
 
       // ARIA description
-      container.setAttribute('aria-describedby', caption.id);
+      container.setAttribute('aria-describedby', captionContainer.id);
 
       // Caption styles
-      caption.style.width = '100%';
-      caption.style.textAlign = 'center';
+      captionContainer.style.width = '100%';
+      captionContainer.style.textAlign = 'center';
     };
 
     /**
@@ -455,25 +455,12 @@ var WebVRUi = (function () {
       button.className = 'vr-button-enter';
       button.innerHTML = 'ENTER VR';
 
-      // Button click handler.
-      button.onclick = function() {
-        console.log('clicked goto VR button')
-        if (window.orientation !== undefined && window.orientation == 0) {
-          //tell mobile users to use landscape mode
-          flipToLandscapeMessage();
-        } else {
-          //set desktop to fullscreen stereo
-          changeToFullScreen();
-          VRMode = true;
-        }
-      }
-
       // Create a button container.
       buttonContainer = document.createElement('div');
       buttonContainer.id = 'vr-button-container';
 
       // To position the container in a <figure> we need find the height of the <figcaption> element.
-      var captionOffset = parseFloat(getComputedStyle(caption).getPropertyValue('height'));
+      var captionOffset = parseFloat(getComputedStyle(container).getPropertyValue('height'));
 
       buttonContainer.style.width = '100%';
       //buttonContainer.style.height= '40px';
@@ -563,6 +550,7 @@ var WebVRUi = (function () {
       isPolyfill: isPolyfill,
       isVRMode: isVRMode,
       getDisplay: getDisplay,
-      setVRMode: setVRMode
+      setVRMode: setVRMode,
+      init: init
     };
 })();

@@ -59,28 +59,23 @@ Document.write() is used here for extreme back-compatibility.
     </nav>
   </header>
   <section id="content">
-    <h2>Sample Polyfill Loading</h2>
-    <p>This page shows the operation of WebVRFeatureDetector, along with its (simple) loader function used to load polyfills. In particular, fallbacks are used for browsers with partial support for WebGL and WebVR to provide support for the last version of Internet Explorer (IE12). Older versions show &quot;graceful decay&quot; to a single rendered image from the VR scene, to a default static PNG image. This example is for the THREE.js library.</p>
-    <hr>
+    <h2>Sample World</h2>
     <article>
-        <h2>Polyfill Load Progress</h2>
-        <div id="polyfill-load">
-
-          <!--progress bar (polyfilled) -->
-          <div id='progress-bar' class='progress header-box'>
+        <h3>Plutonian VR World</h3>
+        <div id="vr-ui">
+          <!--progress bar (polyfilled), hidden by default -->
+          <div id='progress-bar' class='ui-progress header-box'>
             <span>Load Progress: </span><progress id='load-progress'  value='0' max='100'><span>0</span>%</progress>
           </div>
-          <figure id='vr-world'>
-            <!--three.js vr sample here-->
-            <canvas id='vr-canvas' width="400" height="550"></canvas>
-             <figcaption>The Plutonian System.</figcaption>
-          </figure>
-          <!--
-          additional information
-          -->
         </div>
+        <!--three.js vr sample here-->
+        <figure id='vr-world'>
+          <canvas id='vr-canvas' width="400" height="550"></canvas>
+          <figcaption>The Plutonian System.</figcaption>
+        </figure>
     </article>
-    <hr>
+    <!--these details are hidden by default-->
+    <p class="details">This page shows the operation of WebVRFeatureDetector, along with its (simple) loader function used to load polyfills. In particular, fallbacks are used for browsers with partial support for WebGL and WebVR to provide support for the last version of Internet Explorer (IE12). Older versions show &quot;graceful decay&quot; to a single rendered image from the VR scene, to a default static PNG image. This example is for the THREE.js library.</p>
   </section>
   <footer>
   <p>&copy; <script>document.write(new Date().getFullYear());</script> Pete Markiewicz.</p>
@@ -122,13 +117,18 @@ Document.write() is used here for extreme back-compatibility.
     /**
      * ===================================
      * Replace <canvas> with fallback image for browsers that 
-     * can't run THREE v76, or will crash on polyfill loads.
+     * can't run THREE v76, or will crash on polyfill loads, even 
+     * if the report supporting <canvas> and WebGL.
      * ===================================
      */
     if(WebVRFeatureDetector && !WebVRFeatureDetector.canvas ||
-      WebVRFeatureDetector.ie == 9 || WebVRFeatureDetector.firefox < 15) {
+      WebVRFeatureDetector.ie == 9 || WebVRFeatureDetector.firefox < 15 || 
+      WebVRFeatureDetector.chrome == 9) {
         replaceCanvasWithImage('img/icons/no-vr.gif');
     } else {
+
+    // Show the loading progress bar.
+    document.getElementById('progress-bar').style.display = 'block';
 
     // Try a load.
     WebVRFeatureDetector.load([
@@ -156,21 +156,35 @@ Document.write() is used here for extreme back-compatibility.
         {name: 'VRControls', path: 'js/three/VRControls.js', poly: false}
       ],
       [
-        {name: 'WebVRUi', path: 'js/WebVRUi.js', poly: false},
+        {name: 'ui', path: 'js/ui.js', poly: false},
         {name: 'fetch', path: 'js/polyfills/fetch.js', poly: true}
       ]
     ], function() { // Main callback function
 
 
+    // Hide the loading progress bar.
+    document.getElementById('progress-bar').style.display = 'none';
+
     /**
      * ===================================
-     * Check for parsing errors in THREE
+     * Create a status and error panel in the window.
+     * Note: will autocreate if we try to show, hide 
+     * or set the message text.
+     * ===================================
+     */
+    ui.createMessage(document.body);
+
+    /**
+     * ===================================
+     * Check for parsing errors in THREE, and 
+     * exit if they exist.
      * ===================================
      */
     console.log("THREE IS:" + THREE)
     if (!THREE) {
       replaceCanvasWithImage('img/icons/no-vr.gif');
-      WebVRUi.createVRMessage(document.body, 'Your Browser does not support 3D drawing');
+      ui.setMessage('Your Browser does not support 3D drawing libraries');
+      ui.showMessage();
       return;
     }
 
@@ -418,20 +432,38 @@ Document.write() is used here for extreme back-compatibility.
 //apply to any object, not just camera objects - dolly moved
 //arbitrarily
 
-    /**
-     * test for functional WebVR (native or polyfill, 1.0 or legacy).
-     * If present, create a Ui consisting of a user message about WebVR
-     * availability, and a button for entering VR.
-     * page: The top-level DOM element (often document.body)
-     * container: The canvas container
-     * renderer: The THREE.js renderer
-     * VREffect: The THREE.js VREffect object
+    /** 
+     * ===================================
+     * Initialize the Ui, including buttons
+     * ===================================
      */
 
     //TODO: MAKE THE BUTTONS IN INIT, AND RETURN THEM AS AN ARRAY IN A CALLBACK.
-    if (WebVRUi.available) {
+    if (ui.hasWebVR()) {
+      ui.init(canvas, container, page);
+      ui.createButton('FULLSCREEN', function () {
+        console.log("clicked fullscreen button")
+      });
+      ui.createButton('ENTER VR', function () {
+        console.log('clicked goto VR button')
+        if (window.orientation !== undefined && window.orientation == 0) {
+          //tell mobile users to use landscape mode
+          ui.flipToLandscapeMessage();
+        } else {
+          //set desktop to fullscreen stereo
+          //changeToFullScreen();
+          //ui.setVRMode(true);
+        }
+
+      });
+      ui.createButton('RESET', function () {
+        console.log("clicked reset button")
+      });
+
+      /*
       WebVRUi.init(page, container, canvas, camera, renderer, VREffect);
       var fsButt = WebVRUi.createButton('fullscreen-button-enter', 'FULLSCREEN');
+
       var vrButt = WebVRUi.createButton('vr-button-enter', 'ENTER VR');
       vrButt.onclick = function() {
         console.log('clicked goto VR button')
@@ -444,7 +476,8 @@ Document.write() is used here for extreme back-compatibility.
           VRMode = true;
         }
       }
-      var resetButt = WebVRUi.createButton('vr-pose-reset', 'RESET POSE', clickHandler);
+      var resetButt = WebVRUi.createButton('vr-pose-reset', 'RESET POSE');
+      */
     }
 
     /**
@@ -791,14 +824,14 @@ Document.write() is used here for extreme back-compatibility.
       if (fullScreenFlag === false) {
           console.log("in onfullscreen, going to fullscreen")
           fullScreenFlag = true;
-          WebVRUi.setVRMode(true);
+          ui.setVRMode(true);
           ///////////onWindowResize(); //without, chrome smaller but correct proportion
-          WebVRUi.changeToFullScreen();
+          ui.changeToFullScreen();
         } else {
           console.log('in onfullscreen, returning to normal')
           fullScreenFlag = false;
-          WebVRUi.setVRMode(false);
-          WebVRUi.changeToDOM();
+          ui.setVRMode(false);
+          ui.resetDOM();
           //called changescreen here before
           //onWindowResize();
         }
@@ -826,8 +859,8 @@ Document.write() is used here for extreme back-compatibility.
         switch (window.orientation) {
           case 0:
             fullScreenFlag = false; ///THIS FIXED IT! SEE IF WE REALLY NEED STYLES...
-            WebVRUi.chanteToDOM();
-            WebVRUi.setVRMode(false);
+            ui.resetDOM();
+            ui.setVRMode(false);
             aspect = domAspect;
             //domWidth = parseFloat(getComputedStyle(container).getPropertyValue('width'));
             //changeScreen(domWidth, domHeight, aspect);
@@ -836,8 +869,8 @@ Document.write() is used here for extreme back-compatibility.
           case 90:
           case -90:
             fullScreenFlag = true;
-            WebVRUi.setVRMode(true);
-            WebVRUi.swapDOM();
+            ui.setVRMode(true);
+            ui.swapDOM();
             break;
         }
       };
@@ -885,7 +918,7 @@ Document.write() is used here for extreme back-compatibility.
         //dolly.rotation.z -= 0.01;
         //TODO: dolly.rotation doesn't seem to work
 
-          if (WebVRUi.isVRMode()) {
+          if (ui.isVRMode()) {
             vrControls.update();
             VREffect.render(scene, camera);
           }  else {

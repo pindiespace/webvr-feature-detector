@@ -4,46 +4,62 @@
  * https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
  */
  html {
-   box-sizing: border-box;
+    box-sizing: border-box; /* IMPORTANT */
  }
+
  *, *:before, *:after {
-   box-sizing: inherit;
+    box-sizing: inherit;
  }
 
 body {
-	margin:0;
-	padding:0;
-	overflow: hidden;
-	/*width: 100vh;*/
-	/*height: 100vh;*/
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    /*width: 100vh;*/
+    /*height: 100vh;*/
 }
 
 /* container for canvas, here a figure element */
 #vr-world {
-	margin:0;
-	width:80%;
-	/*height:100%;*/
-	position:relative; /* size canvas to fit this element */
-	text-align:center; /* center canvas as inline element */
+    margin:0;
+    width:80%;
+    /*height:100%;*/
+    position:relative; /* size canvas to fit this element */
+    text-align:center; /* center canvas as inline element */
 }
-
-
 
 /* Default canvas properties */
 #vr-world canvas {
-	/*border: 4px solid #aaa;*/
-	margin:0;
-	/*width: 100%;*/
-	/*height: 100%;*/
-	display:block;    /* remove scrollbars */
-	overflow: hidden;
+    /*border: 4px solid #aaa;*/
+    margin:0;
+    /*width: 100%;*/
+    /*height: 100%;*/
+    display:block;    /* remove scrollbars */
+    overflow: hidden;
 }
 
 #vr-world canvas:focus {
-	outline:0; /* remove blue outline around canvas */
+    outline:0; /* remove blue outline around canvas */
 }
 
-#vr-world button.vr-button-enter {
+/* progress bar for scene loading */
+.ui-progress {
+
+}
+
+/* container for vr buttons */
+.ui-buttons {
+    position: absolute;
+    left: 0;
+    right:0;
+    bottom: 20px;
+    border: 1px solid red;
+    padding: 8px;
+    text-align: center;
+}
+
+/* default button styles */
+.ui-button {
 	bottom: 20px;
 	border: 1px dotted #cc0000;
 	padding: 12px;
@@ -58,9 +74,69 @@ body {
 	z-index: 999;
 }
 
-#vr-world button.vr-button-enter:hover {
-	background-color: #333;
+/* message container */
+.ui-message-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    z-index: 9999;
+    text-align: center;
+    display: none;
 }
+
+/* text inside message */
+.ui-message {
+    font-family: sans-serif;
+    font-size: 16px;
+    font-style: normal;
+    line-height: 26px;
+    color: #000;
+    border-radius: 6px;
+    background-color: #dbf; /* fallback */
+    background-color: rgba(56, 22, 188, 0.1);
+    padding: 10px 20px;
+    margin: 50px;
+    display: inline-block;
+}
+
+/* text styling in informational dialog */
+.ui-message-text {
+
+}
+
+/* close button on informational dialog */
+.ui-message-btn {
+
+}
+
+/* parent to progress bar */
+#vr-ui {
+    position: relative;
+}
+
+/* progress bar for page loading, horizontally and vertically centered */
+.ui-progress {
+    position: absolute;
+    width: 300px;
+    height: 100px;
+    padding: 20px;
+    top: 50%;
+    left: 50%;
+    margin: -70px 0 0 -170px;
+    border-radius: 6px;
+    background-color: #dbf; /* fallback */
+    background-color: rgba(56, 22, 188, 0.1);
+    text-align:center;
+    display:none;
+}
+
+
+
+
+
+
+
 
 
 /*
