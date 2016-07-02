@@ -133,7 +133,7 @@ var WebVRUi = (function () {
      * @description put canvas back in its original position in the DOM,
      * and make the rest of the DOM visible again.
      */
-    function resetDOM () {
+    function changeToDOM () {
       if(n[0] !== canvas) {
         console.warn('WebVRUi.resetDOM: tried to reset when not set');
         return;
@@ -170,15 +170,6 @@ var WebVRUi = (function () {
       vrEffect.setSize(w, h); // THIS is needed to change size
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-    };
-
-    /**
-     * @method changeToDOM
-     */
-    function changeToDOM () {
-      console.log('changeToDOM')
-      resetDOM();
-      
     };
 
     /**
@@ -239,7 +230,7 @@ var WebVRUi = (function () {
         }
         createVRMessage(page, result.msg);
         createVRCaption(figureCaption);
-        createVRButton();
+        //createButton();
 
         // Set up the DOM for a swap
         setupDOMForSwap(canvas);
@@ -449,14 +440,14 @@ var WebVRUi = (function () {
     };
 
     /**
-     * @method createVRButton
+     * @method createButton
      * @description create a button allowing the user to go to fullscreen. In
      * THREE.js VREffect, going to fullscreen triggers a VR stereo view.
      * @param DOMElement Canvas canvasContainer the part of the DOM to attach the button to.
      * @param VREffect effect a THREE.js VREffect object. If this object is set
      * to fullScreen, the VR stereo effect is triggered.
      */
-    function createVRButton () {
+    function createButton (className, buttonText) {
       // Create the button.
       var button = document.createElement('button');
 
@@ -500,6 +491,8 @@ var WebVRUi = (function () {
 
       buttonContainer.appendChild(button);
       container.appendChild(buttonContainer);
+
+      return button;
 
     };
 
@@ -557,10 +550,11 @@ var WebVRUi = (function () {
       changeToFullScreen: changeToFullScreen,
       changeToDOM: changeToDOM,
       swapDOM: swapDOM, //TODO: Debug only
-      resetDOM: resetDOM, //TODO: Debug only
       init: init,
       hasFullScreenElement: hasFullScreenElement,
       createVRMessage: createVRMessage,
+      flipToLandscapeMessage: flipToLandscapeMessage,
+      createButton: createButton,
       setMessage: setMessage,
       available: available,
       latest: latest,

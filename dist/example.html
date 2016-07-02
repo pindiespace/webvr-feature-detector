@@ -290,7 +290,7 @@ Document.write() is used here for extreme back-compatibility.
     /**
      * Conditionally load a THREE 3d WebGL renderer, or a 2d renderer.
      * If WebGL isn't supported but HTML5 canvas is (e.g. IE9) then
-     * we render the scene once as a static image
+     * we render the scene only once as a static image
      */
     if (!WebVRFeatureDetector.canvas) {
       //devices that don't support canvas
@@ -413,8 +413,6 @@ Document.write() is used here for extreme back-compatibility.
       }
     });
 
-    window.vrEffect = VREffect; //////////////////////
-
 //METHOD 3
 //Create a camera with orbit and follow-orbit features
 //apply to any object, not just camera objects - dolly moved
@@ -429,12 +427,25 @@ Document.write() is used here for extreme back-compatibility.
      * renderer: The THREE.js renderer
      * VREffect: The THREE.js VREffect object
      */
+
+    //TODO: MAKE THE BUTTONS IN INIT, AND RETURN THEM AS AN ARRAY IN A CALLBACK.
     if (WebVRUi.available) {
       WebVRUi.init(page, container, canvas, camera, renderer, VREffect);
+      var fsButt = WebVRUi.createButton('fullscreen-button-enter', 'FULLSCREEN');
+      var vrButt = WebVRUi.createButton('vr-button-enter', 'ENTER VR');
+      vrButt.onclick = function() {
+        console.log('clicked goto VR button')
+        if (window.orientation !== undefined && window.orientation == 0) {
+          //tell mobile users to use landscape mode
+          WebVRUi.flipToLandscapeMessage();
+        } else {
+          //set desktop to fullscreen stereo
+          changeToFullScreen();
+          VRMode = true;
+        }
+      }
+      var resetButt = WebVRUi.createButton('vr-pose-reset', 'RESET POSE', clickHandler);
     }
-
-    window.container = container; /////////////////////////////////
-    window.canvas = canvas; //////////////////////////////////
 
     /**
      * Create groups to hold planets. We move the planets
@@ -742,15 +753,10 @@ Document.write() is used here for extreme back-compatibility.
       // Listen for orientation changes on mobiles
       window.addEventListener("orientationchange", onOrientationChange, false);
 
-    };
-
-    /**
-     * VR-specific events
-     */
-    function addVRListeners () {
       // Bind to VR* specific events.
       window.addEventListener('vrdisplaypresentchange', onVRDisplayPresentChange);
       window.addEventListener('vrdisplaydeviceparamschange', onVRDisplayDeviceParamsChange);
+
     };
 
     // Event handlers for mouse.
@@ -771,42 +777,23 @@ Document.write() is used here for extreme back-compatibility.
       console.log('onVRDisplayDeviceParamsChange', e);
     };
 
-      /**
-       * ===================================
-       * FULLSCREEN API PATCHES
 
-       * Detect change from normal to fullscreen. Fires
-       * AFTER the fullscreen event resize.
-       *
-       * Since the fullScreen API fires EQUALLY for going in and
-       * out of fullScreen, and different libraries inconsistently
-       * test for fullscreen, create a local flag.
-       * ===================================
-       */
+    // We need our own flag, since the fullscreenElement is unreliable.
+    var fullScreenFlag = false;
 
-      // We need our own flag, since the fullscreenElement is unreliable.
-      var fullScreenFlag = false;
-
-      /**
-       * The fullscreenchange event is implemented consistently,
-       * but its order with to respect to window resize events is not.
-       * so change screen, even if we redundantly change the screen
-       * to the same size in a resize event
-       */
-      function onFullscreenChange () {
-        if (fullScreenFlag === false) {
+    /**
+     * The fullscreenchange event is implemented consistently,
+     * but its order with to respect to window resize events is not.
+     * so change screen, even if we redundantly change the screen
+     * to the same size in a resize event
+     */
+    function onFullscreenChange () {
+      if (fullScreenFlag === false) {
           console.log("in onfullscreen, going to fullscreen")
           fullScreenFlag = true;
           WebVRUi.setVRMode(true);
           ///////////onWindowResize(); //without, chrome smaller but correct proportion
           WebVRUi.changeToFullScreen();
-          /*
-           * FF and chrome sometimes display elongated stereo views, depending on
-           * the screen size. Some sizes give square, others elongaged.
-           * Seems to reset to square after a significant window resize
-           * May look ok, but not re-entrant when vr selected a second time.
-           * FIX: make width and height identical in VREffect.js
-           */
         } else {
           console.log('in onfullscreen, returning to normal')
           fullScreenFlag = false;
@@ -828,17 +815,6 @@ Document.write() is used here for extreme back-compatibility.
        */
       function onWindowResize() {
         console.log('in onWindowResize')
-        //if (fullScreenFlag === true) {
-        //  h = WebVRUi.getScreenHeight();
-        //  w = WebVRUi.getScreenWidth(); // * 2.4; //distorted in FF, OK in chrome
-        //  aspect = w / h;
-        //  changeScreen(w, h, aspect);
-        //} else {
-        //  domWidth = parseFloat(getComputedStyle(container).getPropertyValue('width'));
-        //  aspect = domAspect;
-        //  domHeight = domWidth / aspect;
-        //  changeScreen(domWidth, domHeight, domAspect); // .getComputedStyle is wrong here.
-        //}
       };
 
       /**
@@ -850,23 +826,18 @@ Document.write() is used here for extreme back-compatibility.
         switch (window.orientation) {
           case 0:
             fullScreenFlag = false; ///THIS FIXED IT! SEE IF WE REALLY NEED STYLES...
-            WebVRUi.resetDOM();
+            WebVRUi.chanteToDOM();
             WebVRUi.setVRMode(false);
             aspect = domAspect;
-            domWidth = parseFloat(getComputedStyle(container).getPropertyValue('width'));
+            //domWidth = parseFloat(getComputedStyle(container).getPropertyValue('width'));
             //changeScreen(domWidth, domHeight, aspect);
-            WebVRUi.changeToFullScreen();
+            //WebVRUi.changeToFullScreen();
             break;
           case 90:
           case -90:
             fullScreenFlag = true;
             WebVRUi.setVRMode(true);
             WebVRUi.swapDOM();
-            window.scrollTo(0, 1);
-            w = WebVRUi.getScreenWidth();
-            h = WebVRUi.getScreenHeight();
-            aspect = w / h;
-            WebVRUi.changeToDOM();
             break;
         }
       };
