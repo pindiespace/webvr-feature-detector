@@ -269,6 +269,13 @@ var WebVRUi = (function () {
       return pointerEvents = r;
     }
 
+    function isRelativeToViewport () {
+      var x = window.pageXOffset ? window.pageXOffset + window.innerWidth - 1 : 0;
+      var y = window.pageYOffset ? window.pageYOffset + window.innerHeight - 1 : 0;
+      if (!x && !y) return true;
+      return !document.elementFromPoint(x, y);
+    };
+
     /**
      * @method elementFromPoint
      * @description normalize elementFromPoint across browsers. Similar to
@@ -279,19 +286,18 @@ var WebVRUi = (function () {
      */
     function elemFromPoint (x, y) {
 
+    var isRelativeToViewport = function () {
+      var x = window.pageXOffset ? window.pageXOffset + window.innerWidth - 1 : 0;
+      var y = window.pageYOffset ? window.pageYOffset + window.innerHeight - 1 : 0;
+      if (!x && !y) return true;
+      return !document.elementFromPoint(x, y);
+    };
+
       if (!isRelativeToViewport()) {
         x += window.pageXOffset,
         y += window.pageYOffset;
       }
       return document.elementFromPoint(x, y)
-
-      var relativeToViewPort = function () {
-        var x = window.pageXOffset ? window.pageXOffset + window.innerWidth - 1 : 0;
-        var y = window.pageYOffset ? window.pageYOffset + window.innerHeight - 1 : 0;
-        if (!x && !y) return true;
-        return !document.elementFromPoint(x, y);
-      };
-
     };
 
     /**

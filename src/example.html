@@ -50,7 +50,7 @@ Document.write() is used here for extreme back-compatibility.
 </head>
     <body>
   <header>
-    <h1>WebVRFeatureDetector - Load Polyfills</h1>
+    <h1>WebVRFeatureDetector - Example</h1>
     <nav>
       <ul>
         <li><a href="index.html">Detector Test</a></li>
@@ -65,7 +65,7 @@ Document.write() is used here for extreme back-compatibility.
         <div id="vr-ui">
           <!--progress bar (polyfilled), hidden by default -->
           <div id='progress-bar' class='ui-progress header-box'>
-            <span>Load Progress: </span><progress id='load-progress'  value='0' max='100'><span>0</span>%</progress>
+            <progress id='load-progress'  value='0' max='100'><span>0</span>%</progress>
           </div>
         </div>
         <!--three.js vr sample here-->
@@ -114,6 +114,48 @@ Document.write() is used here for extreme back-compatibility.
       }
     };
 
+    /** 
+     * @method updateProgress
+     * @description update the progress bar.
+     * @param Number percent (value between 0-100)
+     * @param String msg additional message
+     */
+    function updateProgress (percent, msg) {
+      console.log('progress function, ' + percent + '%' + ' for:' + msg);
+      var prog = document.getElementById('load-progress');
+      if(prog) {
+        prog.value = percent;
+        prog.getElementsByTagName('span')[0].innerHTML = percent;
+      }
+    };
+
+    /** 
+     * @method hideProgress
+     * @description hide the progress bar
+     */
+    function hideProgress () {
+      var prog = document.getElementById('load-progress');
+      prog.value = 100;
+      prog.getElementsByTagName('span')[0].innerHTML = '100%';
+      document.getElementById('progress-bar').style.display = 'none';
+    };
+
+    /** 
+     * @method showFail 
+     * @desciption what to do when load fails.
+     */
+    function showFail (msg, ui) {
+      replaceCanvasWithImage('img/icons/no-vr.gif');
+      hideProgress();
+      if (!ui) {
+        alert(msg);
+      } else {
+        console.log("MESSAGE IS:" + msg + " an ui is:" + ui)
+        ui.setMessage(msg);
+        ui.showMessage();
+      }
+    };
+
     /**
      * ===================================
      * Replace <canvas> with fallback image for browsers that 
@@ -121,16 +163,23 @@ Document.write() is used here for extreme back-compatibility.
      * if the report supporting <canvas> and WebGL.
      * ===================================
      */
-    if(WebVRFeatureDetector && !WebVRFeatureDetector.canvas ||
-      WebVRFeatureDetector.ie == 9 || WebVRFeatureDetector.firefox < 15 || 
-      WebVRFeatureDetector.chrome == 9) {
-        replaceCanvasWithImage('img/icons/no-vr.gif');
-    } else {
+    if(typeof WebVRFeatureDetector === undefined) {
+      replaceCanvasWithImage('img/icons/no-vr.gif');
+      alert('Your browser does not support this page (upgrade).');
+    } else { 
 
-    // Show the loading progress bar.
-    document.getElementById('progress-bar').style.display = 'block';
+    /** 
+     * ===================================
+     * Show the loading progress bar. Its 
+     * position gets updated by a callback 
+     * to WebVRFeatureDetector at the bottom 
+     * of this script.
+     * ===================================
+     */
+    var prog = document.getElementById('progress-bar');
+    prog.style.display = 'block';
 
-    // Try a load.
+    // Load all scripts required for the virtual world.
     WebVRFeatureDetector.load([
       [
         {name: 'addEventListener', path: 'js/polyfills/ie8.js', poly: true},
@@ -162,43 +211,58 @@ Document.write() is used here for extreme back-compatibility.
     ], function() { // Main callback function
 
 
-    // Hide the loading progress bar.
-    document.getElementById('progress-bar').style.display = 'none';
-
-    /**
-     * ===================================
-     * Create a status and error panel in the window.
-     * Note: will autocreate if we try to show, hide 
-     * or set the message text.
-     * ===================================
-     */
-    ui.createMessage(document.body);
-
     /**
      * ===================================
      * Check for parsing errors in THREE, and 
      * exit if they exist.
      * ===================================
      */
-    console.log("THREE IS:" + THREE)
-    if (!THREE) {
-      replaceCanvasWithImage('img/icons/no-vr.gif');
-      ui.setMessage('Your Browser does not support 3D drawing libraries');
-      ui.showMessage();
+    //console.log("THREE IS:" + THREE)
+    if (typeof THREE === undefined) {
+      showFail('Your Browser does not support the THREE drawing libraries, WebVR cannot run.', ui);
       return;
     }
+
+    /** 
+     * ===================================
+     * Flag browsers that pass the tests, 
+     * but crash (e.g. Google Chrome 9, which 
+     * freezes when you try to get a WebGL 
+     * context).
+     * ===================================
+     */
+    if (WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11) {
+        showFail('Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', ui)
+        return;
+    } else if (WebVRFeatureDetector.browser.firefox && WebVRFeatureDetector.browser.firefox < 15) {
+        showFail('Old versions of Firefox do not support THREE.js, WebVR cannot run.', ui);
+        return;
+    } else if (WebVRFeatureDetector.browser.chrome && WebVRFeatureDetector.browser.chrome == 9) {
+        showFail('This version of Chrome does not support THREE.js, WebVR cannot run.', ui);
+        return;
+    }
+
+    /** 
+     * ===================================
+     * Create the message window (show it 
+     * after loading textures).
+     * ===================================
+     */
+    ui.createMessage();
 
     /**
      * ===================================
      * UTILITY FUNCTIONS
-     * For creating planets and orbits
+     * For creating planets and orbits. 
+     * Assumes THREE.js is being used.
      * ===================================
      */
 
-     /*
-      * Scale the geometry (rather than scale Scene or Mesh)
-      * Similar to: http://learningthreejs.com/data/THREEx/docs/THREEx.GeometryUtils.html
-      */
+    /*
+     * @method doGeometryScale
+     * @description Scale the geometry (rather than scale Scene or Mesh)
+     * Similar to: http://learningthreejs.com/data/THREEx/docs/THREEx.GeometryUtils.html
+     */
     function doGeometryScale (geometry, scale) {
       for(var i = 0; i < geometry.vertices.length; i++) {
         var vertex  = geometry.vertices[i];
@@ -208,9 +272,10 @@ Document.write() is used here for extreme back-compatibility.
       return geometry;
     };
 
-      /*
-       * Rotate a geometry (not a mesh)
-       */
+    /*
+     * @method doGeometryRotation
+     * @description Rotate a geometry (not a mesh)
+     */
     function doGeometryRotation (geometry, rotation) {
       var rMatrix = new THREE.Matrix4();
       geometry.applyMatrix(rMatrix.makeRotationX(rotation.x))
@@ -219,9 +284,10 @@ Document.write() is used here for extreme back-compatibility.
       return geometry;
     };
 
-      /**
-       * Circle positioned and rotated
-       */
+    /**
+     * @method createCircle
+     * @description Circle positioned and rotated
+     */
     function createCircle (segmentCount, radius, material, position, rotation) {
       var geometry = new THREE.CircleGeometry(radius, segmentCount);
       doGeometryRotation(geometry, rotation);
@@ -230,9 +296,10 @@ Document.write() is used here for extreme back-compatibility.
       return circle;
     };
 
-      /*
-       * Create orbital lines or flat rings.
-       */
+    /*
+     * @method createRing
+     * @description Create orbital lines or flat rings.
+     */
     function createRing (phiSegments, thetaSegments, start, end, material, position, rotation) {
       var geometry = new THREE.RingGeometry(start, end, thetaSegments, phiSegments, 0, Math.PI * 2);
       doGeometryRotation(geometry, rotation);
@@ -241,9 +308,10 @@ Document.write() is used here for extreme back-compatibility.
       return ring;
     };
 
-      /**
-       * A THREE Line tracing a planet or moon orbit.
-       */
+    /**
+     * @method createOrbitLine
+     * @description a THREE Line tracing a planet or moon orbit.
+     */
     function createOrbitLine (segmentCount, radius, material, position, rotation) {
       var geometry = new THREE.Geometry();
       for (var i = 0; i <= segmentCount; i++) {
@@ -602,6 +670,15 @@ Document.write() is used here for extreme back-compatibility.
       ]; // End of planetArray
 
     /**
+     * ===================================
+     * Compute increments we'll need to record 
+     * texture loading progress.
+     * ===================================
+     */
+     var textureLoadInc = 50 / planetArray.length;
+     var incCount = 50; //50% at start.
+
+    /**
      * loadTextures
      * load the textures (and JSON models) needed for Plutonian system.
      * Nested Promises
@@ -652,7 +729,7 @@ Document.write() is used here for extreme back-compatibility.
                         if(texture instanceof THREE.Texture) {
                           resolve(planet);
                         }
-                      });
+                      }); // End of mesh loaded by program.
 
                     } else { // We're using THREE sphere built-in mesh
                       console.log('in prebuilt geometry loader')
@@ -669,14 +746,17 @@ Document.write() is used here for extreme back-compatibility.
                       if(texture instanceof THREE.Texture) {
                         resolve(planet);
                       }
-                    }
+                    } // End of THREE built-in mesh.
+                    // Update progress by COMPLETE texture load (not using THREE xhr progress)
+                    incCount += textureLoadInc;
+                    updateProgress(incCount, planet.name);
                 },
 
-                function (xhr) {
+                function (xhr) { // Report loading progress.
                   console.log(planet.name + ' ' + parseInt(xhr.loaded / xhr.total * 100) + '% loaded');
                 },
 
-                function (xhr) {
+                function (xhr) { // Report loading error.
                   reject( new Error (xhr + 'An error occurred loading while loading' + planet.path));
                 }
               )
@@ -690,8 +770,8 @@ Document.write() is used here for extreme back-compatibility.
           console.log('in resolver');
           for(var i = 0; i < textures.length; i++) {
              var key = Object.keys(textures[i])
-           //all textures are still undefined!
-             console.log(textures[key])
+            //all textures are still undefined!
+             console.log(textures[key]);
           }
           if( callback && typeof(callback) === "function" && planetArray.length == textures.length) {
             callback(textures);
@@ -937,6 +1017,22 @@ Document.write() is used here for extreme back-compatibility.
     loadTextures(function () {
       console.log('done loading textures')
 
+    /**
+     * ===================================
+     * If we can run THREE, show status message.
+     * ===================================
+     */
+    ui.showMessage();
+
+    /** 
+     * ===================================
+     * Hide the loading progress bar.
+     * ===================================
+     */
+    prog.value = 100;
+    prog.getElementsByTagName('span')[0].innerHTML = '100%';
+    document.getElementById('progress-bar').style.display = 'none';
+
     //TODO: this will happen BEFORE Textures loaded...
     //TODO: this needs to be part of the Ui.
 
@@ -992,12 +1088,12 @@ Document.write() is used here for extreme back-compatibility.
       // END OF WebVRFeatureDetector callback.
 
     }, function(percent, msg) { // WebVRFeatureDetector Progress Bar callback.
+
+        percent = parseInt(percent/2);
+
+        // this updates and completes BEFORE texture loading.
         console.log('progress function, ' + percent + '%' + ' for:' + msg);
-        var prog = document.getElementById('load-progress');
-        if(prog) {
-          prog.value = percent;
-          prog.getElementsByTagName('span')[0].innerHTML = percent;
-        }
+        updateProgress(percent, msg);
     }, function(msg, batch, script, s) { // WebVRFeatureDetector Error callback.
         console.error(msg  + ' batch#' + batch + ', script#' + script + ', value:' + s);
     }

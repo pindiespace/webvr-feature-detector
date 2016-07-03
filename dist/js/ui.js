@@ -49,8 +49,10 @@ var ui = (function () {
 
         // Keep the message from blocking underlying DOM elements.
         if (hasPointerEvents()) {
+            console.log('ui.createMessage: setting pointerEvents');
             msgContainer.style.pointerEvents = 'none';
         } else {
+            console.log('ui.createMessage: no pointerEvents, making clickthrough');
             makeClickThrough(msgContainer);
         }
 
@@ -69,7 +71,12 @@ var ui = (function () {
         msgBtn.innerHTML = 'Close';
         //msgBtn.className = buttonClass;
 
-        msgBtn.addEventListener('click', hideMessage, false);
+        //msgBtn.addEventListener('click', hideMessage, false);
+
+        // Use old method for browser compatibity
+        msgBtn.addEventListener = function () {
+            hideMessage();
+        }
 
         msg.appendChild(msgText);
         msg.appendChild(msgBtn);
@@ -93,6 +100,7 @@ var ui = (function () {
      */
     function showMessage () {
         if (!msgContainer) {
+            console.warn('ui.showMessage: displaying message without creating first');
             createMessage();
         }
         msgContainer.style.display = 'block';
@@ -116,7 +124,10 @@ var ui = (function () {
      * @param String message the message to set
      */
     function setMessage (message) {
-        if (msg) {
+        if (!msgContainer) {
+            createMessage();
+        }
+        if (message) {
             var txt = document.getElementById(msgTextId);
             txt.innerHTML = message;
         } else {
@@ -285,26 +296,6 @@ var ui = (function () {
     };
 
     /**
-     * @method replaceCanvasWithImage
-     * @description replace <canvas> tags with images in
-     * browsers that can't support THREE or other libraries
-     * with a 3d <canvas> context.
-     * @param String imgPath the path to the replacement image.
-     */
-    function replaceCanvasWithImage (imgPath) {
-      var c = document.getElementsByTagName('canvas');
-      // Replace each canvas with a default image.
-      for(var i = 0; i < c.length; i++) {
-        var img = document.createElement('img');
-        img.src = imgPath;
-        var parentNode = c[i].parentNode;
-        parentNode.insertBefore(img, c[i]);
-        parentNode.removeChild(c[i]);
-      }
-    };
-
-
-    /**
      * @method isDOM
      * @description confirm user passed in a DOM element to attach the Ui to.
      */
@@ -401,6 +392,67 @@ var ui = (function () {
     };
 
     /**
+     * @method elementFromPoint
+     * @description normalize elementFromPoint across browsers. Similar to
+     * https://github.com/moll/js-element-from-point.
+     * @param Number x the x coordinate from mouseclick.
+     * @param Number y the y coordinate from mouseclick.
+     * @returns DOMElement the underlying page element.
+     */
+    function elemFromPoint (x, y) {
+        //define function
+        var isRelativeToViewPort = function () {
+            var x = window.pageXOffset ? window.pageXOffset + window.innerWidth - 1 : 0;
+            var y = window.pageYOffset ? window.pageYOffset + window.innerHeight - 1 : 0;
+            if (!x && !y) return true;
+            return !document.elementFromPoint(x, y);
+        };
+        if (!isRelativeToViewPort()) {
+            x += window.pageXOffset,
+            y += window.pageYOffset;
+        }
+        return document.elementFromPoint(x, y)
+    };
+
+    /**
+     * @method makeClickThrough
+     * @description see if pointerEvents are supported on a DOM element, manually pass
+     * mouseclicks to the underlying element if they are not. We do this since users 
+     * may not click the 'close' button in the message dialog.
+     *
+     * It works by briefly hiding the current element,
+     * then checking which underlying element would be clicked on, then restoring
+     * visibility to the element. We use this to support old browsers that don't have 
+     * CSS Pointer Events, or define .click() on hyperlinks.
+     * 
+     * @param DOMElement elem the element we want to be transparent to clicks.
+     */
+    function makeClickThrough (elem) {
+
+        elem.onclick = function(e) {
+            var underneath, disp;
+            if (e && e.target) {
+                disp = e.target.style.display;
+                e.target.style.display = 'none'
+                underneath = elemFromPoint(e.pageX, e.pageY);
+                e.target.style.display = disp;
+                var clickEvent = new MouseEvent('click', {
+                    'view': window,
+                    'bubbles': true,
+                    'cancelable': false
+                });
+                underneath.dispatchEvent(clickEvent);
+            } else if (window.event !== undefined) {
+                disp = window.event.srcElement.style.visibility;
+                window.event.srcElement.style.visibility = 'hidden';
+                underneath = elemFromPoint(e.pageX, e.pageY);
+                window.event.srcElement.style.visibility = disp;
+                underneath.click();
+            }
+        }
+    };
+
+    /**
      * @method setupDOMForSwap
      * @description find all the elements on the page to hide
      * @param DOMElement Canvas the <canvas> element to 'fullscreen'
@@ -477,63 +529,10 @@ var ui = (function () {
         var n = document.body.childNodes;
         for (var i = 0, len = n.length; i < len; i++) {
             if (n[i].style) {
-                console.log("putting back old display:" + n[i].oldDisp)
+                console.log('putting back old display:' + n[i].oldDisp)
                 n[i].style.display = n[i].oldDisp;
             } else {
                 // anything canvas-specific, like resetting styles
-            }
-        }
-    };
-
-    function isRelativeToViewport () {
-        var x = window.pageXOffset ? window.pageXOffset + window.innerWidth - 1 : 0;
-        var y = window.pageYOffset ? window.pageYOffset + window.innerHeight - 1 : 0;
-        if (!x && !y) return true;
-        return !document.elementFromPoint(x, y);
-    };
-
-    /**
-     * @method elementFromPoint
-     * @description normalize elementFromPoint across browsers. Similar to
-     * https://github.com/moll/js-element-from-point.
-     * @param Number x the x coordinate from mouseclick.
-     * @param Number y the y coordinate from mouseclick.
-     * @returns DOMElement the underlying page element.
-     */
-    function elemFromPoint (x, y) {
-
-      if (!isRelativeToViewport()) {
-        x += window.pageXOffset,
-        y += window.pageYOffset;
-      }
-      return document.elementFromPoint(x, y)
-
-
-
-    };
-
-    /**
-     * @method makeClickThrough
-     * @description see if pointerEvents are supported on a DOM element, manually pass
-     * mouseclicks if they are not. It works by briefly hiding the current element,
-     * then checking which underlying element would be clicked on, then restoring
-     * visibility to the element.
-     * @param DOMElement elem the element we want to be transparent to clicks.
-     */
-    function makeClickThrough (elem) {
-        elem.onclick = function(e) {
-            var underneath, disp;
-            if (e && e.target) {
-                disp = e.target.style.display;
-                e.target.style.display = 'none'
-                underneath = elemFromPoint(e.pageX, e.pageY);
-                e.target.style.display = disp;
-            } else if (window.event !== undefined) {
-                disp = window.event.srcElement.style.visibility;
-                window.event.srcElement.style.visibility = 'hidden';
-                underneath = elemFromPoint(e.pageX, e.pageY);
-                window.event.srcElement.style.visibility = disp;
-                underneath.click();
             }
         }
     };
@@ -619,7 +618,7 @@ var ui = (function () {
             setupDOMForSwap(canvas);
 
       })/*.catch (function (err) { // Rejected, doesn't work for IE8 Promise polyfill
-          //console.error("ERROR in WebVRUi.init");
+          //console.error('ERROR in WebVRUi.init');
       });*/
 
     };
