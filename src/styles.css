@@ -5,6 +5,11 @@
  */
  html {
     box-sizing: border-box; /* IMPORTANT */
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    padding: 0;
+    overflow: hidden;
  }
 
  *, *:before, *:after {
@@ -12,8 +17,9 @@
  }
 
 body {
-    margin:0;
-    padding:0;
+
+    /*margin:0;*/
+    /*padding:0;*/
     overflow: hidden;
     /*width: 100vh;*/
     /*height: 100vh;*/
@@ -21,7 +27,7 @@ body {
 
 /* container for canvas, here a figure element */
 #vr-world {
-    margin:0;
+    margin:0 auto;
     width:80%;
     /*height:100%;*/
     position:relative; /* size canvas to fit this element */
@@ -32,8 +38,8 @@ body {
 #vr-world canvas {
     /*border: 4px solid #aaa;*/
     margin:0;
-    /*width: 100%;*/
-    /*height: 100%;*/
+    width: 100%;
+    height: 100%;
     display:block;    /* remove scrollbars */
     overflow: hidden;
 }
@@ -42,9 +48,13 @@ body {
     outline:0; /* remove blue outline around canvas */
 }
 
-/* progress bar for scene loading */
-.ui-progress {
+/* hide headings required for HTML5 validation */
+#content h2 {
+    display: none;
+}
 
+#content h3 {
+    display: none;
 }
 
 /* container for vr buttons */
@@ -74,13 +84,18 @@ body {
 	z-index: 999;
 }
 
-/* message container */
+/* 
+ * message container. set to allow clickthrough
+ * to elements beneath in JavaScript for max 
+ * browser compatibility (i.e. browsers not supporting 
+ * CSS pointer events)
+ */
 .ui-message-container {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
-    z-index: 9999;
+    z-index: 9998;
     text-align: center;
     display: none;
 }
@@ -113,6 +128,8 @@ body {
 /* parent to progress bar */
 #vr-ui {
     position: relative;
+    width:100%;
+    height:100%;
 }
 
 /* progress bar element for page loading, horizontally and vertically centered */
@@ -122,11 +139,12 @@ body {
     padding: 20px;
     top: 50%;
     left: 50%;
-    margin: -70px 0 0 -170px;
+    margin: 70px 0 0 -170px;
     border-radius: 6px;
     background-color: #dbf; /* fallback */
     background-color: rgba(56, 22, 188, 0.1);
     text-align:center;
+    zindex:9999;
     display:none;
 }
 

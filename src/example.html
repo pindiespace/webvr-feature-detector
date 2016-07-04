@@ -65,12 +65,12 @@ Document.write() is used here for extreme back-compatibility.
         <div id="vr-ui">
           <!--progress bar (polyfilled), hidden by default -->
           <div id='progress-bar' class='ui-progress header-box'>
-            <progress id='load-progress'  value='0' max='100'><span>0</span>%</progress>
+            <progress id='load-progress' value='0' max='100'><span>0</span>%</progress>
           </div>
         </div>
         <!--three.js vr sample here-->
         <figure id='vr-world'>
-          <canvas id='vr-canvas' width="400" height="550"></canvas>
+          <canvas id='vr-canvas'></canvas>
           <figcaption>The Plutonian System.</figcaption>
         </figure>
     </article>
@@ -116,7 +116,7 @@ Document.write() is used here for extreme back-compatibility.
 
     /** 
      * @method updateProgress
-     * @description update the progress bar.
+     * @description update the progress dialog.
      * @param Number percent (value between 0-100)
      * @param String msg additional message
      */
@@ -131,7 +131,7 @@ Document.write() is used here for extreme back-compatibility.
 
     /** 
      * @method hideProgress
-     * @description hide the progress bar
+     * @description hide the progress dialog
      */
     function hideProgress () {
       var prog = document.getElementById('load-progress');
@@ -143,6 +143,8 @@ Document.write() is used here for extreme back-compatibility.
     /** 
      * @method showFail 
      * @desciption what to do when load fails.
+     * @param String msg the message to show on failure.
+     * @param Object ui our ui object, with .setMessage and .showMessa
      */
     function showFail (msg, ui) {
       replaceCanvasWithImage('img/icons/no-vr.gif');
@@ -158,15 +160,18 @@ Document.write() is used here for extreme back-compatibility.
 
     /**
      * ===================================
-     * Replace <canvas> with fallback image for browsers that 
-     * can't run THREE v76, or will crash on polyfill loads, even 
-     * if the report supporting <canvas> and WebGL.
+     * Eliminate browsers that can't run the 
+     * WebVRFeatureDetector loader, or don't 
+     * define HTML5 <canvas>.
      * ===================================
      */
-    if(typeof WebVRFeatureDetector === undefined) {
+    if(typeof WebVRFeatureDetector === undefined || !WebVRFeatureDetector.canvas) {
       replaceCanvasWithImage('img/icons/no-vr.gif');
       alert('Your browser does not support this page (upgrade).');
     } else { 
+
+    // Give canvas an explicit size.
+
 
     /** 
      * ===================================
@@ -881,15 +886,18 @@ Document.write() is used here for extreme back-compatibility.
       isMouseDown = false;
     };
 
-    function onVRDisplayPresentChange (e) {
-      console.log('onVRDisplayPresentChange');
-      //if the hmd.isPresenting set VR, else set DOM mode
-    };
-
-    function onVRDisplayDeviceParamsChange (e) {
-      console.log('onVRDisplayDeviceParamsChange', e);
-    };
-
+      /**
+       * Detect window resizing. Note that these may be applied
+       * in a redundant fashion to ensure the fullscreen toggles
+       * work consistently.
+       * TODO: grab it when we are just chnging the window size, and adjust
+       * accordingly
+       * TODO:
+       * TODO:
+       */
+      function onWindowResize() {
+        console.log('in onWindowResize')
+      };
 
     // We need our own flag, since the fullscreenElement is unreliable.
     var fullScreenFlag = false;
@@ -905,6 +913,7 @@ Document.write() is used here for extreme back-compatibility.
           console.log("in onfullscreen, going to fullscreen")
           fullScreenFlag = true;
           ui.setVRMode(true);
+          ui.swapDOM();
           ///////////onWindowResize(); //without, chrome smaller but correct proportion
           ui.changeToFullScreen();
         } else {
@@ -916,19 +925,6 @@ Document.write() is used here for extreme back-compatibility.
           //onWindowResize();
         }
       }
-
-      /**
-       * Detect window resizing. Note that these may be applied
-       * in a redundant fashion to ensure the fullscreen toggles
-       * work consistently.
-       * TODO: grab it when we are just chnging the window size, and adjust
-       * accordingly
-       * TODO:
-       * TODO:
-       */
-      function onWindowResize() {
-        console.log('in onWindowResize')
-      };
 
       /**
        * Detect orientation changes in mobile, equivalent to
@@ -955,6 +951,14 @@ Document.write() is used here for extreme back-compatibility.
         }
       };
 
+    function onVRDisplayPresentChange (e) {
+      console.log('onVRDisplayPresentChange');
+      //if the hmd.isPresenting set VR, else set DOM mode
+    };
+
+    function onVRDisplayDeviceParamsChange (e) {
+      console.log('onVRDisplayDeviceParamsChange', e);
+    };
 
       /**
        * ===================================

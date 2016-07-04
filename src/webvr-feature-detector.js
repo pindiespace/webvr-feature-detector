@@ -554,6 +554,13 @@
       return s;
   };
 
+  /* 
+   * Used to resize canvas.
+   */
+  tests['getComputedStyle'] = function () {
+    return !!window.getComputedStyle;
+  };
+
   /*
    * Environment Feature detection.
    * 

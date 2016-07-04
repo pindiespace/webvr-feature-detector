@@ -71,9 +71,8 @@ var ui = (function () {
         msgBtn.innerHTML = 'Close';
         //msgBtn.className = buttonClass;
 
-        //msgBtn.addEventListener('click', hideMessage, false);
-
         // Use old method for browser compatibity
+        //msgBtn.addEventListener('click', hideMessage, false);
         msgBtn.addEventListener = function () {
             hideMessage();
         }
@@ -305,7 +304,7 @@ var ui = (function () {
     };
 
     function hasWebVR () {
-        return !!navigator.getVRDisplays;
+        return !!(navigator.getVRDisplays || navigator.getVRDevices);
     };
 
     /**
@@ -429,25 +428,44 @@ var ui = (function () {
      */
     function makeClickThrough (elem) {
 
+        //TODO: need to capture events (buttons) within the dialog
+
         elem.onclick = function(e) {
-            var underneath, disp;
+
+            e = e || window.event;
+            var target = e.target || e.srcElement;
+
+            // If our element was on a button or link, don't pass through.
+            if (target && target.tagName === 'A' || target.tagName === 'BUTTON') {
+                hideMessage();
+                return;
+            }
+
+            console.log("e.tagName:" + elem.tagName + " >>>>>>>>>>IN CLICKTHROUGH")
+            // Otherwise, pass the event to a lower layer.
+            var underneath, disp, clickEvent;
             if (e && e.target) {
                 disp = e.target.style.display;
                 e.target.style.display = 'none'
                 underneath = elemFromPoint(e.pageX, e.pageY);
                 e.target.style.display = disp;
-                var clickEvent = new MouseEvent('click', {
-                    'view': window,
-                    'bubbles': true,
-                    'cancelable': false
-                });
+                if(document.createEvent) { // IE 9-11
+                    clickEvent = document.createEvent("MouseEvent");
+                    clickEvent.initMouseEvent("click",true,true,window,0,0,0,0,0,false,false,false,false,0,null);
+                } else {
+                    clickEvent = new MouseEvent('click', {
+                        'view': window,
+                        'bubbles': true,
+                        'cancelable': false
+                    });
+                }
+                // dispatchEvent is the same for both above cases.
                 underneath.dispatchEvent(clickEvent);
             } else if (window.event !== undefined) {
                 disp = window.event.srcElement.style.visibility;
                 window.event.srcElement.style.visibility = 'hidden';
-                underneath = elemFromPoint(e.pageX, e.pageY);
+                underneath = elemFromPoint(window.event.clientX, window.event.clientY);
                 window.event.srcElement.style.visibility = disp;
-                underneath.click();
             }
         }
     };
@@ -573,7 +591,21 @@ var ui = (function () {
 
         // Get the WebVR display
         return new Promise (function (resolve, reject) {
-            if (navigator.getVRDisplays) { // 1.0 API
+            
+            if (navigator.getVRDevices) {
+                navigator.getVRDevices().then(function(devices) {
+                    console.log('>>>>>>>>>>>>>>>>>VR DEVICES')
+                    if (devices.length > 0) {
+                        if(devices[0] instanceof HMDVRDevice) {
+                            resolve({display:devices[0], msg:'Your browser supports WebVR but not the latest version. See <a href="http://webvr.info">webvr.info</a> for more info.'});
+                        }
+                    } else {
+                        reject(Error('Legacy WebVR supported, but no VR devices found.'));
+                    }
+                });
+            }
+            else if (navigator.getVRDisplays) { // 1.0 API
+                console.log('>>>>>>>>>>>>>>>>>>VR DISPLAYS!!!!!!!!!!!!!!!!!!!!')
                 navigator.getVRDisplays().then(function(displays) {
                     if (displays.length > 0) {
                         if (displays[0] instanceof VRDisplay) {
@@ -581,17 +613,6 @@ var ui = (function () {
                         }
                     } else {
                         reject(Error('WebVR Supported, but no VR displays found.'));
-                    }
-                });
-            }
-            else if (navigator.getVRDevices) {
-                navigator.getVRDevices().then(function(devices) {
-                    if (devices.length > 0) {
-                        if(devices[0] instanceof HMDVRDevice) {
-                            resolve({display:devices[0], msg:'Your browser supports WebVR but not the latest version. See <a href="http://webvr.info">webvr.info</a> for more info.'});
-                        }
-                    } else {
-                        reject(Error('Legacy WebVR supported, but no VR displays found.'));
                     }
                 });
             } else {
