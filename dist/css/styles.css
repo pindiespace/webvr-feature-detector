@@ -84,6 +84,18 @@ body {
 	z-index: 999;
 }
 
+.ui-button:hover {
+    border-color: #dd0000;
+    background-color: #222;
+}
+
+.ui-button:active {
+    border-color: #ffffff;
+    background-color: #aaa;
+    color: #000;
+    font-style: bold;
+}
+
 /* 
  * message container. set to allow clickthrough
  * to elements beneath in JavaScript for max 

@@ -4,28 +4,30 @@
  */
 var ui = (function () {
 
-    var page,            // DOM page (often document.body)
-    msgContainer,        // container DOM element for alerts
-    message,             // page message
-    container,           // container DOM object (e.g. <figure>)
-    containerMessage,    // container message  (e.g. <figcaption>)
-    popup,               // progress DOM element
-    detail,              // detail popup on mouseover
-    buttonContainer,     // container DOM element for buttons
-    canvas,              // presentation canvas
-    swap = [],           // store elements during DOM swap
-    placeholder = null,  // saves location of canvas element in hidden DOM
-    vrDisplay = null,    // webVR display
-    vrMode = false,      // flag for in VR mode
-    polyfill = false,    // flag for webvr-polyfill being used
-    pointerEvents = false, // flag for whether CSS pointerEvents are supported
+    var page,               // DOM page (often document.body)
+    msgContainer,           // container DOM element for alerts
+    message,                // page message
+    container,              // container DOM object (e.g. <figure>)
+    containerMessage,       // container message  (e.g. <figcaption>)
+    popup,                  // progress DOM element
+    detail,                 // detail popup on mouseover
+    buttonContainer,        // container DOM element for buttons
+    canvas,                 // presentation canvas
+    swap = [],              // store elements during DOM swap
+    placeholder = null,     // saves location of canvas element in hidden DOM
+    vrDisplay = null,       // webVR display
+    vrMode = false,         // flag for in VR mode
+    fullScreenMode = false, // flag for fullScreen mode
+    mousedown = false,      // flag for mousedown (drag?)
+    polyfill = false,       // flag for webvr-polyfill being used
+    pointerEvents = false,  // flag for whether CSS pointerEvents are supported
     msgContainerClass = 'ui-message-container', // message container (transparent)
     msgClass = 'ui-message', // styled element in message container
-    msgTextClass = 'ui-message-text',
-    msgTextId = 'ui-message-text-id',
-    msgBtnId = 'ui-message-close-id',
-    buttonContainerclass = 'ui-buttons',
-    buttonClass = 'ui-button'; 
+    msgTextClass = 'ui-message-text', // text im message container
+    msgTextId = 'ui-message-text-id', // unique id for message container
+    msgBtnId = 'ui-message-close-id', // id for close button in message
+    buttonContainerclass = 'ui-buttons', // DOM element holding all Ui buttons
+    buttonClass = 'ui-button'; // button class
 
     /** 
      * @method createMessage
@@ -322,7 +324,7 @@ var ui = (function () {
      * @returns Boolean if in VR state, true, else false.
      */
     function isVRMode () {
-      return vrMode;
+        return vrMode;
     };
 
     /**
@@ -331,15 +333,15 @@ var ui = (function () {
      * @param Boolean mode set the VR mode to true, or false.
      */
     function setVRMode (mode) {
-      vrMode = mode;
+        vrMode = mode;
     };
 
     /**
-     * @method getDisplay
+     * @method getVRDisplay
      * @description return a VRDisplay object, if present.
      * @returns VRDisplay or null.
      */
-    function getDisplay () {
+    function getVRDisplay () {
         return vrDisplay;
     };
 
@@ -361,18 +363,103 @@ var ui = (function () {
         return Math.min(window.screen.width, window.screen.height)
     };
 
+    /** 
+     * @method hasFullscreen
+     * @description check if requestFullscreen is defined
+     */
+    function hasFullscreen () {
+        var elem = document.documentElement;
+        if (elem.requestFullscreen || 
+            elem.mozRequestFullscreen || 
+            elem.webkitRequestFullscreen || 
+            elem.webkitRequestFullscreen || 
+            elem.msRequestFullscreen
+        ) {
+            return true;
+        }
+        return false;
+    };
+
+    /** 
+     * @method isFullscreenMode
+     * @description check if we are in fullscreen
+     */
+    function isFullscreenMode () {
+        console.log('fullscreenElement:' + getFullscreenElement())
+        return !!getFullscreenElement();
+    };
+
     /**
-     * @method getFullScreenElement
+     * @method getFullscreenElement
      * @description Check if fullScreen element is non-null for browsers that have it.
      * @returns DOMElement|null if fullscreen present, return the element in fullscreen, else null
      */
-    function getFullScreenElement () {
-        return (document.fullscreenElement !== null ||
-            !document.mozFullScreenElement !== null ||
-            !document.webkitFullscreenElement !== null ||
-            !document.msFullscreenElement !== null ||
+    function getFullscreenElement () {
+        return (document.fullscreenElement ||
+            document.mozFullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement ||
             null);
-    }; // end of function
+    };
+
+    /** 
+     * @method enterFullscreen 
+     * @description request fullScreen using vendor prefixes.
+     * @param DOMElement elem the element to set fullscreen.
+     */
+    function enterFullscreen (elem) {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+            return true;
+        } else if (elem.mozRequestFullscreen) {
+            elem.mozRequestFullscreen();
+            return true;
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+            return true;
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+            return true;
+        } 
+        return false;
+    };
+
+    /** 
+     * @method exitFullscreen
+     */
+    function exitFullscreen () {
+        console.log('exitFullscreen');
+        if (document.cancelFullScreen) {
+            document.cancelFullScreen();
+            return true;
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+            return true;
+        } else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+            return true;
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+            return true;
+        }
+        return false;
+    };
+
+    /** 
+     * @method setMouseDown
+     * @description set the mouse as being down
+     */
+    function setMouseDown (mouse) {
+        mousedown = mouse;
+    };
+
+    /** 
+     * @method isMouseDown 
+     * @description check if the mouse is (still) down
+     */
+    function isMouseDown () {
+        return mousedown;
+    };
 
     /**
      * @method hasPointerEvents.
@@ -476,9 +563,16 @@ var ui = (function () {
      * @param DOMElement Canvas the <canvas> element to 'fullscreen'
      */
     function setupDOMForSwap (swapElem) {
-        if(swapElem) {
-            canvas = swapElem; //TODO: THIS NEEDS TO BE CHANGED!!!!!!!!!
+        // If placeholder <div> present, do nothing
+        if (placeholder) {
+            console.warn('ui.setUpDOMForSwap: swap DOM already set up');
+            return;
         }
+        // Assign swap element.
+        if(swapElem) {
+            canvas = swapElem;
+        }
+        // If canvas not defined, error
         if (!canvas) {
             console.error('ui.setupDOMForSwap: DOM swap element ' + canvas + ' not found');
         }
@@ -555,19 +649,6 @@ var ui = (function () {
         }
     };
 
-    /** 
-     * @method changeToFullScreen
-     */
-    function changeToFullScreen () {
-        console.log('changeToFullScreen')
-    };
-
-    /** 
-     * @method exitFullScreen
-     */
-    function exitFullScreen () {
-        console.log('exitFullScreen');
-    };
 
     /** 
      * @method init 
@@ -654,14 +735,20 @@ var ui = (function () {
         createButton: createButton, // Container implicitly created
         showButtons: showButtons,
         hideButtons: hideButtons,
+        getScreenWidth: getScreenWidth,
+        getScreenHeight: getScreenHeight,
         hasWebVR: hasWebVR,
         isWebVRPolyfill: isWebVRPolyfill,
         isVRMode: isVRMode,
         setVRMode: setVRMode,
-        getDisplay: getDisplay,
-        getScreenWidth: getScreenWidth,
-        getScreenHeight: getScreenHeight,
-        getFullScreenElement: getFullScreenElement,
+        getVRDisplay: getVRDisplay,
+        hasFullscreen: hasFullscreen,
+        isFullscreenMode: isFullscreenMode,
+        getFullscreenElement: getFullscreenElement,
+        enterFullscreen: enterFullscreen,
+        exitFullscreen: exitFullscreen,
+        setMouseDown: setMouseDown,
+        isMouseDown: isMouseDown,
         swapDOM: swapDOM,
         resetDOM: resetDOM,
         init: init

@@ -267,6 +267,9 @@ Document.write() is used here for extreme back-compatibility.
      * @method doGeometryScale
      * @description Scale the geometry (rather than scale Scene or Mesh)
      * Similar to: http://learningthreejs.com/data/THREEx/docs/THREEx.GeometryUtils.html
+     * @param THREE.Geometry basic shape (unity size).
+     * @param Number scale how much to scale the Geometry.
+     * @returns THREE.Geometry the scaled Geometry.
      */
     function doGeometryScale (geometry, scale) {
       for(var i = 0; i < geometry.vertices.length; i++) {
@@ -280,6 +283,9 @@ Document.write() is used here for extreme back-compatibility.
     /*
      * @method doGeometryRotation
      * @description Rotate a geometry (not a mesh)
+     * @param THREE.Geometry geometry a basic shape geometry (unit size).
+     * @param THREE.Vector3 rotation xyz coordinates.
+     * @returns THREE.Geometry the rotated Geometry.
      */
     function doGeometryRotation (geometry, rotation) {
       var rMatrix = new THREE.Matrix4();
@@ -291,7 +297,13 @@ Document.write() is used here for extreme back-compatibility.
 
     /**
      * @method createCircle
-     * @description Circle positioned and rotated
+     * @description Circle positioned and rotated.
+     * @param Number segmentCount how many segments (ultimately polys) to use createing the Mesh.
+     * @param Number radius the radius of the Mesh.
+     * @param THREE.Material the material used to wrap the Mesh.
+     * @param THREE.Vector3 position the 3d position of the Mesh.
+     * @param THREE.Vector3 rotation the 3d rotation of the Mesh.
+     * @returns THREE.Mesh the sized, positioned, and rotated Mesh.
      */
     function createCircle (segmentCount, radius, material, position, rotation) {
       var geometry = new THREE.CircleGeometry(radius, segmentCount);
@@ -358,7 +370,7 @@ Document.write() is used here for extreme back-compatibility.
     var dolly, camera, scene, raycaster, renderer;
     var group1, group2, group3, group4, group5;
     var room;
-    var VREffect, vrControls, controls;
+    var vrEffect, vrControls, controls;
     var texLoader, modLoader;
 
     // Planetary data
@@ -493,10 +505,10 @@ Document.write() is used here for extreme back-compatibility.
     light.position.set(0, 25, 15).normalize();
     scene.add(light);
 
-    // Apply VR stereo rendering VREffect to renderer.
-    VREffect = new THREE.VREffect(renderer, function(err) {
+    // Apply VR stereo rendering vrEffect to renderer.
+    vrEffect = new THREE.VREffect(renderer, function(err) {
       if (err) {
-        console.log("Error creating VREffect: ", err);
+        console.log("Error creating vrEffect: ", err);
       }
     });
 
@@ -513,9 +525,15 @@ Document.write() is used here for extreme back-compatibility.
 
     //TODO: MAKE THE BUTTONS IN INIT, AND RETURN THEM AS AN ARRAY IN A CALLBACK.
     if (ui.hasWebVR()) {
+
+      // Initialize our Ui.
       ui.init(canvas, container, page);
+
+      // Create Ui buttons.
       ui.createButton('FULLSCREEN', function () {
         console.log("clicked fullscreen button")
+        ui.swapDOM();
+        ui.enterFullscreen(renderer.domElement);
       });
       ui.createButton('ENTER VR', function () {
         console.log('clicked goto VR button')
@@ -523,34 +541,15 @@ Document.write() is used here for extreme back-compatibility.
           //tell mobile users to use landscape mode
           ui.flipToLandscapeMessage();
         } else {
-          //set desktop to fullscreen stereo
-          //changeToFullScreen();
-          //ui.setVRMode(true);
+          ui.setVRMode(true);
+          ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
         }
 
       });
       ui.createButton('RESET', function () {
-        console.log("clicked reset button")
+        console.log("clicked reset button"); 
+          ui.getVRDisplay().resetPose();
       });
-
-      /*
-      WebVRUi.init(page, container, canvas, camera, renderer, VREffect);
-      var fsButt = WebVRUi.createButton('fullscreen-button-enter', 'FULLSCREEN');
-
-      var vrButt = WebVRUi.createButton('vr-button-enter', 'ENTER VR');
-      vrButt.onclick = function() {
-        console.log('clicked goto VR button')
-        if (window.orientation !== undefined && window.orientation == 0) {
-          //tell mobile users to use landscape mode
-          WebVRUi.flipToLandscapeMessage();
-        } else {
-          //set desktop to fullscreen stereo
-          changeToFullScreen();
-          VRMode = true;
-        }
-      }
-      var resetButt = WebVRUi.createButton('vr-pose-reset', 'RESET POSE');
-      */
     }
 
     /**
@@ -877,87 +876,78 @@ Document.write() is used here for extreme back-compatibility.
 
     };
 
-    // Event handlers for mouse.
+    /** 
+     * @method onMouseDown
+     * Event handlers for mousedown.
+     */
     function onMouseDown () {
-      isMouseDown = true;
+      ui.setMouseDown(true);
     };
 
+    /** 
+     * @method onMouseUp
+     * @description event handler for mouseup
+     */
     function onMouseUp () {
-      isMouseDown = false;
+      ui.setMouseDown(false);
     };
 
       /**
-       * Detect window resizing. Note that these may be applied
-       * in a redundant fashion to ensure the fullscreen toggles
-       * work consistently.
-       * TODO: grab it when we are just chnging the window size, and adjust
-       * accordingly
-       * TODO:
-       * TODO:
+       * @method onWindowResize
+       * @description Detect window resizing. Note that these may be applied
        */
       function onWindowResize() {
-        console.log('in onWindowResize')
+        console.log('onWIndowResize: Resizing to %s x %s.', window.innerWidth, window.innerHeight);
+        vrEffect.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
       };
 
     // We need our own flag, since the fullscreenElement is unreliable.
     var fullScreenFlag = false;
 
     /**
-     * The fullscreenchange event is implemented consistently,
-     * but its order with to respect to window resize events is not.
-     * so change screen, even if we redundantly change the screen
-     * to the same size in a resize event
+     * @method onFullscreenChange
+     * @description perform tasks needed during a switch to fullscreen.
      */
     function onFullscreenChange () {
-      if (fullScreenFlag === false) {
-          console.log("in onfullscreen, going to fullscreen")
-          fullScreenFlag = true;
+      console.log('>>>IN ONFULLSCREENCHANGE')
+      if (!ui.isFullscreenMode()) {
+          console.log("in onFullscreen, going to fullscreen")
           ui.setVRMode(true);
-          ui.swapDOM();
-          ///////////onWindowResize(); //without, chrome smaller but correct proportion
-          ui.changeToFullScreen();
         } else {
-          console.log('in onfullscreen, returning to normal')
-          fullScreenFlag = false;
+          console.log('in onFullscreen, returning to normal')
           ui.setVRMode(false);
-          ui.resetDOM();
-          //called changescreen here before
-          //onWindowResize();
         }
       }
 
       /**
-       * Detect orientation changes in mobile, equivalent to
+       * @method onOrientationChange
+       * @description Detect orientation changes in mobile, equivalent to
        * fullscreen for mobiles (which don't implement the fullscreen API)
        */
       function onOrientationChange () {
         console.log('changed orientation to:' + window.orientation)
         switch (window.orientation) {
           case 0:
-            fullScreenFlag = false; ///THIS FIXED IT! SEE IF WE REALLY NEED STYLES...
-            ui.resetDOM();
+            ui.swapDOM(canvas);
             ui.setVRMode(false);
-            aspect = domAspect;
-            //domWidth = parseFloat(getComputedStyle(container).getPropertyValue('width'));
-            //changeScreen(domWidth, domHeight, aspect);
-            //WebVRUi.changeToFullScreen();
             break;
           case 90:
           case -90:
-            fullScreenFlag = true;
+            ui.resetDOM();
             ui.setVRMode(true);
-            ui.swapDOM();
             break;
         }
       };
 
     function onVRDisplayPresentChange (e) {
-      console.log('onVRDisplayPresentChange');
-      //if the hmd.isPresenting set VR, else set DOM mode
+      console.log('onVRDisplayPresentChange:' + e);
+        onWindowResize();
     };
 
     function onVRDisplayDeviceParamsChange (e) {
-      console.log('onVRDisplayDeviceParamsChange', e);
+      console.log('onVRDisplayDeviceParamsChange:' + e);
     };
 
       /**
@@ -981,10 +971,13 @@ Document.write() is used here for extreme back-compatibility.
 
 
       function render() {
+
       var delta = clock.getDelta(); // needed for composer (postprocessing image)
        for (var i in planetArray) {
           planetArray[i].group.rotation.y += planetArray[i].rotation;
         }
+
+        controls.update(delta); // TODO: need delta for FlyControls, may not be needed for others
 
         //method 1
         //dolly.translateZ(-0.01);
@@ -1001,15 +994,16 @@ Document.write() is used here for extreme back-compatibility.
         //dolly.rotateY(-0.01); //firefox across screen, orbit upleft, then downleft, chrom like rotating on 'z' axis
         //dolly.rotation.z -= 0.01;
         //TODO: dolly.rotation doesn't seem to work
+        vrEffect.render(scene, camera);
 
+        /*
           if (ui.isVRMode()) {
             vrControls.update();
-            VREffect.render(scene, camera);
+            vrEffect.render(scene, camera);
           }  else {
             renderer.render(scene, camera);
           }
-
-        controls.update(delta); // TODO: need delta for FlyControls, may not be needed for others
+        */
 
       }
 
