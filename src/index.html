@@ -15,19 +15,38 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!--CSS styles-->
 <style>
+#content article {
+
+}
+
+header nav {
+  display:inline-block;
+}
+
+#test h3 {
+  display: inline;
+  display: inline-block;
+}
+
+#test form {
+  display: inline;
+  display: inline-block;
+}
+
 #ua {
   width: 100%;
 }
 #results {
-  width:100%;
-  font-size:1.5em; 
+  width: 100%;
+  font-size: 1.5em; 
 }
 .results-col {
-  width:30%;
-  display:inline; /* old IE */
-  display:inline-block;
-  vertical-align:top;
-  float:left;
+  width: 250px;
+  display: inline; /* old IE */
+  display: inline-block;
+  vertical-align: top;
+  float: left;
+  /* border: 1px solid black; */
 }
 </style>
 <!--add polyfills that should run in head here-->
@@ -42,27 +61,21 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
     <nav>
       <ul>
         <li>Detector Test</li>
-        <li><a href="example.html">Example Loading Polyfills</a></li>
+        <li><a href="example.html">Example VR World</a></li>
       </ul>
+    </nav>
+    <nav id="test">
+      <h3>Test</h3>
+      <form id="test">
+        <button id="run-test">(Re)Test</button>
+      </form>
     </nav>
   </header>
   <section id="content">
-    <h2>Detector Features</h2>
-    <p>This Detector does three things:</p>
-    <ol>
-      <li>Check if browser supports features needed for WebVR.</li>
-      <li>Tries to determine the specific hardware device it is running on.</li>
-      <li>Optionally, cue polyfills for sequential loading</li>
-    </ol>
-    <p>WebVR Detector is NOT a general-purpose browser or feature detector. Its goal is to find the subset of cellphones which can be used in VR headsets. It has an integration feature so that hardware-specific features needed to set up a VR display can be adapted for the device.</p>
-    <p>To see how to load polyfills and VR worlds, check <a href="example.html">the example</a>.</p>
-    <hr>
+    <h2>Detector Tests</h2>
     <article>
-        <h2>Feature Test for Your Device</h2>
-        <form id="test">
-          <button id="run-test">(Re)Test</button>
-        </form>
-        <!--results are listed here-->
+        <h3>Test Results For Your Device</h3>
+        <!--results are listed here (CSS float)-->
         <div id="results"></div>
         <div style="clear:both;"></div>
             <script>
@@ -150,6 +163,15 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
           runTest.onclick = detect;
         </script>
     </article>
+    <hr>
+    <p>This Detector does three things:</p>
+    <ol>
+      <li>Check if browser supports features needed for WebVR.</li>
+      <li>Tries to determine the specific hardware device it is running on.</li>
+      <li>Optionally, cue polyfills for sequential loading</li>
+    </ol>
+    <p>WebVR Detector is NOT a general-purpose browser or feature detector. Its goal is to find the subset of cellphones which can be used in VR headsets. It has an integration feature so that hardware-specific features needed to set up a VR display can be adapted for the device.</p>
+    <p>To see how to load polyfills and VR worlds, check <a href="example.html">the example</a>.</p>
     <hr>
   </section>
   <footer>

@@ -629,6 +629,7 @@ var ui = (function () {
      * in its original position in the DOM, and make the rest of the DOM visible again.
      */
     function resetDOM () {
+        var n = document.body.childNodes;
         if(n[0] !== canvas) {
             console.warn('WebVRUi.resetDOM: tried to reset when not set');
             return;
@@ -638,7 +639,6 @@ var ui = (function () {
         //swap our canvas elemenb there
         parent.insertBefore(canvas, placeholder);
         //move placeholder back to top of document.body
-        var n = document.body.childNodes;
         for (var i = 0, len = n.length; i < len; i++) {
             if (n[i].style) {
                 console.log('putting back old display:' + n[i].oldDisp)

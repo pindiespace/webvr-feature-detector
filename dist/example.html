@@ -444,8 +444,8 @@ Document.write() is used here for extreme back-compatibility.
 // method 1
     var dolly = new THREE.PerspectiveCamera();
     dolly.position.x = 0;
-    dolly.position.y = 10;
-    dolly.position.z = 25;
+    dolly.position.y = 2;
+    dolly.position.z = -8;
     //dolly.rotation.x = Math.PI / 2;
     //dolly.rotation.y = Math.PI / 2.3; //firefox native webvr
     //dolly.rotation.z = Math.PI / 2;
@@ -541,6 +541,7 @@ Document.write() is used here for extreme back-compatibility.
           //tell mobile users to use landscape mode
           ui.flipToLandscapeMessage();
         } else {
+          console.log(">>>>>>>>>>>>SETTING VR MODE")
           ui.setVRMode(true);
           ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
         }
@@ -897,7 +898,7 @@ Document.write() is used here for extreme back-compatibility.
        * @description Detect window resizing. Note that these may be applied
        */
       function onWindowResize() {
-        console.log('onWIndowResize: Resizing to %s x %s.', window.innerWidth, window.innerHeight);
+        console.log('>>>>>onWindowResize: Resizing to %s x %s.', window.innerWidth, window.innerHeight);
         vrEffect.setSize(window.innerWidth, window.innerHeight);
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -911,13 +912,13 @@ Document.write() is used here for extreme back-compatibility.
      * @description perform tasks needed during a switch to fullscreen.
      */
     function onFullscreenChange () {
-      console.log('>>>IN ONFULLSCREENCHANGE')
+      console.log('>>>>>onFullscreenChange')
       if (!ui.isFullscreenMode()) {
           console.log("in onFullscreen, going to fullscreen")
-          ui.setVRMode(true);
+          //ui.setVRMode(true);
         } else {
           console.log('in onFullscreen, returning to normal')
-          ui.setVRMode(false);
+          //ui.setVRMode(false);
         }
       }
 
@@ -927,27 +928,29 @@ Document.write() is used here for extreme back-compatibility.
        * fullscreen for mobiles (which don't implement the fullscreen API)
        */
       function onOrientationChange () {
-        console.log('changed orientation to:' + window.orientation)
         switch (window.orientation) {
           case 0:
-            ui.swapDOM(canvas);
+            console.log('>>>>>onOrientationChange: set DOM Mode:' + window.orientation)
+            ui.resetDOM();
             ui.setVRMode(false);
             break;
           case 90:
           case -90:
-            ui.resetDOM();
+            console.log('>>>>>onOrientationChange: set VR Mode, orientation:' + window.orientation)
+            ui.swapDOM(canvas);
+            ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
             ui.setVRMode(true);
             break;
         }
       };
 
     function onVRDisplayPresentChange (e) {
-      console.log('onVRDisplayPresentChange:' + e);
+      console.log('>>>>>onVRDisplayPresentChange:' + e);
         onWindowResize();
     };
 
     function onVRDisplayDeviceParamsChange (e) {
-      console.log('onVRDisplayDeviceParamsChange:' + e);
+      console.log('>>>>>onVRDisplayDeviceParamsChange:' + e);
     };
 
       /**
@@ -977,7 +980,7 @@ Document.write() is used here for extreme back-compatibility.
           planetArray[i].group.rotation.y += planetArray[i].rotation;
         }
 
-        controls.update(delta); // TODO: need delta for FlyControls, may not be needed for others
+        //controls.update(delta); // TODO: need delta for FlyControls, may not be needed for others
 
         //method 1
         //dolly.translateZ(-0.01);
@@ -994,6 +997,7 @@ Document.write() is used here for extreme back-compatibility.
         //dolly.rotateY(-0.01); //firefox across screen, orbit upleft, then downleft, chrom like rotating on 'z' axis
         //dolly.rotation.z -= 0.01;
         //TODO: dolly.rotation doesn't seem to work
+        vrControls.update();//////////////////////////////////
         vrEffect.render(scene, camera);
 
         /*
@@ -1001,6 +1005,7 @@ Document.write() is used here for extreme back-compatibility.
             vrControls.update();
             vrEffect.render(scene, camera);
           }  else {
+            controls.update(delta);
             renderer.render(scene, camera);
           }
         */

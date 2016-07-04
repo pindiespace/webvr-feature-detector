@@ -562,38 +562,6 @@
   };
 
   /*
-   * Environment Feature detection.
-   * 
-   * The goal is to determine whether we can run WebVR (native or polyfill), 
-   * along with the associated libraries, loading polyfills if necessary.
-   *
-   * Our feature detectors are wrapped in named functions so they
-   * can be re-tested after loading polyfills.
-   *
-   * Client vendor prefixes.
-   * @link https://davidwalsh.name/vendor-prefix
-   */
-  tests['vendorPrefix'] = function () {
-    // Get the vendor prefix for the client.
-    if (!win.getComputedStyle) {
-      return {
-        js: '',
-        css: ''
-      };
-    } else {
-    var styles = win.getComputedStyle(document.documentElement, ''),
-    pre = (Array.prototype.slice
-        .call(styles)
-        .join('')
-        .match(/-(moz|webkit|ms|o|xv)-/) || ['',''])[1]; // Default to nothing.
-      return {
-          js: pre,
-          css: '-' + pre + '-'
-        };
-    }
-  };
-
-  /*
    * Test for document.createElement presence,
    * missing in IE < 7, FF < 2.
    */
@@ -754,6 +722,38 @@
       return false;
     }
     return true;
+  };
+
+  /*
+   * Environment Feature detection.
+   * 
+   * The goal is to determine whether we can run WebVR (native or polyfill), 
+   * along with the associated libraries, loading polyfills if necessary.
+   *
+   * Our feature detectors are wrapped in named functions so they
+   * can be re-tested after loading polyfills.
+   *
+   * Client vendor prefixes.
+   * @link https://davidwalsh.name/vendor-prefix
+   */
+  tests['vendorPrefix'] = function () {
+    // Get the vendor prefix for the client.
+    if (!win.getComputedStyle) {
+      return {
+        js: '',
+        css: ''
+      };
+    } else {
+    var styles = win.getComputedStyle(document.documentElement, ''),
+    pre = (Array.prototype.slice
+        .call(styles)
+        .join('')
+        .match(/-(moz|webkit|ms|o|xv)-/) || ['',''])[1]; // Default to nothing.
+      return {
+          js: pre,
+          css: '-' + pre + '-'
+        };
+    }
   };
 
   /* 
