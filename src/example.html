@@ -84,12 +84,32 @@ Document.write() is used here for extreme back-compatibility.
   <script>
     // WebVR Polyfill Configuration
     var WebVRConfig = {
-      // Prevents the polyfill from initializing automatically.
-      DEFER_INITIALIZATION: false, //otherwise use InitializeWebVRPolyfill();
-      // Polyfill optimizations
-      DIRTY_SUBMIT_FRAME_BINDINGS: true,
-      BUFFER_SCALE: 0.75,
-      FORCE_ENABLE_VR: true // Default: false.
+
+      // Prevent the polyfill from initializing immediately. Requires the app
+      // to call InitializeWebVRPolyfill() before it can be used.
+      DEFER_INITIALIZATION: false, // Default: false.
+
+      // Enable the deprecated version of the API (navigator.getVRDevices).
+      ENABLE_DEPRECATED_API: false, // Default: false.
+
+      FORCE_ENABLE_VR: true,
+      // Scales the recommended buffer size reported by WebVR, which can improve
+      // performance.
+      // To disable keyboard and mouse controls, if you want to use your own
+      // implementation.
+      MOUSE_KEYBOARD_CONTROLS_DISABLED: true, // Default: false.
+
+      BUFFER_SCALE: 1.0, // Default: 1.0. // Default: false < 1 for faster performance
+
+      // Allow VRDisplay.submitFrame to change gl bindings, which is more
+      // efficient if the application code will re-bind its resources on the
+      // next frame anyway. This has been seen to cause rendering glitches with
+      // THREE.js.
+      // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
+      // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
+      // and gl.TEXTURE_BINDING_2D for texture unit 0.
+      DIRTY_SUBMIT_FRAME_BINDINGS: true // Default: false.
+
     };
   </script>
 
@@ -523,7 +543,10 @@ Document.write() is used here for extreme back-compatibility.
      * ===================================
      */
 
-    //TODO: MAKE THE BUTTONS IN INIT, AND RETURN THEM AS AN ARRAY IN A CALLBACK.
+    // TODO: ONLY MAKE BUTTONS IF WE HAVE FULLSCREEN API
+    // TODO: 
+    // TODO: 
+
     if (ui.hasWebVR()) {
 
       // Initialize our Ui.
@@ -531,24 +554,24 @@ Document.write() is used here for extreme back-compatibility.
 
       // Create Ui buttons.
       ui.createButton('FULLSCREEN', function () {
-        console.log("clicked fullscreen button")
+        console.log("button, clicked fullscreen button")
         ui.swapDOM();
         ui.enterFullscreen(renderer.domElement);
       });
       ui.createButton('ENTER VR', function () {
-        console.log('clicked goto VR button')
-        if (window.orientation !== undefined && window.orientation == 0) {
-          //tell mobile users to use landscape mode
+        console.log('button, clicked goto VR button')
+        if (ui.isOrientationMode() && window.orientation == 0) {
           ui.flipToLandscapeMessage();
         } else {
-          console.log(">>>>>>>>>>>>SETTING VR MODE")
+          console.log('button, on desktop')
+          console.log(">>>>>>>>>>>>button, SETTING VR MODE")
           ui.setVRMode(true);
           ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
         }
 
       });
       ui.createButton('RESET', function () {
-        console.log("clicked reset button"); 
+        console.log("button, clicked reset button"); 
           ui.getVRDisplay().resetPose();
       });
     }
@@ -859,6 +882,9 @@ Document.write() is used here for extreme back-compatibility.
       renderer.domElement.addEventListener('touchstart', onMouseDown, false);
       renderer.domElement.addEventListener('touchend', onMouseUp, false);
 
+      // Escape key.
+      document.addEventListener('keydown', onKeydown, false);
+
       // Add resize events.
       window.addEventListener('resize', onWindowResize, false);
 
@@ -881,7 +907,7 @@ Document.write() is used here for extreme back-compatibility.
      * @method onMouseDown
      * Event handlers for mousedown.
      */
-    function onMouseDown () {
+    function onMouseDown (e) {
       ui.setMouseDown(true);
     };
 
@@ -889,54 +915,58 @@ Document.write() is used here for extreme back-compatibility.
      * @method onMouseUp
      * @description event handler for mouseup
      */
-    function onMouseUp () {
+    function onMouseUp (e) {
       ui.setMouseDown(false);
+    };
+
+    function onKeydown (e) {
+      console.log('onkeydown')
     };
 
       /**
        * @method onWindowResize
        * @description Detect window resizing. Note that these may be applied
        */
-      function onWindowResize() {
-        console.log('>>>>>onWindowResize: Resizing to %s x %s.', window.innerWidth, window.innerHeight);
+      function onWindowResize(e) {
+        console.log('>>>>>onWindowResize, ui.isVRMode:' + ui.isVRMode() + ' ui.isFullscreenMode:' + ui.isFullscreenMode() + 'Resizing to %s x %s.', window.innerWidth, window.innerHeight);
         vrEffect.setSize(window.innerWidth, window.innerHeight);
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
       };
 
-    // We need our own flag, since the fullscreenElement is unreliable.
-    var fullScreenFlag = false;
-
     /**
      * @method onFullscreenChange
-     * @description perform tasks needed during a switch to fullscreen.
+     * @description perform tasks needed during a switch to fullscreen. 
+     * Only works for desktop! We don't need to swap the DOM out here.
      */
-    function onFullscreenChange () {
-      console.log('>>>>>onFullscreenChange')
-      if (!ui.isFullscreenMode()) {
-          console.log("in onFullscreen, going to fullscreen")
-          //ui.setVRMode(true);
+    function onFullscreenChange (e) {
+
+      console.log('>>>>>onFullscreenChange, ui.isVRMode:' + ui.isVRMode() + ' ui.isFullscreenMode:' + ui.isFullscreenMode());
+        if (ui.isFullscreenMode()) {
+          console.log("in onFullscreen, going to fullscreen");
+          
         } else {
-          console.log('in onFullscreen, returning to normal')
-          //ui.setVRMode(false);
+          console.log('in onFullscreen, returning to normal, setting VRMode to false');
+          // IMPORTANT: WE CAN'T BE IN VR IF WE ARE RETURNING TO NORMAL, SO SET FLAG: FALSE
+          ui.setVRMode(false);
         }
-      }
+    }
 
       /**
        * @method onOrientationChange
        * @description Detect orientation changes in mobile, equivalent to
        * fullscreen for mobiles (which don't implement the fullscreen API)
        */
-      function onOrientationChange () {
+      function onOrientationChange (e) {
         switch (window.orientation) {
           case 0:
-            console.log('>>>>>onOrientationChange: set DOM Mode:' + window.orientation)
+            console.log('>>>>>onOrientationChange: portrait, set DOM Mode:' + window.orientation)
             ui.resetDOM();
             ui.setVRMode(false);
             break;
           case 90:
           case -90:
-            console.log('>>>>>onOrientationChange: set VR Mode, orientation:' + window.orientation)
+            console.log('>>>>>onOrientationChange: landscape, set VR Mode, orientation:' + window.orientation)
             ui.swapDOM(canvas);
             ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
             ui.setVRMode(true);
@@ -945,12 +975,14 @@ Document.write() is used here for extreme back-compatibility.
       };
 
     function onVRDisplayPresentChange (e) {
-      console.log('>>>>>onVRDisplayPresentChange:' + e);
-        onWindowResize();
+      console.log('>>>>>onVRDisplayPresentChange:' + e + ' VRMode:' + ui.isVRMode());
+      window.pre = e;
+        //onWindowResize();
     };
 
     function onVRDisplayDeviceParamsChange (e) {
-      console.log('>>>>>onVRDisplayDeviceParamsChange:' + e);
+      console.log('>>>>>onVRDisplayDeviceParamsChange:' + e + ' VRMode:' + ui.isVRMode());
+      window.par = e;
     };
 
       /**
@@ -997,10 +1029,10 @@ Document.write() is used here for extreme back-compatibility.
         //dolly.rotateY(-0.01); //firefox across screen, orbit upleft, then downleft, chrom like rotating on 'z' axis
         //dolly.rotation.z -= 0.01;
         //TODO: dolly.rotation doesn't seem to work
-        vrControls.update();//////////////////////////////////
-        vrEffect.render(scene, camera);
 
-        /*
+        ///////////////vrControls.update();//////////////////////////////////
+        //////////////vrEffect.render(scene, camera);
+
           if (ui.isVRMode()) {
             vrControls.update();
             vrEffect.render(scene, camera);
@@ -1008,7 +1040,7 @@ Document.write() is used here for extreme back-compatibility.
             controls.update(delta);
             renderer.render(scene, camera);
           }
-        */
+
 
       }
 

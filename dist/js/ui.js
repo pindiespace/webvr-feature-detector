@@ -318,6 +318,17 @@ var ui = (function () {
         return polyfill;
     };
 
+    /** 
+     * @method isOrientationMode 
+     * @description determine if we're using orientation to enter VR, or buttons
+     */
+    function isOrientationMode () {
+        if (window.orientation !== undefined) {
+            return true;
+        }
+        return false;
+    };
+
     /**
      * @method isVRMode
      * @description flag for VR state was entered.
@@ -598,18 +609,18 @@ var ui = (function () {
      * visibility: none
      */
     function swapDOM (swapElem) {
-        // set up the swap
+        // Set up the swap
         if (!swapElem) {
             swapElem = canvas;
         }
         setupDOMForSwap(swapElem);
-        // get the parent for the swapped element
+        // Get the parent for the swapped element
         var parent = canvas.parentNode;
-        // swap our placeholder ahead of the canvas
+        // Swap our placeholder ahead of the canvas
         parent.insertBefore(placeholder, canvas);
-        //swap canvas to top of document.body
+        // Swap canvas to top of document.body
         document.body.insertBefore(canvas, document.body.firstChild);
-        //hide everything
+        // Hide everything
         var n = document.body.childNodes;
         for (var i = 0, len = n.length; i < len; i++) {
             if(n[i].style) { //not defined for Text nodes
@@ -636,15 +647,17 @@ var ui = (function () {
         }
         var parent = placeholder.parentNode;
         //console.log('canvas:' + canvas + ' placeholder:' + placeholder)
-        //swap our canvas elemenb there
+        // Swap our canvas elemenb there
         parent.insertBefore(canvas, placeholder);
-        //move placeholder back to top of document.body
+        // Move placeholder back to top of document.body
         for (var i = 0, len = n.length; i < len; i++) {
             if (n[i].style) {
                 console.log('putting back old display:' + n[i].oldDisp)
-                n[i].style.display = n[i].oldDisp;
+                if (n[i].disp) { // canvas.disp could be undefined
+                    n[i].style.display = n[i].oldDisp;
+                }
             } else {
-                // anything canvas-specific, like resetting styles
+                // Anything canvas-specific, like resetting styles
             }
         }
     };
@@ -725,8 +738,6 @@ var ui = (function () {
 
     };
 
-
-
     return {
         createMessage: createMessage,
         showMessage: showMessage,
@@ -739,6 +750,7 @@ var ui = (function () {
         getScreenHeight: getScreenHeight,
         hasWebVR: hasWebVR,
         isWebVRPolyfill: isWebVRPolyfill,
+        isOrientationMode: isOrientationMode,
         isVRMode: isVRMode,
         setVRMode: setVRMode,
         getVRDisplay: getVRDisplay,

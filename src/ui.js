@@ -318,6 +318,17 @@ var ui = (function () {
         return polyfill;
     };
 
+    /** 
+     * @method isOrientationMode 
+     * @description determine if we're using orientation to enter VR, or buttons
+     */
+    function isOrientationMode () {
+        if (window.orientation !== undefined) {
+            return true;
+        }
+        return false;
+    };
+
     /**
      * @method isVRMode
      * @description flag for VR state was entered.
@@ -642,7 +653,9 @@ var ui = (function () {
         for (var i = 0, len = n.length; i < len; i++) {
             if (n[i].style) {
                 console.log('putting back old display:' + n[i].oldDisp)
-                n[i].style.display = n[i].oldDisp;
+                if (n[i].disp) { // canvas.disp could be undefined
+                    n[i].style.display = n[i].oldDisp;
+                }
             } else {
                 // Anything canvas-specific, like resetting styles
             }
@@ -725,8 +738,6 @@ var ui = (function () {
 
     };
 
-
-
     return {
         createMessage: createMessage,
         showMessage: showMessage,
@@ -739,6 +750,7 @@ var ui = (function () {
         getScreenHeight: getScreenHeight,
         hasWebVR: hasWebVR,
         isWebVRPolyfill: isWebVRPolyfill,
+        isOrientationMode: isOrientationMode,
         isVRMode: isVRMode,
         setVRMode: setVRMode,
         getVRDisplay: getVRDisplay,
