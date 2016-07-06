@@ -54,7 +54,7 @@ Document.write() is used here for extreme back-compatibility.
     <nav>
       <ul>
         <li><a href="index.html">Detector Test</a></li>
-        <li>Sample Polyfill Test</li>
+        <li>Sample Using Detector</li>
       </ul>
     </nav>
   </header>
@@ -77,6 +77,7 @@ Document.write() is used here for extreme back-compatibility.
     <!--these details are hidden by default-->
     <p class="details">This page shows the operation of WebVRFeatureDetector, along with its (simple) loader function used to load polyfills. In particular, fallbacks are used for browsers with partial support for WebGL and WebVR to provide support for the last version of Internet Explorer (IE12). Older versions show &quot;graceful decay&quot; to a single rendered image from the VR scene, to a default static PNG image. This example is for the THREE.js library.</p>
   </section>
+  <hr>
   <footer>
   <p>&copy; <script>document.write(new Date().getFullYear());</script> Pete Markiewicz.</p>
   </footer>
@@ -555,17 +556,20 @@ Document.write() is used here for extreme back-compatibility.
       // Create Ui buttons.
       ui.createButton('FULLSCREEN', function () {
         console.log("button, clicked fullscreen button")
-        ui.swapDOM();
+        /////ui.swapDOM();
+        ui.setVRMode(false);
+        ui.setGoingToFullscreen(true);
         ui.enterFullscreen(renderer.domElement);
       });
       ui.createButton('ENTER VR', function () {
         console.log('button, clicked goto VR button')
-        if (ui.isOrientationMode() && window.orientation == 0) {
+        if (ui.useOrientationMode() && window.orientation == 0) {
           ui.flipToLandscapeMessage();
         } else {
           console.log('button, on desktop')
           console.log(">>>>>>>>>>>>button, SETTING VR MODE")
           ui.setVRMode(true);
+          ui.setGoingToFullscreen(true);
           ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
         }
 
@@ -929,6 +933,34 @@ Document.write() is used here for extreme back-compatibility.
        */
       function onWindowResize(e) {
         console.log('>>>>>onWindowResize, ui.isVRMode:' + ui.isVRMode() + ' ui.isFullscreenMode:' + ui.isFullscreenMode() + 'Resizing to %s x %s.', window.innerWidth, window.innerHeight);
+
+        console.log('>>****>>returningToDOM is:' + String(ui.isReturningToDOM()) + ' goingToFullscreen is:' + String(ui.isGoingToFullscreen()));
+
+        //TODO: if we're on mobile we will get TWO onresize events, the first 
+        //TODO: due to size change, the second manually called from onOrientationChange()
+        //TODO: it is necessary to make the second call to detect return from 
+        //TODO: VRMode on mobiles without fullscreen.
+        //TODO: use ui.useOrientation() to branch.
+        if (ui.useOrientationMode()) {
+          //orientation being used, not fullscreen
+          if (ui.isVRMode()) {
+            console.log('1.use orientation, in VR')
+          } else {
+            console.log('2.use orientation, not in VR')
+            //   Promise<void> exitPresent();
+            //   ui.getVRDisplay.exitPresent(); //Returns a promise!!!!!
+          }
+        } else { // not using orientation events as triggers
+          //fullscreen mode
+          if (ui.isVRMode()) {
+            console.log('3.use fullscreen, in VR')
+            //   Promise<void> exitPresent();
+            //   ui.getVRDisplay.exitPresent(); //Returns a promise!!!!!
+          } else {
+            console.log('4. use fullscreen, not in VR')
+          }
+        }
+
         vrEffect.setSize(window.innerWidth, window.innerHeight);
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -941,14 +973,20 @@ Document.write() is used here for extreme back-compatibility.
      */
     function onFullscreenChange (e) {
 
+      //TODO: do a if (useOrientationMode()) here and prefer orientation if we hav BOTH 
+      // orientation AND fullscreen.
+
       console.log('>>>>>onFullscreenChange, ui.isVRMode:' + ui.isVRMode() + ' ui.isFullscreenMode:' + ui.isFullscreenMode());
         if (ui.isFullscreenMode()) {
           console.log("in onFullscreen, going to fullscreen");
-          
+          ui.setGoingToFullscreen(true);
+          ui.setReturningToDOM(false);
+          // going to fullscreen MIGHT happen with VR
         } else {
           console.log('in onFullscreen, returning to normal, setting VRMode to false');
-          // IMPORTANT: WE CAN'T BE IN VR IF WE ARE RETURNING TO NORMAL, SO SET FLAG: FALSE
-          ui.setVRMode(false);
+          ui.setGoingToFullscreen(false);
+          ui.setReturningToDOM(true);
+          ui.setVRMode(false); // shouldn't be fired...but in case it is!!!!!
         }
     }
 
@@ -961,15 +999,22 @@ Document.write() is used here for extreme back-compatibility.
         switch (window.orientation) {
           case 0:
             console.log('>>>>>onOrientationChange: portrait, set DOM Mode:' + window.orientation)
-            ui.resetDOM();
             ui.setVRMode(false);
+            ui.setGoingToFullscreen(false);
+            ui.setReturningToDOM(true);
+            ui.resetDOM();
+            // IMPORTANT!!!!!!!we can only detect the need to reset the canvas to the DOM here on mobiles without fullscreen.
+            onWindowResize(e); // pass event through
             break;
           case 90:
           case -90:
-            console.log('>>>>>onOrientationChange: landscape, set VR Mode, orientation:' + window.orientation)
+            console.log('>>>>>onOrientationChange: landscape, set VR Mode, orientation:' + window.orientation);
+            ui.setVRMode(true);
+            ui.setGoingToFullscreen(true);
+            ui.setReturningToDOM(false);
             ui.swapDOM(canvas);
             ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
-            ui.setVRMode(true);
+            onWindowResize(e);
             break;
         }
       };

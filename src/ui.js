@@ -14,10 +14,13 @@ var ui = (function () {
     buttonContainer,        // container DOM element for buttons
     canvas,                 // presentation canvas
     swap = [],              // store elements during DOM swap
+    cssSizes = [],          // place to save computed CSS sizes
     placeholder = null,     // saves location of canvas element in hidden DOM
     vrDisplay = null,       // webVR display
     vrMode = false,         // flag for in VR mode
-    fullScreenMode = false, // flag for fullScreen mode
+    fullscreenMode = false, // flag for fullScreen mode
+    toFullscreen = false,   // flag for DOM -> Fullscreen used by window.onresize event handlers
+    toDOM = false,          // flag for Fullscreen || VR -> DOM
     mousedown = false,      // flag for mousedown (drag?)
     polyfill = false,       // flag for webvr-polyfill being used
     pointerEvents = false,  // flag for whether CSS pointerEvents are supported
@@ -70,6 +73,7 @@ var ui = (function () {
         // Create a close button.
         var msgBtn = document.createElement('button');
         msgBtn.id = msgBtnId;
+        msgBtn.style.marginLeft = '1em';
         msgBtn.innerHTML = 'Close';
         //msgBtn.className = buttonClass;
 
@@ -319,14 +323,23 @@ var ui = (function () {
     };
 
     /** 
-     * @method isOrientationMode 
+     * @method useOrientationMode 
      * @description determine if we're using orientation to enter VR, or buttons
      */
-    function isOrientationMode () {
-        if (window.orientation !== undefined) {
+    function useOrientationMode () {
+        if (window.orientation !== undefined && !hasFullscreen()) {
             return true;
         }
         return false;
+    };
+
+    /**
+     * @method getVRDisplay
+     * @description return a VRDisplay object, if present.
+     * @returns VRDisplay or null.
+     */
+    function getVRDisplay () {
+        return vrDisplay;
     };
 
     /**
@@ -348,21 +361,58 @@ var ui = (function () {
     };
 
     /**
-     * @method getVRDisplay
-     * @description return a VRDisplay object, if present.
-     * @returns VRDisplay or null.
-     */
-    function getVRDisplay () {
-        return vrDisplay;
-    };
-
-    /**
      * @method getScreenWidth
      * @description get normalized screen width
      * @returns Number screen width
      */
     function getScreenWidth () {
         return Math.max(window.screen.width, window.screen.height)
+    };
+
+    /** 
+     * @method saveCSSSize
+     * @description save the computed width and height of an element. 
+     * An array allows several sizes to be saved if necessary.
+     */
+    function saveCSSSize (elem) {
+        for (var i = 0, len = cssSizes.length; i < len; i++) {
+            if (cssSizes[i] === elem) {
+                console.warn('ui.saveCSSSize: already saved size for this element');
+                return;
+            }
+        }
+        // new, so save size
+        cssSizes.push({
+            element: elem,
+            width: elem.width || null,
+            height: elem.height || null,
+            style: {
+                width: getComputedStyle(elem).getPropertyValue('width'),
+                height: getComputedStyle(elem).getPropertyValue('height')
+            }
+        });
+    };
+
+    /** 
+     * @method restoreCSSSize 
+     * @description restore the size of an element to its original, 
+     * provided it was saved to the cssSizes array earlier.
+     */
+    function restoreCSSSize (elem) {
+        for (var i = 0, len = cssSizes.length; i < len; i++) {
+            if (cssSizes[i].elem === elem) {
+                var c = cssSizes[i];
+                // reset width and height
+                if (elem.width) {
+                    elem.width = c.width;
+                }
+                if (elem.height) {
+                    elem.height = c.height;
+                }
+                elem.style.width = c.style.width;
+                elem.style.height = c.style.height;
+            }
+        }
     };
 
     /**
@@ -454,6 +504,36 @@ var ui = (function () {
             return true;
         }
         return false;
+    };
+
+    function setGoingToFullscreen (val) {
+        toFullscreen = val;
+    };
+
+    function isGoingToFullscreen (val) {
+        return toFullscreen;
+    }
+
+    /** 
+     * A flag we keep to know our direction
+     * 1. DOM -> fullscreen
+     * 2. DOM -> VR
+     * 3. fullscreen -> DOM
+     * 4. VR -> DOM
+     */
+    function setReturningToDOM (val) {
+        toDOM = val;
+    };
+
+    /** 
+     * Access stored flag to see if we've just 
+     * 1. DOM -> fullscreen
+     * 2. DOM -> VR
+     * 3. fullscreen -> DOM
+     * 4. VR -> DOM
+     */
+    function isReturningToDOM () {
+        return toDOM;
     };
 
     /** 
@@ -634,6 +714,8 @@ var ui = (function () {
         }
     };
 
+    // TODO: shouldResetDOM
+
     /**
      * @method resetDOM
      * @description put swapped DOMElement (usually a display canvas) back 
@@ -662,7 +744,6 @@ var ui = (function () {
         }
     };
 
-
     /** 
      * @method init 
      * @description initialize webvr
@@ -688,10 +769,10 @@ var ui = (function () {
             
             if (navigator.getVRDevices) {
                 navigator.getVRDevices().then(function(devices) {
-                    console.log('>>>>>>>>>>>>>>>>>VR DEVICES')
+                    ////console.log('>>>>>>>>>>>>>>>>>VR DEVICES')
                     if (devices.length > 0) {
                         if(devices[0] instanceof HMDVRDevice) {
-                            resolve({display:devices[0], msg:'Your browser supports WebVR but not the latest version. See <a href="http://webvr.info">webvr.info</a> for more info.'});
+                            resolve({display:devices[0], msg:'Your browser supports WebVR, but not the latest version. See <a href="http://webvr.info">webvr.info</a> for more.'});
                         }
                     } else {
                         reject(Error('Legacy WebVR supported, but no VR devices found.'));
@@ -699,11 +780,11 @@ var ui = (function () {
                 });
             }
             else if (navigator.getVRDisplays) { // 1.0 API
-                console.log('>>>>>>>>>>>>>>>>>>VR DISPLAYS!!!!!!!!!!!!!!!!!!!!')
+                ////console.log('>>>>>>>>>>>>>>>>>>VR DISPLAYS!!!!!!!!!!!!!!!!!!!!')
                 navigator.getVRDisplays().then(function(displays) {
                     if (displays.length > 0) {
                         if (displays[0] instanceof VRDisplay) {
-                            resolve({display:displays[0], msg:'Your browser supports WebVR but not the latest version. See <a href="http://webvr.info">webvr.info</a> for more info.'});
+                            resolve({display:displays[0], msg:'Your browser supports WebVR! See <a href="http://webvr.info">webvr.info</a> for more.'});
                         }
                     } else {
                         reject(Error('WebVR Supported, but no VR displays found.'));
@@ -748,9 +829,11 @@ var ui = (function () {
         hideButtons: hideButtons,
         getScreenWidth: getScreenWidth,
         getScreenHeight: getScreenHeight,
+        saveCSSSize: saveCSSSize,
+        restoreCSSSize: restoreCSSSize,
         hasWebVR: hasWebVR,
         isWebVRPolyfill: isWebVRPolyfill,
-        isOrientationMode: isOrientationMode,
+        useOrientationMode: useOrientationMode,
         isVRMode: isVRMode,
         setVRMode: setVRMode,
         getVRDisplay: getVRDisplay,
@@ -758,6 +841,10 @@ var ui = (function () {
         isFullscreenMode: isFullscreenMode,
         getFullscreenElement: getFullscreenElement,
         enterFullscreen: enterFullscreen,
+        setGoingToFullscreen: setGoingToFullscreen,
+        isGoingToFullscreen: isGoingToFullscreen,
+        setReturningToDOM: setReturningToDOM,
+        isReturningToDOM: isReturningToDOM,
         exitFullscreen: exitFullscreen,
         setMouseDown: setMouseDown,
         isMouseDown: isMouseDown,

@@ -17,12 +17,44 @@
  }
 
 body {
-
-    /*margin:0;*/
-    /*padding:0;*/
+    margin:0;
+    padding:0;
     overflow: hidden;
-    /*width: 100vh;*/
-    /*height: 100vh;*/
+    font-family: "Open Sans", Aria, sans-serif;
+}
+
+header {
+    width: 100%;
+    margin:0 0 1em 0;
+    background-color:black;
+    color: white;
+}
+
+header h1 {
+    margin: 0 1em 0 0;
+    display:inline-block;
+}
+
+header nav {
+    margin: 0 0 0 0;
+    display: inline-block;
+}
+
+header a {
+    color: white;
+}
+
+section p, footer p {
+    margin: 20px 20px;
+}
+
+figure {
+
+}
+
+figcaption {
+    background-color: #eee;
+    border-radius: 0 0 6px 6px;
 }
 
 /* container for canvas, here a figure element */
@@ -107,24 +139,27 @@ body {
     left: 0;
     top: 0;
     right: 0;
-    z-index: 9998;
+    z-index: 9997;
     text-align: center;
     display: none;
 }
 
 /* text inside message */
 .ui-message {
+    position: relative;
     font-family: sans-serif;
     font-size: 16px;
     font-style: normal;
     line-height: 26px;
     color: #000;
+    border: 1px solid #ccc;
     border-radius: 6px;
     background-color: #dbf; /* fallback */
-    background-color: rgba(56, 22, 188, 0.1);
+    /* background-color: rgba(221, 187, 255, 0.9); */
     padding: 10px 20px;
-    margin: 50px;
+    margin: 70px;
     display: inline-block;
+    z-index: 9998!important;
 }
 
 /* text styling in informational dialog */
