@@ -897,9 +897,26 @@ Document.write() is used here for extreme back-compatibility.
 
         console.log('>>****>>returningToDOM is:' + String(ui.isReturningToDOM()) + ' goingToFullscreen is:' + String(ui.isGoingToFullscreen()));
 
-//TODO: OK ON DESKTOP, BUT NOT ON MOBILE!!!!!!!!!!!!!
-//TODO: NEED TO ONLY CHANGE ON SOME resize events
-
+        /* 
+         * This is VERY tortured logic since we have incompatible ways of 
+         * getting to fullscreen on desktop and mobile. The logic below 
+         * uses flags set by either pressing a button (desktop) or rotating the 
+         * phone to landscape mode (mobile). 
+         * 
+         * The reason this is so difficult is that fullscreen and orientation events 
+         * generate MULTIPLE window resizing events...and only some of these resize events 
+         * should be responded to. The logic below generally prevents responding to the 
+         * first resize event, and reacts only to the second.
+         * 
+         * Features:
+         * 1. The DIRECTION of the switch must be known, hence DOM->VR and 
+         *    fullscreen->DOM
+         * 2. When a fullscreen or DOM state is reached, this must be set, i.e. 
+         *    ui.isReturningToDOM() is switched to false the first time ui.isReturningToDOM()
+         *    becomes true.
+         * 3. Mobiles without fullscreen must be detected via ui.useOrientationMode 
+         *    and only use that method, not fullscreen
+         */
         if (ui.isReturningToDOM() === true) {
           console.log("%%%%%%%WENT INTO RETURNING TO DOM")
           ui.restoreCSSStyle(renderer.domElement);
@@ -918,7 +935,7 @@ Document.write() is used here for extreme back-compatibility.
           }
         } else {
             console.log("%%%%%%%WENT INTO THIRD OPTION")
-            if (ui.useOrientationMode()) {
+            if (ui.useOrientationMode()) { //THIS IS WHERE iPHONE GOES!!!
                 vrEffect.setSize(window.innerWidth, window.innerHeight);
                 camera.aspect = window.innerWidth / window.innerHeight;
             } else {
