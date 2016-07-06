@@ -13,7 +13,6 @@ var ui = (function () {
     detail,                 // detail popup on mouseover
     buttonContainer,        // container DOM element for buttons
     canvas,                 // presentation canvas
-    swap = [],              // store elements during DOM swap
     cssSizes = [],          // place to save computed CSS sizes
     placeholder = null,     // saves location of canvas element in hidden DOM
     vrDisplay = null,       // webVR display
@@ -370,11 +369,26 @@ var ui = (function () {
     };
 
     /** 
+     * @method getCSSSize
+     * @description get the current computed size of the element in the DOM.
+     */
+    function getCSSStyle (elem) {
+        var w = parseFloat(getComputedStyle(elem).getPropertyValue('width'));
+        var h = parseFloat(getComputedStyle(elem).getPropertyValue('height'));
+        return {
+            element: elem,
+            width: w,
+            height: h,
+            aspect: w / h
+        };
+    };
+
+    /** 
      * @method saveCSSSize
      * @description save the computed width and height of an element. 
      * An array allows several sizes to be saved if necessary.
      */
-    function saveCSSSize (elem) {
+    function saveCSSStyle (elem) {
         for (var i = 0, len = cssSizes.length; i < len; i++) {
             if (cssSizes[i] === elem) {
                 console.warn('ui.saveCSSSize: already saved size for this element');
@@ -382,15 +396,7 @@ var ui = (function () {
             }
         }
         // new, so save size
-        cssSizes.push({
-            element: elem,
-            width: elem.width || null,
-            height: elem.height || null,
-            style: {
-                width: getComputedStyle(elem).getPropertyValue('width'),
-                height: getComputedStyle(elem).getPropertyValue('height')
-            }
-        });
+        cssSizes.push(getCSSStyle(elem));
     };
 
     /** 
@@ -398,7 +404,7 @@ var ui = (function () {
      * @description restore the size of an element to its original, 
      * provided it was saved to the cssSizes array earlier.
      */
-    function restoreCSSSize (elem) {
+    function restoreCSSStyle (elem) {
         for (var i = 0, len = cssSizes.length; i < len; i++) {
             if (cssSizes[i].elem === elem) {
                 var c = cssSizes[i];
@@ -653,26 +659,16 @@ var ui = (function () {
      * @description find all the elements on the page to hide
      * @param DOMElement Canvas the <canvas> element to 'fullscreen'
      */
-    function setupDOMForSwap (swapElem) {
+    function setupDOMForSwap () {
         // If placeholder <div> present, do nothing
         if (placeholder) {
             console.warn('ui.setUpDOMForSwap: swap DOM already set up');
             return;
         }
-        // Assign swap element.
-        if(swapElem) {
-            canvas = swapElem;
-        }
         // If canvas not defined, error
         if (!canvas) {
             console.error('ui.setupDOMForSwap: DOM swap element ' + canvas + ' not found');
-        }
-        // find all the elements on the page
-        var n = document.body.childNodes;
-        for (var i = 0, len = n.length; i < len; i++) {
-            if (n[i] !== canvas) {
-                swap.push(n[i]);
-            }
+            return;
         }
         // add an invisible placeholder element in front of all other content for DOM swapping
         placeholder = document.createElement('div');
@@ -684,31 +680,37 @@ var ui = (function () {
     /**
      * @method swapDOMToFullscreen
      * @description Do the swap
-     * @param DOMElement swapElem the element to be swapped out of the DOM 
+     * @param DOMElement canvas the element to be swapped out of the DOM 
      * and attached to document.body, with all other DOM elements having 
      * visibility: none
      */
-    function swapDOM (swapElem) {
+    function swapDOM () {
         // Set up the swap
-        if (!swapElem) {
-            swapElem = canvas;
+        var n = document.body.childNodes;
+        if (!placeholder) {
+            console.error('ui.swapDOM: tried to reset when not set with setupDOMForSwap()');
+            return;
         }
-        setupDOMForSwap(swapElem);
-        // Get the parent for the swapped element
+        if (!canvas) {
+            console.error('ui.swapDOM: canvas not defined')
+        }
+        ///setupDOMForSwap(canvas);
+        // Get the parent for the swapped element (should be figure)
         var parent = canvas.parentNode;
-        // Swap our placeholder ahead of the canvas
+        // Swap our placeholder ahead of the canvas, inside the parent
         parent.insertBefore(placeholder, canvas);
         // Swap canvas to top of document.body
-        document.body.insertBefore(canvas, document.body.firstChild);
+        document.body.insertBefore(canvas, n[0]);
         // Hide everything
-        var n = document.body.childNodes;
         for (var i = 0, len = n.length; i < len; i++) {
             if(n[i].style) { //not defined for Text nodes
-                n[i].oldDisp = n[i].style.display;
-                if (n[i] !== canvas ) {
+                if (n[i] !== canvas) {
+                    console.log('swapping node:' + n[i].tagName + ' oldDisp:' + n[i].style.display)
+                    n[i].oldDisp = n[i].style.display;
                     n[i].style.display = 'none';
                 } else {
-                    // anything canvas-specific here, like saving styles
+                    // canvas needs to have position:static, but may be altered by webvr-polyfill
+                    canvas.oldPos = canvas.style.position;
                 }
             }
         }
@@ -723,27 +725,31 @@ var ui = (function () {
      */
     function resetDOM () {
         var n = document.body.childNodes;
-        if(n[0] !== canvas) {
-            console.warn('WebVRUi.resetDOM: tried to reset when not set');
+        if (!placeholder) {
+            console.error('ui.swapDOM: tried to reset when not set with setupDOMForSwap()');
             return;
         }
+        if (!canvas) {
+            console.error('ui.swapDOM: canvas not defined')
+        }
+        console.log("ui.resetDOM ----------- PUTTING BACK DOM")
         var parent = placeholder.parentNode;
-        //console.log('canvas:' + canvas + ' placeholder:' + placeholder)
-        // Swap our canvas elemenb there
+        // Swap our canvas element back into the parent, just ahead of placeholder
         parent.insertBefore(canvas, placeholder);
         // Move placeholder back to top of document.body
+        document.body.insertBefore(placeholder, document.body.childNodes[0]);
         for (var i = 0, len = n.length; i < len; i++) {
             if (n[i].style) {
-                console.log('putting back old display:' + n[i].oldDisp)
-                if (n[i].disp) { // canvas.disp could be undefined
+                console.log('putting back old display:' + n[i].tagName + " oldDisp:" + n[i].oldDisp)
+                //if (n[i].oldDisp) { // canvas.oldDisp could be undefined
                     n[i].style.display = n[i].oldDisp;
-                }
+                //}
             } else {
-                // Anything canvas-specific, like resetting styles
+                // reset canvas positioning
+                canvas.style.position = canvas.oldPos;
             }
         }
     };
-
 
     /** 
      * @method init 
@@ -770,7 +776,7 @@ var ui = (function () {
             
             if (navigator.getVRDevices) {
                 navigator.getVRDevices().then(function(devices) {
-                    console.log('>>>>>>>>>>>>>>>>>VR DEVICES')
+                    ////console.log('>>>>>>>>>>>>>>>>>VR DEVICES')
                     if (devices.length > 0) {
                         if(devices[0] instanceof HMDVRDevice) {
                             resolve({display:devices[0], msg:'Your browser supports WebVR, but not the latest version. See <a href="http://webvr.info">webvr.info</a> for more.'});
@@ -781,7 +787,7 @@ var ui = (function () {
                 });
             }
             else if (navigator.getVRDisplays) { // 1.0 API
-                console.log('>>>>>>>>>>>>>>>>>>VR DISPLAYS!!!!!!!!!!!!!!!!!!!!')
+                ////console.log('>>>>>>>>>>>>>>>>>>VR DISPLAYS!!!!!!!!!!!!!!!!!!!!')
                 navigator.getVRDisplays().then(function(displays) {
                     if (displays.length > 0) {
                         if (displays[0] instanceof VRDisplay) {
@@ -830,8 +836,9 @@ var ui = (function () {
         hideButtons: hideButtons,
         getScreenWidth: getScreenWidth,
         getScreenHeight: getScreenHeight,
-        saveCSSSize: saveCSSSize,
-        restoreCSSSize: restoreCSSSize,
+        getCSSStyle: getCSSStyle,
+        saveCSSStyle: saveCSSStyle,
+        restoreCSSStyle: restoreCSSStyle,
         hasWebVR: hasWebVR,
         isWebVRPolyfill: isWebVRPolyfill,
         useOrientationMode: useOrientationMode,

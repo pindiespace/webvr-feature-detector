@@ -94,6 +94,7 @@ Document.write() is used here for extreme back-compatibility.
       ENABLE_DEPRECATED_API: false, // Default: false.
 
       FORCE_ENABLE_VR: true,
+
       // Scales the recommended buffer size reported by WebVR, which can improve
       // performance.
       // To disable keyboard and mouse controls, if you want to use your own
@@ -245,7 +246,7 @@ Document.write() is used here for extreme back-compatibility.
      */
     //console.log("THREE IS:" + THREE)
     if (typeof THREE === undefined) {
-      showFail('Your Browser does not support the THREE drawing libraries, WebVR cannot run.', ui);
+      showFail('Your Browser does not support the THREE.js drawing library, WebVR cannot run.', ui);
       return;
     }
 
@@ -376,16 +377,14 @@ Document.write() is used here for extreme back-compatibility.
     var container = document.getElementById('vr-world');
 
     // Features of <canvas> drawing surface
-    var domWidth = parseFloat(getComputedStyle(canvas).getPropertyValue('width'));
-    var domHeight = parseFloat(getComputedStyle(canvas).getPropertyValue('height'));
-    var domCSSPosition = parseFloat(getComputedStyle(container).getPropertyValue('position'));
+    //var domWidth = parseFloat(getComputedStyle(canvas).getPropertyValue('width'));
+    //var domHeight = parseFloat(getComputedStyle(canvas).getPropertyValue('height'));
+    //var aspect = domWidth / domHeight;
 
-    var aspect = domWidth / domHeight;
-    var domAspect = aspect;
+    var domStyle = ui.getCSSStyle(canvas);
+
     //var fullScreenAspect = WebVRUi.getScreenWidth() / WebVRUi.getScreenHeight();
     var dpr = 1; // Default non-retina display
-    var container;
-    var w, h;
 
     // THREE components
     var dolly, camera, scene, raycaster, renderer;
@@ -433,7 +432,7 @@ Document.write() is used here for extreme back-compatibility.
     renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     renderer.setClearColor(0x101010);
     renderer.setPixelRatio(dpr);
-    renderer.setSize(domWidth, domHeight);
+    renderer.setSize(domStyle.width, domStyle.height);
     renderer.sortObjects = false;
 
     // Raycaster for picking within scene.
@@ -450,7 +449,7 @@ Document.write() is used here for extreme back-compatibility.
     scene = new THREE.Scene();
 
     // Create the Camera.
-    camera = new THREE.PerspectiveCamera(70, domWidth / domHeight, 0.1, 10000);
+    camera = new THREE.PerspectiveCamera(70, domStyle.width / domStyle.height, 0.1, 10000);
 
     camera.position.z = 0.0001;
 
@@ -537,48 +536,6 @@ Document.write() is used here for extreme back-compatibility.
 //Create a camera with orbit and follow-orbit features
 //apply to any object, not just camera objects - dolly moved
 //arbitrarily
-
-    /** 
-     * ===================================
-     * Initialize the Ui, including buttons
-     * ===================================
-     */
-
-    // TODO: ONLY MAKE BUTTONS IF WE HAVE FULLSCREEN API
-    // TODO: 
-    // TODO: 
-
-    if (ui.hasWebVR()) {
-
-      // Initialize our Ui.
-      ui.init(canvas, container, page);
-
-      // Create Ui buttons.
-      ui.createButton('FULLSCREEN', function () {
-        console.log("button, clicked fullscreen button")
-        /////ui.swapDOM();
-        ui.setVRMode(false);
-        ui.setGoingToFullscreen(true);
-        ui.enterFullscreen(renderer.domElement);
-      });
-      ui.createButton('ENTER VR', function () {
-        console.log('button, clicked goto VR button')
-        if (ui.useOrientationMode() && window.orientation == 0) {
-          ui.flipToLandscapeMessage();
-        } else {
-          console.log('button, on desktop')
-          console.log(">>>>>>>>>>>>button, SETTING VR MODE")
-          ui.setVRMode(true);
-          ui.setGoingToFullscreen(true);
-          ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
-        }
-
-      });
-      ui.createButton('RESET', function () {
-        console.log("button, clicked reset button"); 
-          ui.getVRDisplay().resetPose();
-      });
-    }
 
     /**
      * Create groups to hold planets. We move the planets
@@ -923,6 +880,10 @@ Document.write() is used here for extreme back-compatibility.
       ui.setMouseDown(false);
     };
 
+    /** 
+     * @method onKeydown
+     * @description event handler for key pressed
+     */
     function onKeydown (e) {
       console.log('onkeydown')
     };
@@ -935,6 +896,41 @@ Document.write() is used here for extreme back-compatibility.
         console.log('>>>>>onWindowResize, ui.isVRMode:' + ui.isVRMode() + ' ui.isFullscreenMode:' + ui.isFullscreenMode() + 'Resizing to %s x %s.', window.innerWidth, window.innerHeight);
 
         console.log('>>****>>returningToDOM is:' + String(ui.isReturningToDOM()) + ' goingToFullscreen is:' + String(ui.isGoingToFullscreen()));
+
+//TODO: OK ON DESKTOP, BUT NOT ON MOBILE!!!!!!!!!!!!!
+//TODO: NEED TO ONLY CHANGE ON SOME resize events
+
+        if (ui.isReturningToDOM() === true) {
+          console.log("%%%%%%%WENT INTO RETURNING TO DOM")
+          ui.restoreCSSStyle(renderer.domElement);
+          vrEffect.setSize(domStyle.width, domStyle.height);
+          camera.aspect = domStyle.width / domStyle.height;
+          ui.getVRDisplay().exitPresent();
+          ui.setReturningToDOM(false);
+        } else if (ui.isGoingToFullscreen()) {
+          console.log("%%%%%%%WENT INTO GOING TO FULLSCREEN")
+          if (ui.useOrientationMode()) {
+            vrEffect.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+          } else { // for standard fullscreen
+            vrEffect.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+          }
+        } else {
+            console.log("%%%%%%%WENT INTO THIRD OPTION")
+            if (ui.useOrientationMode()) {
+                vrEffect.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+            } else {
+              //using fullscreen mode
+            }
+        }
+
+
+        //vrEffect.setSize(window.innerWidth, window.innerHeight);
+        //camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
 
         //TODO: if we're on mobile we will get TWO onresize events, the first 
         //TODO: due to size change, the second manually called from onOrientationChange()
@@ -961,9 +957,6 @@ Document.write() is used here for extreme back-compatibility.
           }
         }
 
-        vrEffect.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
       };
 
     /**
@@ -1012,6 +1005,7 @@ Document.write() is used here for extreme back-compatibility.
             ui.setVRMode(true);
             ui.setGoingToFullscreen(true);
             ui.setReturningToDOM(false);
+            ui.saveCSSStyle(renderer.domElement); /// IS THIS RIGHT?
             ui.swapDOM(canvas);
             ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
             onWindowResize(e);
@@ -1029,6 +1023,49 @@ Document.write() is used here for extreme back-compatibility.
       console.log('>>>>>onVRDisplayDeviceParamsChange:' + e + ' VRMode:' + ui.isVRMode());
       window.par = e;
     };
+
+    /** 
+     * ===================================
+     * Initialize the Ui, including buttons
+     * ===================================
+     */
+
+    // TODO: ONLY MAKE BUTTONS IF WE HAVE FULLSCREEN API
+    // TODO: 
+    // TODO: 
+
+    if (ui.hasWebVR()) {
+
+      // Initialize our Ui.
+      ui.init(canvas, container, page);
+
+      // Create Ui buttons.
+      ui.createButton('FULLSCREEN', function () {
+        console.log("button, clicked fullscreen button")
+        ui.setVRMode(false);
+        ui.setGoingToFullscreen(true);
+        ui.saveCSSStyle(renderer.domElement);
+        ui.enterFullscreen(renderer.domElement);
+      });
+      ui.createButton('ENTER VR', function () {
+        console.log('button, clicked goto VR button')
+        if (ui.useOrientationMode() && window.orientation == 0) {
+          ui.flipToLandscapeMessage(); // TODO: FIX
+        } else {
+          console.log('button, on desktop')
+          console.log(">>>>>>>>>>>>button, SETTING VR MODE")
+          ui.setVRMode(true);
+          ui.setGoingToFullscreen(true);
+          ui.saveCSSStyle(renderer.domElement);
+          ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
+        }
+
+      });
+      ui.createButton('RESET', function () {
+        console.log("button, clicked reset button"); 
+          ui.getVRDisplay().resetPose();
+      });
+    }
 
       /**
        * ===================================
