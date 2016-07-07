@@ -75,7 +75,9 @@ Document.write() is used here for extreme back-compatibility.
         </figure>
     </article>
     <!--these details are hidden by default-->
-    <p class="details">This page shows the operation of WebVRFeatureDetector, along with its (simple) loader function used to load polyfills. In particular, fallbacks are used for browsers with partial support for WebGL and WebVR to provide support for the last version of Internet Explorer (IE12). Older versions show &quot;graceful decay&quot; to a single rendered image from the VR scene, to a default static PNG image. This example is for the THREE.js library.</p>
+    <p class="details">This page shows the operation of WebVRFeatureDetector, along with its (simple) loader function used to load polyfills. In particular, fallbacks are used for browsers with partial support for WebGL and WebVR to provide support for the last version of Internet Explorer (IE12). Older versions show &quot;graceful decay&quot; to a single rendered image from the VR scene, to a default static PNG image. This example is for the THREE.js library. </p>
+
+    <p class="details">Works on Safari/iOS9 and newer versions of Chrome, Opera, and Edge. Firefox support awaits changing the beta WebVR API to the 1.0 version.</p>
   </section>
   <hr>
   <footer>
@@ -999,6 +1001,9 @@ Document.write() is used here for extreme back-compatibility.
           ui.setVRMode(false); // shouldn't be fired...but in case it is!!!!!
         }
     }
+
+    // TODO: THIS ONLY WORKS FOR COUNTERCLOCKWISE ORIENTATION!!!!!!!!
+    // TODO: THE POLYFILL "insert your device into cardboard" ONLY FIRS FOR COUNTERCLOCKWISE!!!!
 
       /**
        * @method onOrientationChange

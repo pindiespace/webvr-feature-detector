@@ -30,7 +30,12 @@ Additional CSS styles
 -->
 <style>
 
-#test h3 {
+/* change this from default overflow:hidden; */
+html, body {
+    overflow: visible;
+}
+
+#test h3 { 
   display: inline;
   display: inline-block;
 }
@@ -42,6 +47,7 @@ Additional CSS styles
 
 #ua {
   width: 100%;
+  margin-left: 0.5em;
 }
 #results {
   width: 100%;
@@ -131,7 +137,11 @@ Additional CSS styles
                       ///////console.log('adding string:' + i)
                       count++;
                       var prop = toStr(o);
-                      list += '<li>' + '<em ' + styleStr(o) +'>' + i + '</em>:' + prop;
+                      list += '<li>' + '<em ' + styleStr(o) +'>' + i + '</em>:';
+                      if (i.length > 10) { //TODO: change for different type styles!!!
+                        list += '<br>';
+                      }
+                      list += prop;
                     }
                     list += '</li>';
                   }
@@ -159,8 +169,9 @@ Additional CSS styles
           // User-agent.
           var s = document.createElement('div');
           s.id = 'ua';
-          s.innerHTML = '<strong>Agent:</strong> ' + navigator.userAgent;
+          s.innerHTML = '<strong>User-Agent:</strong> ' + navigator.userAgent;
           results.appendChild(s);
+          results.appendChild(document.createElement('hr'));
           // Results.
           t = document.createElement('div');
           t.innerHTML = resultsList;
@@ -182,7 +193,7 @@ Additional CSS styles
     <hr>
   </section>
   <footer>
-    <p>&copy; Pete Markiewicz.</p>
+    <p>&copy; <script>document.write(new Date().getFullYear());</script> Pete Markiewicz.</p>
   </footer>
   <!--add additional polyfills here-->
 </body>

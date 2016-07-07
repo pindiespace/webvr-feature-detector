@@ -537,24 +537,6 @@
   }
 
   /* 
-   * Hardware detects.
-   */
-  tests['screen'] = function () {
-    var s = {
-      touch: !!(('ontouchstart' in win) || win.DocumentTouch && document instanceof DocumentTouch),
-      width: (Math.max(win.screen.width, win.screen.height)  || 0),
-      height: (Math.min(win.screen.width, win.screen.height) || 0),
-      pixelRatio: win.devicePixelRatio
-    };
-    // Define display pixels and retina.
-    s.pixelWidth = parseInt(s.width * s.pixelRatio);
-    s.pixelHeight = parseInt(s.height * s.pixelRatio);
-    s.retina = (s.pixelRatio > 1);
-    s.longest = Math.max(s.width, s.height);
-      return s;
-  };
-
-  /* 
    * Used to resize canvas.
    */
   tests['getComputedStyle'] = function () {
@@ -756,6 +738,7 @@
     }
   };
 
+
   /* 
    * Detect support for CSS PointerEvents, useful 
    * for ui 
@@ -891,6 +874,24 @@
   tests['platform'] = function () {
     return platform;
   }
+
+  /* 
+   * Hardware detects.
+   */
+  tests['screen'] = function () {
+    var s = {
+      touch: !!(('ontouchstart' in win) || win.DocumentTouch && document instanceof DocumentTouch),
+      width: (Math.max(win.screen.width, win.screen.height)  || 0),
+      height: (Math.min(win.screen.width, win.screen.height) || 0),
+      pixelRatio: win.devicePixelRatio
+    };
+    // Define display pixels and retina.
+    s.pixelWidth = parseInt(s.width * s.pixelRatio);
+    s.pixelHeight = parseInt(s.height * s.pixelRatio);
+    s.retina = (s.pixelRatio > 1);
+    s.longest = Math.max(s.width, s.height);
+      return s;
+  };
 
   /*
    * Microloader. Store polyfills to load. Deliberately old-school for maximum browser support.
