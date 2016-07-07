@@ -49,6 +49,7 @@ Document.write() is used here for extreme back-compatibility.
 
 </head>
     <body>
+  <main class="page-wrap">
   <header>
     <h1>WebVRFeatureDetector - Example</h1>
     <nav>
@@ -80,9 +81,12 @@ Document.write() is used here for extreme back-compatibility.
     <p class="details">Works on Safari/iOS9 and newer versions of Chrome, Opera, and Edge. Firefox support awaits changing the beta WebVR API to the 1.0 version.</p>
   </section>
   <hr>
-  <footer>
+  </main>
+  <!--use main to create sticky footer-->
+  <footer class="page-footer">
   <p>&copy; <script>document.write(new Date().getFullYear());</script> Pete Markiewicz.</p>
   </footer>
+
 
   <script>
     // WebVR Polyfill Configuration
