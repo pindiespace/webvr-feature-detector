@@ -1,1256 +1,166 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-<title>WebVRFeatureDetector - Load Polyfills</title>
 
-<meta charset="utf-8">
+    <title>WebVRFeatureDetector - Load Polyfills</title>
 
-<!--favicon-->
-<link rel="icon" href="favicon.ico">
-<!--
-handle iOS and android mobile
-http://www.html5rocks.com/en/mobile/fullscreen/
-ios fullscreen
--->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<!--
-android fullscreen
--->
-<meta name="mobile-web-app-capable" content="yes">
-<!--
-set the viewport, shrink-to-fit fixes safari bug
--->
-<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.01, minimal-ui">
-<!--
-hide the Apple status bar
--->
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<!--
-CSS files
--->
-<link rel="stylesheet" href="css/styles.css">
+    <meta charset="utf-8">
 
-<!--
-load the detector
--->
-<script src="js/webvr-feature-detector.js"></script>
+    <!--favicon-->
 
-<!--
-Handle ancient web browsers that don't support HTML5 or HTML5 canvas with a shiv
-Document.write() is used here for extreme back-compatibility.
--->
-<script>
-  if (WebVRFeatureDetector) {
-    if (!WebVRFeatureDetector.html5) {
-      document.write('<script src="' + 'js/polyfills/html5shiv.min.js' + '" type="text/javascript"><\/script>');
-    }
-  }
-</script>
+    <link rel="icon" href="favicon.ico">
 
-</head>
-    <body>
-  <header>
-    <h1>WebVRFeatureDetector - Example</h1>
-    <nav>
-      <ul>
-        <li><a href="index.html">Detector Test</a></li>
-        <li>Sample Using Detector</li>
-      </ul>
-    </nav>
-  </header>
-  <section id="content">
-    <h2>Sample World</h2>
-    <article>
-        <h3>Plutonian VR World</h3>
-        <div id="vr-ui">
-          <!--progress bar (polyfilled), hidden by default -->
-          <div id='progress-bar' class='ui-progress header-box'>
-            <progress id='load-progress' value='0' max='100'><span>0</span>%</progress>
-          </div>
-        </div>
-        <!--three.js vr sample here-->
-        <figure id='vr-world'>
-          <canvas id='vr-canvas'></canvas>
-          <figcaption>The Plutonian System.</figcaption>
-        </figure>
-    </article>
-    <!--these details are hidden by default-->
-    <p class="details">This page shows the operation of WebVRFeatureDetector, along with its (simple) loader function used to load polyfills. In particular, fallbacks are used for browsers with partial support for WebGL and WebVR to provide support for the last version of Internet Explorer (IE12). Older versions show &quot;graceful decay&quot; to a single rendered image from the VR scene, to a default static PNG image. This example is for the THREE.js library. </p>
+    <!--handle iOS and android mobile http://www.html5rocks.com/en/mobile/fullscreen/ ios fullscreen-->
 
-    <p class="details">Works on Safari/iOS9 and newer versions of Chrome, Opera, and Edge. Firefox support awaits changing the beta WebVR API to the 1.0 version.</p>
-  </section>
-  <hr>
-  <footer>
-  <p>&copy; <script>document.write(new Date().getFullYear());</script> Pete Markiewicz.</p>
-  </footer>
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
-  <script>
-    // WebVR Polyfill Configuration
-    var WebVRConfig = {
+    <!--android fullscreen-->
 
-      // Prevent the polyfill from initializing immediately. Requires the app
-      // to call InitializeWebVRPolyfill() before it can be used.
-      DEFER_INITIALIZATION: false, // Default: false.
+    <meta name="mobile-web-app-capable" content="yes">
 
-      // Enable the deprecated version of the API (navigator.getVRDevices).
-      ENABLE_DEPRECATED_API: false, // Default: false.
+    <!--set the viewport, shrink-to-fit fixes safari bug-->
 
-      FORCE_ENABLE_VR: true,
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.01, minimal-ui">
 
-      // Scales the recommended buffer size reported by WebVR, which can improve
-      // performance.
-      // To disable keyboard and mouse controls, if you want to use your own
-      // implementation.
-      MOUSE_KEYBOARD_CONTROLS_DISABLED: true, // Default: false.
+    <!--hide the Apple status bar for iOS-->
 
-      BUFFER_SCALE: 1.0, // Default: 1.0. // Default: false < 1 for faster performance
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-      // Allow VRDisplay.submitFrame to change gl bindings, which is more
-      // efficient if the application code will re-bind its resources on the
-      // next frame anyway. This has been seen to cause rendering glitches with
-      // THREE.js.
-      // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
-      // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
-      // and gl.TEXTURE_BINDING_2D for texture unit 0.
-      DIRTY_SUBMIT_FRAME_BINDINGS: true // Default: false.
+    <!--CSS files-->
 
-    };
-  </script>
+    <link rel="stylesheet" href="css/styles.css">
 
-  <script>
+    <!--load the WebVRFeatureDetector which does a suite of (non-Promise) detections-->
 
-    /**
-     * @method replaceCanvasWithImage
-     * @description replace <canvas> tags with images in
-     * browsers that can't support THREE or other libraries
-     * with a 3d canvas context.
-     * @param String imgPath the path to the replacement image.
-     */
-    function replaceCanvasWithImage (imgPath) {
-      var c = document.getElementsByTagName('canvas');
-      // Replace each canvas with a default image.
-      for(var i = 0; i < c.length; i++) {
-        var img = document.createElement('img');
-        img.src = imgPath;
-        var parentNode = c[i].parentNode;
-        parentNode.insertBefore(img, c[i]);
-        parentNode.removeChild(c[i]);
-      }
-    };
+    <script src="js/webvr-feature-detector.js"></script>
 
-    /** 
-     * @method updateProgress
-     * @description update the progress dialog.
-     * @param Number percent (value between 0-100)
-     * @param String msg additional message
-     */
-    function updateProgress (percent, msg) {
-      console.log('progress function, ' + percent + '%' + ' for:' + msg);
-      var prog = document.getElementById('load-progress');
-      if(prog) {
-        prog.value = percent;
-        prog.getElementsByTagName('span')[0].innerHTML = percent;
-      }
-    };
+    <!--handle ancient web browsers that don't support HTML5 or HTML5 canvas with a shiv Document.write() is used for extreme back-compatibility-->
 
-    /** 
-     * @method hideProgress
-     * @description hide the progress dialog
-     */
-    function hideProgress () {
-      var prog = document.getElementById('load-progress');
-      prog.value = 100;
-      prog.getElementsByTagName('span')[0].innerHTML = '100%';
-      document.getElementById('progress-bar').style.display = 'none';
-    };
+    <script>
 
-    /** 
-     * @method showFail 
-     * @desciption what to do when load fails.
-     * @param String msg the message to show on failure.
-     * @param Object ui our ui object, with .setMessage and .showMessa
-     */
-    function showFail (msg, ui) {
-      replaceCanvasWithImage('img/icons/no-vr.gif');
-      hideProgress();
-      if (!ui) {
-        alert(msg);
-      } else {
-        console.log("MESSAGE IS:" + msg + " an ui is:" + ui)
-        ui.setMessage(msg);
-        ui.showMessage();
-      }
-    };
+        if ( WebVRFeatureDetector ) {
 
-    /**
-     * ===================================
-     * Eliminate browsers that can't run the 
-     * WebVRFeatureDetector loader, or don't 
-     * define HTML5 <canvas>.
-     * ===================================
-     */
-    if(typeof WebVRFeatureDetector === undefined || !WebVRFeatureDetector.canvas) {
-      replaceCanvasWithImage('img/icons/no-vr.gif');
-      alert('Your browser does not support this page (upgrade).');
-    } else { 
+            if ( !WebVRFeatureDetector.html5 ) {
 
-    // Give canvas an explicit size.
+                document.write( '<script src="' + 'js/polyfills/html5shiv.min.js' + '" type="text/javascript"><\/script>' );
 
-
-    /** 
-     * ===================================
-     * Show the loading progress bar. Its 
-     * position gets updated by a callback 
-     * to WebVRFeatureDetector at the bottom 
-     * of this script.
-     * ===================================
-     */
-    var prog = document.getElementById('progress-bar');
-    prog.style.display = 'block';
-
-    // Load all scripts required for the virtual world.
-    WebVRFeatureDetector.load([
-      [
-        {name: 'addEventListener', path: 'js/polyfills/ie8.js', poly: true},
-        {name: 'querySelectorAll', path: 'js/polyfills/dom.js', poly: true}
-      ],
-      [
-        {name: 'defineProperty', path: 'js/polyfills/es5.js', poly: true},
-        {name: 'typedArray', path: 'js/polyfills/typedarray.js', poly: true},
-        {name: 'promise', path: 'js/polyfills/promise.min.js', poly: true}
-      ],
-      [
-        {name: 'WebVRPolyfill', path: 'js/polyfills/webvr-polyfill.js', poly: true}
-      ],
-      [
-        {name: 'CustomEvent', path: 'js/polyfills/custom-event-polyfill.js', poly: true},
-        {name: 'three', path: 'js/three/three.min.js', poly: false}
-      ],
-      [
-        {name: 'projector', path: 'js/three/Projector.js', poly: false},
-        {name: 'canvasRenderer', path: 'js/three/CanvasRenderer.js', poly: false},
-        {name: 'OrbitControls', path: 'js/three/OrbitControls.js', poly: false},
-        {name: 'VREffect', path: 'js/three/VREffect.js', poly: false},
-        {name: 'VRControls', path: 'js/three/VRControls.js', poly: false}
-      ],
-      [
-        {name: 'ui', path: 'js/ui.js', poly: false},
-        {name: 'fetch', path: 'js/polyfills/fetch.js', poly: true}
-      ]
-    ], function() { // Main callback function
-
-
-    /**
-     * ===================================
-     * Check for parsing errors in THREE, and 
-     * exit if they exist.
-     * ===================================
-     */
-    //console.log("THREE IS:" + THREE)
-    if (typeof THREE === undefined) {
-      showFail('Your Browser does not support the THREE.js drawing library, WebVR cannot run.', ui);
-      return;
-    }
-
-    /** 
-     * ===================================
-     * Flag browsers that pass the tests, 
-     * but crash (e.g. Google Chrome 9, which 
-     * freezes when you try to get a WebGL 
-     * context).
-     * ===================================
-     */
-    if (WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11) {
-        showFail('Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', ui)
-        return;
-    } else if (WebVRFeatureDetector.browser.firefox && WebVRFeatureDetector.browser.firefox < 15) {
-        showFail('Old versions of Firefox do not support THREE.js, WebVR cannot run.', ui);
-        return;
-    } else if (WebVRFeatureDetector.browser.chrome && WebVRFeatureDetector.browser.chrome == 9) {
-        showFail('This version of Chrome does not support THREE.js, WebVR cannot run.', ui);
-        return;
-    }
-
-    /** 
-     * ===================================
-     * Create the message window (show it 
-     * after loading textures).
-     * ===================================
-     */
-    ui.createMessage();
-
-    /**
-     * ===================================
-     * UTILITY FUNCTIONS
-     * For creating planets and orbits. 
-     * Assumes THREE.js is being used.
-     * ===================================
-     */
-
-    /*
-     * @method doGeometryScale
-     * @description Scale the geometry (rather than scale Scene or Mesh)
-     * Similar to: http://learningthreejs.com/data/THREEx/docs/THREEx.GeometryUtils.html
-     * @param THREE.Geometry basic shape (unity size).
-     * @param Number scale how much to scale the Geometry.
-     * @returns THREE.Geometry the scaled Geometry.
-     */
-    function doGeometryScale (geometry, scale) {
-      for(var i = 0; i < geometry.vertices.length; i++) {
-        var vertex  = geometry.vertices[i];
-        vertex.position.multiplySelf(scale);
-      }
-      geometry.__dirtyVertices = true;
-      return geometry;
-    };
-
-    /*
-     * @method doGeometryRotation
-     * @description Rotate a geometry (not a mesh)
-     * @param THREE.Geometry geometry a basic shape geometry (unit size).
-     * @param THREE.Vector3 rotation xyz coordinates.
-     * @returns THREE.Geometry the rotated Geometry.
-     */
-    function doGeometryRotation (geometry, rotation) {
-      var rMatrix = new THREE.Matrix4();
-      geometry.applyMatrix(rMatrix.makeRotationX(rotation.x))
-      geometry.applyMatrix(rMatrix.makeRotationY(rotation.y));
-      geometry.applyMatrix(rMatrix.makeRotationZ(rotation.z));
-      return geometry;
-    };
-
-    /**
-     * @method createCircle
-     * @description Circle positioned and rotated.
-     * @param Number segmentCount how many segments (ultimately polys) to use createing the Mesh.
-     * @param Number radius the radius of the Mesh.
-     * @param THREE.Material the material used to wrap the Mesh.
-     * @param THREE.Vector3 position the 3d position of the Mesh.
-     * @param THREE.Vector3 rotation the 3d rotation of the Mesh.
-     * @returns THREE.Mesh the sized, positioned, and rotated Mesh.
-     */
-    function createCircle (segmentCount, radius, material, position, rotation) {
-      var geometry = new THREE.CircleGeometry(radius, segmentCount);
-      doGeometryRotation(geometry, rotation);
-      var circle = new THREE.Mesh(geometry, material);
-      circle.position.set(position.x, position.y, position.z);
-      return circle;
-    };
-
-    /*
-     * @method createRing
-     * @description Create orbital lines or flat rings.
-     */
-    function createRing (phiSegments, thetaSegments, start, end, material, position, rotation) {
-      var geometry = new THREE.RingGeometry(start, end, thetaSegments, phiSegments, 0, Math.PI * 2);
-      doGeometryRotation(geometry, rotation);
-      var ring = new THREE.Mesh(geometry, material);
-      ring.position.set(position.x, position.y, position.z)
-      return ring;
-    };
-
-    /**
-     * @method createOrbitLine
-     * @description a THREE Line tracing a planet or moon orbit.
-     */
-    function createOrbitLine (segmentCount, radius, material, position, rotation) {
-      var geometry = new THREE.Geometry();
-      for (var i = 0; i <= segmentCount; i++) {
-         var theta = (i / segmentCount) * Math.PI * 2;
-         geometry.vertices.push(
-          new THREE.Vector3(
-            Math.cos(theta) * radius,
-            Math.sin(theta) * radius,
-        0)); //multiply third value * Math.sin(theta) * radius to create a parabolic orbit
-      }
-      doGeometryRotation(geometry, rotation);
-      return new THREE.Line(geometry, material)
-    };
-
-    /**
-     * ===================================
-     * BEGIN CREATING A VR WORLD
-     * ===================================
-     */
-
-    // Canvas size determined by markup, not our JS.
-    var page = document.body;
-    var canvas = document.getElementById('vr-canvas');
-    var container = document.getElementById('vr-world');
-
-    // Features of <canvas> drawing surface
-    //var domWidth = parseFloat(getComputedStyle(canvas).getPropertyValue('width'));
-    //var domHeight = parseFloat(getComputedStyle(canvas).getPropertyValue('height'));
-    //var aspect = domWidth / domHeight;
-
-    var domStyle = ui.getCSSStyle(canvas);
-
-    //var fullScreenAspect = WebVRUi.getScreenWidth() / WebVRUi.getScreenHeight();
-    var dpr = 1; // Default non-retina display
-
-    // THREE components
-    var dolly, camera, scene, raycaster, renderer;
-    var group1, group2, group3, group4, group5;
-    var room;
-    var vrEffect, vrControls, controls;
-    var texLoader, modLoader;
-
-    // Planetary data
-    var planetArray;
-
-    // Events and picking
-    var isMouseDown = false;
-    var INTERSECTED;
-    var crosshair;
-
-    // Device pixelRatio based on browser reporting
-    if (window.devicePixelRatio !== undefined) {
-      dpr = window.devicePixelRatio;
-    }
-
-    /**
-     * Conditionally load a THREE 3d WebGL renderer, or a 2d renderer.
-     * If WebGL isn't supported but HTML5 canvas is (e.g. IE9) then
-     * we render the scene only once as a static image
-     */
-    if (!WebVRFeatureDetector.canvas) {
-      //devices that don't support canvas
-      //use the PNG loader to replace canvas
-    }
-    else if(WebVRFeatureDetector.webGL) { // 3D scenes ok.
-      renderer = new THREE.WebGLRenderer({
-        antialias: true, //slow
-        canvas: canvas
-      });
-    } else { // Can't do 3d, draw the scene once and use as a fallback image.
-      console.warn('no webGL, fallback to still image snapshot');
-      renderer = new THREE.CanvasRenderer({
-        antialias: true,
-        canvas: canvas
-      });
-    }
-
-    // Additional renderer properties
-    renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-    renderer.setClearColor(0x101010);
-    renderer.setPixelRatio(dpr);
-    renderer.setSize(domStyle.width, domStyle.height);
-    renderer.sortObjects = false;
-
-    // Raycaster for picking within scene.
-    raycaster = new THREE.Raycaster();
-
-    // Initialize a mesh-loader.
-    modLoader = new THREE.ObjectLoader();
-
-    // Initialize a texture-loader.
-    texLoader = new THREE.TextureLoader();
-    texLoader.crossOrigin = '';
-
-    // Create the Scene.
-    scene = new THREE.Scene();
-
-    // Create the Camera.
-    camera = new THREE.PerspectiveCamera(70, domStyle.width / domStyle.height, 0.1, 10000);
-
-    camera.position.z = 0.0001;
-
-    // Set up VR camera controls for head and position tracking.
-    vrControls = new THREE.VRControls(camera, function(err) {
-      if (err) {
-        console.log("Error creating VRControls: ", err);
-      }
-    });
-
-/////////////////
-// method 1
-    var dolly = new THREE.PerspectiveCamera();
-    dolly.position.x = 0;
-    dolly.position.y = 2;
-    dolly.position.z = -8;
-    //dolly.rotation.x = Math.PI / 2;
-    //dolly.rotation.y = Math.PI / 2.3; //firefox native webvr
-    //dolly.rotation.z = Math.PI / 2;
-
-    controls = new THREE.OrbitControls(dolly, canvas); // WORKS
-    //OrbitControls update camera position
-    //camera.position.set(-0.041, 1.9, -1.21);
-    //controls.update();
-    //OrbitControls change the position being orbited (target)
-    //controls.target.set(30, 167, 81);
-    //controls.update();
-    //OrbitControls initial position
-    //controls.reset();
-
-    //controls = new THREE.DeviceOrientationControls(dolly, true);
-
-    //controls = new THREE.FlyControls(camera);
-    //FlyControls control properties
-    //controls.movementSpeed = 1000;
-    //controls.domElement = canvas;
-    //controls.rollSpeed = Math.PI / 24;
-    //controls.autoForward = false;
-    //controls.dragToLook = false;
-
-
-    dolly.add(camera);
-    scene.add(dolly);
-    //NOTE: add camera to object to follow
-    //scene.remove(object);
-/////////////////////
-
-/////////////////////////////////
-/*
-// Method 2
-    //WORKS: Firefox nightly
-    //WRONG POSITION AND NO TRACKWHEEL: Chrome
-    // Add the camera to the scene.
-    // Put the VRCamera on a dolly, so it can move...
-    // NOTE: setting this to z = 15 causes Pluto to "blink out" in part of its orbit!
-    dolly = new THREE.Group();
-    dolly.position.set(0, 10, 25);
-    dolly.rotateX(Math.PI); // look forward and a bit down
-    //dolly.rotateY(Math.PI/2);
-    dolly.add(camera);
-    scene.add(dolly);
-    //controls = new THREE.FlyControls(camera); // FIGHTS the vrControls
-    //TODO: OrbitControls NEED TO BE MODIFIED TO ACCEPT NON-CAMERA OBJECTS
-    controls = new THREE.OrbitControls(dolly); //edit to make it use any object, not just camera
-    //TODO: make OrbitControls work for any object, not just Camera
-    //controls = new THREE.FlyControls(dolly);
-    controls.update(0);
-    vrControls.update();
-*/
-
-    // Using MeshPhongMaterial REQUIRES a DirectionalLight!
-    var light = new THREE.DirectionalLight(0xffffff, 1.0);
-    light.position.set(0, 25, 15).normalize();
-    scene.add(light);
-
-    // Apply VR stereo rendering vrEffect to renderer.
-    vrEffect = new THREE.VREffect(renderer, function(err) {
-      if (err) {
-        console.log("Error creating vrEffect: ", err);
-      }
-    });
-
-//METHOD 3
-//Create a camera with orbit and follow-orbit features
-//apply to any object, not just camera objects - dolly moved
-//arbitrarily
-
-    /**
-     * Create groups to hold planets. We move the planets
-     * by rotating the groups. group1 has Pluto and Charon, while
-     * the other groups have individual moons orbiting the Pluto-Charon
-     * barycenter.
-     */
-      group1 = new THREE.Group(),
-      group2 = new THREE.Group(),
-      group3 = new THREE.Group(),
-      group4 = new THREE.Group(),
-      group5 = new THREE.Group();
-
-      scene.add(group1);
-      scene.add(group2);
-      scene.add(group3);
-      scene.add(group4);
-      scene.add(group5);
-
-    //TODO PUT PLUTO AT RIGHT PART OF BARYCENTER!!!!!!! rotated out 90
-
-    /**
-     * ===================================
-     * Planet data array, used to load the planets using Promise
-     *
-     * 1. Planet and moon sizes
-     *    Pluto diameter: 2370km, or 2 units.
-     *    Pluto radius: 1185km, or 1 unit
-     *    Charon diameter: 1208km, or 0.51 units, orbits at 17546km
-     *    Nix diameter: , or units, orbits at 48,700km, 25 days to orbit
-     *    Styx diameter: 20 dayst to orbit
-     *    Kerberos diameter:, 32 days to orbit
-     *    Hydra diameter: , or units, orbits at 64,700km, 54.60 Plutonian radii
-     *
-     * 2. Barycenter
-     *    Total distance: 19,570km, or 16.51 plutonian radii
-     *    17536±4 km to system barycenter, 19571km to center of pluto
-     *    Barycenter diff: 2035km, or -(0.885 + 0.5) (radius) plutonian radii
-     *    gives a barycenter location: 960 km, or 0.4 units above pluto's surface
-     * ===================================
-     */
-
-    // Constants related to the simulation.
-      var plutoSize = 1; // 1 unit in simulation, other objects and orbits are sized relative to Pluto
-      var plutoCharonRot = 0.0020; //speed in simulation, other objects speed is set relative to this
-      var baryCenter = 0.885 + 0.5; //relative to Pluto
-
-      planetArray = [
-        {
-          name: 'pluto',
-          path: 'img/pluto_rgb_cyl_1024.png',
-          material: new THREE.MeshPhongMaterial({shininess: "10", emissive:"#272222"}),
-          geometry: new THREE.SphereGeometry(plutoSize, 32, 32),
-          diameter: plutoSize, //2370km
-          distance: 0,
-          translation: new THREE.Matrix4().makeTranslation(-baryCenter, 0, 0), //rotate around barycenter,
-          rotation: -plutoCharonRot, //normalize to Pluto rotation
-          mesh:null,
-          group: group1
-        },
-        {
-          name: 'charon',
-          path: 'img/charon_rgb_cyl_1024.png',
-          material: new THREE.MeshPhongMaterial({shininess: "10", emissive:"#272222"}),
-          geometry: new THREE.SphereGeometry(plutoSize * 0.51, 32, 32),
-          diameter: plutoSize * 0.51, //1208km
-          distance: 16.51 - baryCenter,
-          translation: new THREE.Matrix4().makeTranslation(16.51 - baryCenter, 0, 0), //rotate around barycenter
-          rotation: -plutoCharonRot, //Charon has synchronous rotation
-          mesh:null,
-          group: group1
-        },
-        {
-          name: 'styx',
-          path: 'img/styx_rgb_cyl_128.png',
-          material: new THREE.MeshPhongMaterial({emissive:"#272222"}),
-          geometry: 'models/nix.json',
-          diameter: plutoSize * 0.006, // 16 x 9 x 8
-          distance: 35.10 - baryCenter,
-          translation: new THREE.Matrix4().makeTranslation(35.10 - baryCenter, 0, 0), //42656±78km
-          rotation: -plutoCharonRot * 6.3872 / 20.16, //ratioed to Pluto-Charon
-          mesh:null,
-          group: group2
-        },
-        {
-          name: 'nix',
-          path: 'img/nix_rgb_cyl_128.png',
-          material: new THREE.MeshPhongMaterial({emissive:"#272222"}),
-          geometry: 'models/nix.json',
-          diameter: plutoSize * 0.021, // 50 x 35 x 33
-          distance: 41.09 - baryCenter,
-          translation: new THREE.Matrix4().makeTranslation(41.09 - baryCenter, 0, 0), //48694±3km
-          rotation: -plutoCharonRot * 6.3872 / 24.85, //ratioed to Pluto-Charon
-          mesh:null,
-          group: group3
-        },
-        {
-          name: 'kerberos',
-          path: 'img/kerberos_rgb_cyl_128.png',
-          material: new THREE.MeshPhongMaterial({emissive:"#272222"}),
-          geometry: 'models/nix.json',
-          diameter: plutoSize * 0.008, // 19 x 10 x 9
-          distance: 48.762 - baryCenter,
-          translation: new THREE.Matrix4().makeTranslation(48.762 - baryCenter, 0, 0), //57783±19km
-          rotation: -plutoCharonRot * 6.3872 / 32.17, //ratioed to Pluto-Charon
-          mesh:null,
-          group: group4
-        },
-        {
-          name: 'hydra',
-          path: 'img/hydra_rgb_cyl_128.png',
-          material: new THREE.MeshPhongMaterial({emissive:"#272222"}),
-          diameter: plutoSize * 0.027, //65 x 45 x 25
-          geometry: 'models/nix.json',
-          distance: 54.60 - baryCenter,
-          translation: new THREE.Matrix4().makeTranslation(54.60 - baryCenter, 0, 0), //64738±3km
-          rotation: -plutoCharonRot * 6.3872 / 38.20, //ratioed to Pluto-Charon
-          mesh:null,
-          group: group5
-        }
-      ]; // End of planetArray
-
-    /**
-     * ===================================
-     * Compute increments we'll need to record 
-     * texture loading progress.
-     * ===================================
-     */
-     var textureLoadInc = 50 / planetArray.length;
-     var incCount = 50; //50% at start.
-
-    /**
-     * loadTextures
-     * load the textures (and JSON models) needed for Plutonian system.
-     * Nested Promises
-     */
-    function loadTextures( callback ) {
-
-      //console.log("starting loadTextures, planetArray:" + planetArray)
-
-      var promiseArray = [];
-
-      planetArray.forEach( function ( planet ) {
-        console.log("IN FOREACH:" + planet.name)
-        promiseArray.push ( new Promise( function ( resolve , reject ) {
-            texLoader.load(
-                planet.path,
-                function ( texture ) {
-                    //console.log('in texLoader, typeof planet.geometry:' + typeof planet.geometry)
-                    if(typeof planet.geometry === 'string') { // Load custom mesh using file path.
-                      console.log('in model loader');
-                        modLoader.load(planet.geometry, function (obj) {
-                        planet.geometry = obj.children[0].geometry;
-                        //planet.geometry.scale(0.1, 0.1, 0.1); // TODO: ADD WHEN READY
-                        planet.material.map = texture;
-                        planet.geometry.center(); //center model within bounding box
-                        planet.mesh = new THREE.Mesh(planet.geometry, planet.material);
-                        planet.mesh.position.set(0, 0, 0);
-                        planet.geometry.applyMatrix(planet.translation);
-                        planet.group.add(planet.mesh);
-/*
-                        planet.orbit = createOrbitLine(64, planet.distance,
-                          new THREE.LineBasicMaterial({color: 0xeeeeee, linewidth:"4"}),
-                          new THREE.Vector3(0, 0, 0), //position
-                          new THREE.Vector3(Math.PI / 2, 0, 0) //rotation
-                          );
-                        scene.add(planet.orbit);
-
-                        TODO: MAKE OPACITY WORK!!!!!
- */
-                        planet.orbit = createRing(50, 50, planet.distance - 0.25, planet.distance + 0.25,
-                        new THREE.MeshBasicMaterial({color: 0xff0000, wireframe: true, opacity: 0.2}),
-                        new THREE.Vector3(0, 0, 0), //position
-                        new THREE.Vector3(Math.PI / 2, 0, 0) //rotation
-
-                        );
-                        scene.add(planet.orbit);
-
-                        // Resolve the Promise
-                        if(texture instanceof THREE.Texture) {
-                          resolve(planet);
-                        }
-                      }); // End of mesh loaded by program.
-
-                    } else { // We're using THREE sphere built-in mesh
-                      console.log('in prebuilt geometry loader')
-                      //TODO: new three has problem 'override mime type'
-                      //TODO: due to mesh loading
-                      //TODO: with IE9 and IE10
-                      //TODO: may need to have older version of THREE for fallback
-                      planet.geometry.applyMatrix(planet.translation);
-                      //planet.geometry.scale(1.0, 1.0, 1.0); //not necessary
-                      planet.material.map = texture;
-                      planet.mesh = new THREE.Mesh(planet.geometry, planet.material);
-                      planet.group.add(planet.mesh);
-
-                      if(texture instanceof THREE.Texture) {
-                        resolve(planet);
-                      }
-                    } // End of THREE built-in mesh.
-                    // Update progress by COMPLETE texture load (not using THREE xhr progress)
-                    incCount += textureLoadInc;
-                    updateProgress(incCount, planet.name);
-                },
-
-                function (xhr) { // Report loading progress.
-                  console.log(planet.name + ' ' + parseInt(xhr.loaded / xhr.total * 100) + '% loaded');
-                },
-
-                function (xhr) { // Report loading error.
-                  reject( new Error (xhr + 'An error occurred loading while loading' + planet.path));
-                }
-              )
-
-        }) );
-
-      });
-
-      Promise.all(promiseArray).then(
-        function (textures) {
-          console.log('in resolver');
-          for(var i = 0; i < textures.length; i++) {
-             var key = Object.keys(textures[i])
-            //all textures are still undefined!
-             console.log(textures[key]);
-          }
-          if( callback && typeof(callback) === "function" && planetArray.length == textures.length) {
-            callback(textures);
-          }
-        },
-        function (err) {
-          callback(err)
-          }
-        );
-
-    }; //end of loadTextures
-
-
-
-    /**
-     * Create the Plutoian world
-     */
-    function loadBoxes () {
-
-      /**
-       * Add the orbital groups. Pluto and Charon share one,
-       * the others have their own separate group, which is used
-       * to rotate the moon around the barycenter for the Plutonian system.
-       */
-
-      crosshair = new THREE.Mesh(
-        new THREE.RingGeometry( 0.02, 0.04, 32 ),
-        new THREE.MeshBasicMaterial( {
-            color: 0xffffff,
-            opacity: 0.5,
-            transparent: true
-        })
-      );
-      crosshair.position.z = - 2;
-      camera.add( crosshair );
-
-      room = new THREE.Mesh(
-          new THREE.BoxGeometry( 6, 6, 6, 10, 10, 10 ),
-          new THREE.MeshBasicMaterial( { color: 0x202020, wireframe: true } )
-      );
-      scene.add(room);
-
-
-      var geometry = new THREE.BoxGeometry( 0.15, 0.15, 0.15 );
-
-      for ( var i = 0; i < 200; i ++ ) {
-
-        var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
-
-        object.position.x = Math.random() * 4 - 2;
-        object.position.y = Math.random() * 4 - 2;
-        object.position.z = Math.random() * 4 - 2;
-
-        object.rotation.x = Math.random() * 2 * Math.PI;
-        object.rotation.y = Math.random() * 2 * Math.PI;
-        object.rotation.z = Math.random() * 2 * Math.PI;
-
-        object.scale.x = Math.random() + 0.5;
-        object.scale.y = Math.random() + 0.5;
-        object.scale.z = Math.random() + 0.5;
-
-        object.userData.velocity = new THREE.Vector3();
-        object.userData.velocity.x = Math.random() * 0.01 - 0.005;
-        object.userData.velocity.y = Math.random() * 0.01 - 0.005;
-        object.userData.velocity.z = Math.random() * 0.01 - 0.005;
-
-        room.add( object );
-
-      }
-
-    }
-
-    /**
-     * Add event listeners.
-     */
-    function addListeners () {
-      // Add mouse events.
-      renderer.domElement.addEventListener('mousedown', onMouseDown, false);
-      renderer.domElement.addEventListener('mouseup', onMouseUp, false );
-      renderer.domElement.addEventListener('touchstart', onMouseDown, false);
-      renderer.domElement.addEventListener('touchend', onMouseUp, false);
-
-      // Escape key.
-      document.addEventListener('keydown', onKeydown, false);
-
-      // Add resize events.
-      window.addEventListener('resize', onWindowResize, false);
-
-      // Detect fullscreen API changes
-      document.addEventListener('webkitfullscreenchange', onFullscreenChange, false);
-      document.addEventListener('mozfullscreenchange', onFullscreenChange, false);
-      document.addEventListener('fullscreenchange', onFullscreenChange, false);
-      document.addEventListener('MSFullscreenChange', onFullscreenChange, false);
-
-      // Listen for orientation changes on mobiles
-      window.addEventListener("orientationchange", onOrientationChange, false);
-
-      // Bind to VR* specific events.
-      window.addEventListener('vrdisplaypresentchange', onVRDisplayPresentChange);
-      window.addEventListener('vrdisplaydeviceparamschange', onVRDisplayDeviceParamsChange);
-
-    };
-
-    /** 
-     * @method onMouseDown
-     * Event handlers for mousedown.
-     */
-    function onMouseDown (e) {
-      ui.setMouseDown(true);
-    };
-
-    /** 
-     * @method onMouseUp
-     * @description event handler for mouseup
-     */
-    function onMouseUp (e) {
-      ui.setMouseDown(false);
-    };
-
-    /** 
-     * @method onKeydown
-     * @description event handler for key pressed
-     */
-    function onKeydown (e) {
-      console.log('onkeydown')
-    };
-
-      /**
-       * @method onWindowResize
-       * @description Detect window resizing. Note that these may be applied
-       */
-      function onWindowResize(e) {
-        console.log('>>>>>onWindowResize, ui.isVRMode:' + ui.isVRMode() + ' ui.isFullscreenMode:' + ui.isFullscreenMode() + 'Resizing to %s x %s.', window.innerWidth, window.innerHeight);
-
-        console.log('>>****>>returningToDOM is:' + String(ui.isReturningToDOM()) + ' goingToFullscreen is:' + String(ui.isGoingToFullscreen()));
-
-        /* 
-         * This is VERY tortured logic since we have incompatible ways of 
-         * getting to fullscreen on desktop and mobile. The logic below 
-         * uses flags set by either pressing a button (desktop) or rotating the 
-         * phone to landscape mode (mobile). 
-         * 
-         * The reason this is so difficult is that fullscreen and orientation events 
-         * generate MULTIPLE window resizing events...and only some of these resize events 
-         * should be responded to. The logic below generally prevents responding to the 
-         * first resize event, and reacts only to the second.
-         * 
-         * Features:
-         * 1. The DIRECTION of the switch must be known, hence DOM->VR and 
-         *    fullscreen->DOM
-         * 2. When a fullscreen or DOM state is reached, this must be set, i.e. 
-         *    ui.isReturningToDOM() is switched to false the first time ui.isReturningToDOM()
-         *    becomes true.
-         * 3. Mobiles without fullscreen must be detected via ui.useOrientationMode 
-         *    and only use that method, not fullscreen
-         */
-        if (ui.isReturningToDOM() === true) {
-          console.log("%%%%%%%WENT INTO RETURNING TO DOM")
-          ui.restoreCSSStyle(renderer.domElement);
-          vrEffect.setSize(domStyle.width, domStyle.height);
-          camera.aspect = domStyle.width / domStyle.height;
-          ui.getVRDisplay().exitPresent();
-          ui.setReturningToDOM(false);
-        } else if (ui.isGoingToFullscreen()) {
-          console.log("%%%%%%%WENT INTO GOING TO FULLSCREEN")
-          if (ui.useOrientationMode()) {
-            vrEffect.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-          } else { // for standard fullscreen
-            vrEffect.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-          }
-        } else {
-            console.log("%%%%%%%WENT INTO THIRD OPTION")
-            if (ui.useOrientationMode()) { //THIS IS WHERE iPHONE GOES!!!
-                vrEffect.setSize(window.innerWidth, window.innerHeight);
-                camera.aspect = window.innerWidth / window.innerHeight;
-            } else {
-              //using fullscreen mode
             }
+
         }
 
+    </script>
 
-        //vrEffect.setSize(window.innerWidth, window.innerHeight);
-        //camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+    <!--load ui methods-->
 
+    <script src='js/webvr-dom-ui.js'></script>
 
-        //TODO: if we're on mobile we will get TWO onresize events, the first 
-        //TODO: due to size change, the second manually called from onOrientationChange()
-        //TODO: it is necessary to make the second call to detect return from 
-        //TODO: VRMode on mobiles without fullscreen.
-        //TODO: use ui.useOrientation() to branch.
-        if (ui.useOrientationMode()) {
-          //orientation being used, not fullscreen
-          if (ui.isVRMode()) {
-            console.log('1.use orientation, in VR')
-          } else {
-            console.log('2.use orientation, not in VR')
-            //   Promise<void> exitPresent();
-            //   ui.getVRDisplay.exitPresent(); //Returns a promise!!!!!
-          }
-        } else { // not using orientation events as triggers
-          //fullscreen mode
-          if (ui.isVRMode()) {
-            console.log('3.use fullscreen, in VR')
-            //   Promise<void> exitPresent();
-            //   ui.getVRDisplay.exitPresent(); //Returns a promise!!!!!
-          } else {
-            console.log('4. use fullscreen, not in VR')
-          }
-        }
+    </head>
 
-      };
+<body>
 
-    /**
-     * @method onFullscreenChange
-     * @description perform tasks needed during a switch to fullscreen. 
-     * Only works for desktop! We don't need to swap the DOM out here.
+    <!--canvas is added, rather than dynamically created so that 
+    we can replace it with an error image if loading fails-->
+    <canvas></canvas>
+
+</body>
+
+<script>
+
+// webvr-polyfill configuration, only used if native API not available
+
+var WebVRConfig = {
+
+    /* 
+     * ==============================================
+     * Prevent the polyfill from initializing immediately. Requires the app
+     * to call InitializeWebVRPolyfill() before it can be used.
+     * ==============================================
      */
-    function onFullscreenChange (e) {
+    DEFER_INITIALIZATION: false, // Default: false
 
-      //TODO: do a if (useOrientationMode()) here and prefer orientation if we hav BOTH 
-      // orientation AND fullscreen.
+    // Enable the deprecated version of the API (navigator.getVRDevices)
 
-      console.log('>>>>>onFullscreenChange, ui.isVRMode:' + ui.isVRMode() + ' ui.isFullscreenMode:' + ui.isFullscreenMode());
-        if (ui.isFullscreenMode()) {
-          console.log("in onFullscreen, going to fullscreen");
-          ui.setGoingToFullscreen(true);
-          ui.setReturningToDOM(false);
-          // going to fullscreen MIGHT happen with VR
-        } else {
-          console.log('in onFullscreen, returning to normal, setting VRMode to false');
-          ui.setGoingToFullscreen(false);
-          ui.setReturningToDOM(true);
-          ui.setVRMode(false); // shouldn't be fired...but in case it is!!!!!
-        }
-    }
+    ENABLE_DEPRECATED_API: false, // Default: false
 
-    // TODO: THIS ONLY WORKS FOR COUNTERCLOCKWISE ORIENTATION!!!!!!!!
-    // TODO: THE POLYFILL "insert your device into cardboard" ONLY FIRS FOR COUNTERCLOCKWISE!!!!
+    FORCE_ENABLE_VR: true,
 
-      /**
-       * @method onOrientationChange
-       * @description Detect orientation changes in mobile, equivalent to
-       * fullscreen for mobiles (which don't implement the fullscreen API)
-       */
-      function onOrientationChange (e) {
-        switch (window.orientation) {
-          case 0:
-            console.log('>>>>>onOrientationChange: portrait, set DOM Mode:' + window.orientation)
-            ui.setVRMode(false);
-            ui.setGoingToFullscreen(false);
-            ui.setReturningToDOM(true);
-            ui.resetDOM();
-            // IMPORTANT!!!!!!!we can only detect the need to reset the canvas to the DOM here on mobiles without fullscreen.
-            onWindowResize(e); // pass event through
-            break;
-          case 90:
-          case -90:
-            console.log('>>>>>onOrientationChange: landscape, set VR Mode, orientation:' + window.orientation);
-            ui.setVRMode(true);
-            ui.setGoingToFullscreen(true);
-            ui.setReturningToDOM(false);
-            ui.saveCSSStyle(renderer.domElement); /// IS THIS RIGHT?
-            ui.swapDOM(canvas);
-            ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
-            onWindowResize(e);
-            break;
-        }
-      };
+    /* 
+     * To disable keyboard and mouse controls, if you want to use your own
+     * implementation
+     */
+    MOUSE_KEYBOARD_CONTROLS_DISABLED: true, // Default: false
 
-    function onVRDisplayPresentChange (e) {
-      console.log('>>>>>onVRDisplayPresentChange:' + e + ' VRMode:' + ui.isVRMode());
-      window.pre = e;
-        //onWindowResize();
-    };
+    BUFFER_SCALE: 1.0, // Default: 1.0. // Default: false < 1 for faster performance
 
-    function onVRDisplayDeviceParamsChange (e) {
-      console.log('>>>>>onVRDisplayDeviceParamsChange:' + e + ' VRMode:' + ui.isVRMode());
-      window.par = e;
-    };
+    /* 
+     * ==============================================
+     * Allow VRDisplay.submitFrame to change gl bindings, which is more
+     * efficient if the application code will re-bind its resources on the
+     * next frame anyway. This has been seen to cause rendering glitches with THREE.js.
+     * Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
+     * gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
+     * and gl.TEXTURE_BINDING_2D for texture unit 0.
+     * ==============================================
+     */
+    DIRTY_SUBMIT_FRAME_BINDINGS: true // Default: false.
+
+};
+
+
+/**
+ * ==============================================
+ * 1. Eliminate browsers that can't possibly run the vr world.
+ * 2. Flag browsers that pass the tests, 
+ * but crash on this world (e.g. Google Chrome 9, which 
+ * freezes when you try to get a WebGL context).
+ * ==============================================
+ */
+
+    // the image to display when we can't load HTML5 <canvas>
+
+    var failImg = 'img/icons/no-vr.gif';
+    var failClass = 'fail-message';
+
+    if ( typeof WebVRFeatureDetector === undefined || ! WebVRFeatureDetector.canvas ) {
+
+        domui.browserFail( 'Your browser is too old to support 3d or VR (upgrade).', failImg, failClass );
+
+        //alert( 'Your browser does not support this page (upgrade).' );
+
+    } else if ( WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11 ) {
+
+        domui.browserFail( 'Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', failImg, failClass );
+
+    } else if (WebVRFeatureDetector.browser.firefox && WebVRFeatureDetector.browser.firefox < 15) {
+
+        domui.browserFail( 'Old versions of Firefox do not support THREE.js, WebVR cannot run.', failImg, failClass );
+
+    } else if (WebVRFeatureDetector.browser.chrome && WebVRFeatureDetector.browser.chrome == 9) {
+
+        domui.browserFail('This version of Chrome does not support THREE.js, WebVR cannot run.', failImg, failClass );
+
+    } else {
+
+        // don't want touchmove in VR
+
+        document.addEventListener( 'touchmove', function( e ) {
+
+            e.preventDefault();
+
+        });
 
     /** 
-     * ===================================
-     * Initialize the Ui, including buttons
-     * ===================================
+     * ==============================================
+     * Begin loading libraries.
+     * ==============================================
      */
 
-    // TODO: ONLY MAKE BUTTONS IF WE HAVE FULLSCREEN API
-    // TODO: 
-    // TODO: 
+     console.log ('loading world...');
 
-    if (ui.hasWebVR()) {
+    } // end of valid browser test
 
-      // Initialize our Ui.
-      ui.init(canvas, container, page);
-
-      // Create Ui buttons.
-      ui.createButton('FULLSCREEN', function () {
-        console.log("button, clicked fullscreen button")
-        ui.setVRMode(false);
-        ui.setGoingToFullscreen(true);
-        ui.saveCSSStyle(renderer.domElement);
-        ui.enterFullscreen(renderer.domElement);
-      });
-
-
-      ui.createButton('ENTER VR', function () {
-        if (!ui.hasWebVR()) {
-          showPopup('WebVR is not supported on your system');
-        } else if (ui.useOrientationMode() && window.orientation == 0) {
-          ui.flipToLandscapeMessage(); // TODO: FIX
-        } else {
-          if (ui.hasVRDisplay()) {
-            console.log('button, on desktop')
-            console.log(">>>>>>>>>>>>button, SETTING VR MODE")
-            ui.setVRMode(true);
-            ui.setGoingToFullscreen(true);
-            ui.saveCSSStyle(renderer.domElement);
-            ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
-          } else {
-            ui.showPopup('You need to attach a VR Display to your device for VR');
-          }
-        }
-      });
-      ui.createButton('RESET', function () {
-        if (!ui.hasWebVR()) {
-          showPopup('WebVR is not supported on your system');
-        } else if (ui.hasVRDisplay()) {
-          ui.getVRDisplay().resetPose();
-        } else {
-          ui.showPopup('You need to attach a VR Display to your device for VR');
-        }
-      });
-    }
-
-      /**
-       * ===================================
-       * RENDERING
-       * ===================================
-       */
-
-      // Starting time.
-      var clock = new THREE.Clock();
-
-      var lookLoc = new THREE.Vector3(0, 0, 0);
-
-      //planetArray[2].group.add(dolly); /////////////////////////////////////////
-
-      // Start the animation.
-      function animate() {
-        requestAnimationFrame(animate);
-        render();
-      }
-
-
-      function render() {
-
-      var delta = clock.getDelta(); // needed for composer (postprocessing image)
-       for (var i in planetArray) {
-          planetArray[i].group.rotation.y += planetArray[i].rotation;
-        }
-
-        //controls.update(delta); // TODO: need delta for FlyControls, may not be needed for others
-
-        //method 1
-        //dolly.translateZ(-0.01);
-        //dolly.translateX(0.05);
-        //dolly.position.z = -10; OK
-        //dolly.position.z = 10 OK
-        //dolly.lookAt(new THREE.Vector3(6, 6, 6));
-
-        //method 2
-        //camera and dolly never rotated
-        //dolly.translateZ(-0.01);
-        //dolly.rotateZ(-0.01); //chrome like rotating on 'y' axis
-        //dolly.rotateY(-0.01); //firefox right size
-        //dolly.rotateY(-0.01); //firefox across screen, orbit upleft, then downleft, chrom like rotating on 'z' axis
-        //dolly.rotation.z -= 0.01;
-        //TODO: dolly.rotation doesn't seem to work
-
-        ///////////////vrControls.update();//////////////////////////////////
-        //////////////vrEffect.render(scene, camera);
-
-          if (ui.isVRMode()) {
-            vrControls.update();
-            vrEffect.render(scene, camera);
-          }  else {
-            controls.update(delta);
-            renderer.render(scene, camera);
-          }
-
-
-      }
-
-    // RUN THE PROGRAM
-
-    //loadBoxes();
-
-    // Actually load the textures and models.
-    loadTextures(function () {
-      console.log('done loading textures')
-
-    /**
-     * ===================================
-     * If we can run THREE, show status message.
-     * ===================================
-     */
-    ui.showMessage();
-
-    /** 
-     * ===================================
-     * Hide the loading progress bar.
-     * ===================================
-     */
-    prog.value = 100;
-    prog.getElementsByTagName('span')[0].innerHTML = '100%';
-    document.getElementById('progress-bar').style.display = 'none';
-
-    //TODO: this will happen BEFORE Textures loaded...
-    //TODO: this needs to be part of the Ui.
-
-    //TODO: setup GitHub pages
-    //TODO: https://gist.github.com/chrisjacob/833223
-
-    //TODO: DETECTOR NEEDS TO HANDLE EMPTY BATCH [] AND EMPTY OBJECT {}
-
-    //TODO: fullscreen for IE 10 and 9
-
-    //TODO: load old THREE.js for IE9 and 10
-
-    //TODO: error report for IE8 and lower not using 'Promise'
-    //TODO: Promise polyfill present, but doesn't work!
-    //TODO: PROMISE POLYFILL!!!!
-
-    //TODO: USE BETTER SCRIPT LOAD TEST
-    //http://stackoverflow.com/questions/538745/how-to-tell-if-a-script-tag-failed-to-load
-    // Look at the '10' value
-
-    //TODO: move image replace function into WebVR.ui (so it doesn't have to be loaded as non-polyfill)
-
-    //TODO: RESIZE CANVAS TO SCREEN
-
-    //TODO: INDEX.HTML SHOULD TRY TO LOAD POLYFILL
-
-    //TODO: remove CSS calc() function!
-
-    //TODO: DETECT stuff in https://iswebvrready.org/
-    //TODO: Gamepad Touchpad, GamePad Pose, GamePad Vibration
-
-    //TODO: Leap Motion haptic input
-    //TODO: https://github.com/leapmotion/Leap-Three-Camera-Controls
-    //TODO: Pinch motion
-
-    //TODO: Alternate OrbitControls
-    //TODO: https://gist.github.com/mrflix/8351020
-    //TODO: Alternate Camera
-    //TODO: https://github.com/trotil/FuctureFreeCamera
-
-    // Begin the animation loop.
-      if (WebVRFeatureDetector.canvas) {
-        if (WebVRFeatureDetector.webGL) {
-          addListeners();
-          animate();
-        } else {
-          // WebGL not supported, so just draw one frame and end.
-          WebVRUi.setMessage('WebVR cannnot run (No 3D support, static frame shown)', false);
-          render();
-        }
-      }
-    }); //end of loadTextures.
-      // END OF WebVRFeatureDetector callback.
-
-    }, function(percent, msg) { // WebVRFeatureDetector Progress Bar callback.
-
-        percent = parseInt(percent/2);
-
-        // this updates and completes BEFORE texture loading.
-        console.log('progress function, ' + percent + '%' + ' for:' + msg);
-        updateProgress(percent, msg);
-    }, function(msg, batch, script, s) { // WebVRFeatureDetector Error callback.
-        console.error(msg  + ' batch#' + batch + ', script#' + script + ', value:' + s);
-    }
-
-  ); //END OF WebVRFeatureDetector load() function.
-
-  } // END of else for HTML5 canvas present.
 
     </script>
   </body>

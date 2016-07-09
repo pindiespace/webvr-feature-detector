@@ -332,7 +332,7 @@ var ui = (function () {
      * @description return true if using webvr-polyfill.
      * @returns Boolean if polyfill, return true, else false.
      */
-    function isWebVRPolyfill () {
+    function isPolyfill () {
         return polyfill;
     };
 
@@ -788,20 +788,8 @@ var ui = (function () {
 
         // Get the WebVR display
         return new Promise (function (resolve, reject) {
-            
-            if (navigator.getVRDevices) {
-                navigator.getVRDevices().then(function(devices) {
-                    ////console.log('>>>>>>>>>>>>>>>>>VR DEVICES')
-                    if (devices.length > 0) {
-                        if(devices[0] instanceof HMDVRDevice) {
-                            resolve({display:devices[0], msg:'Your browser supports WebVR, but not the latest version. See <a href="http://webvr.info">webvr.info</a> for more.'});
-                        }
-                    } else {
-                        reject(Error('Legacy WebVR supported, but no VR devices found.'));
-                    }
-                });
-            }
-            else if (navigator.getVRDisplays) { // 1.0 API
+
+            if (navigator.getVRDisplays) { // 1.0 API
                 ////console.log('>>>>>>>>>>>>>>>>>>VR DISPLAYS!!!!!!!!!!!!!!!!!!!!')
                 navigator.getVRDisplays().then(function(displays) {
                     if (displays.length > 0) {
@@ -812,9 +800,21 @@ var ui = (function () {
                         reject(Error('WebVR Supported, but no VR displays found.'));
                     }
                 });
+            } else if (navigator.getVRDevices) {
+                navigator.getVRDevices().then(function(devices) {
+                    ////console.log('>>>>>>>>>>>>>>>>>VR DEVICES')
+                    if (devices.length > 0) {
+                        if(devices[0] instanceof HMDVRDevice) {
+                            resolve({display:devices[0], msg:'Your browser supports WebVR, but not the latest version. See <a href="http://webvr.info">webvr.info</a> for more.'});
+                        }
+                    } else {
+                        reject(Error('Legacy WebVR supported, but no VR devices found.'));
+                    }
+                });
             } else {
                 reject(Error('WebVR is not supported on your system.'));
             }
+
         }).then (function (result) { // Resolved
 
             vrDisplay = result.display;
@@ -860,7 +860,7 @@ var ui = (function () {
         restoreCSSStyle: restoreCSSStyle,
         hasWebVR: hasWebVR,
         hasVRDisplay: hasVRDisplay,
-        isWebVRPolyfill: isWebVRPolyfill,
+        isPolyfill: isPolyfill,
         useOrientationMode: useOrientationMode,
         isVRMode: isVRMode,
         setVRMode: setVRMode,
