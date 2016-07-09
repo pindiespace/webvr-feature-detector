@@ -49,7 +49,6 @@ Document.write() is used here for extreme back-compatibility.
 
 </head>
     <body>
-  <main class="page-wrap">
   <header>
     <h1>WebVRFeatureDetector - Example</h1>
     <nav>
@@ -81,9 +80,7 @@ Document.write() is used here for extreme back-compatibility.
     <p class="details">Works on Safari/iOS9 and newer versions of Chrome, Opera, and Edge. Firefox support awaits changing the beta WebVR API to the 1.0 version.</p>
   </section>
   <hr>
-  </main>
-  <!--use main to create sticky footer-->
-  <footer class="page-footer">
+  <footer>
   <p>&copy; <script>document.write(new Date().getFullYear());</script> Pete Markiewicz.</p>
   </footer>
 
@@ -1072,23 +1069,34 @@ Document.write() is used here for extreme back-compatibility.
         ui.saveCSSStyle(renderer.domElement);
         ui.enterFullscreen(renderer.domElement);
       });
+
+
       ui.createButton('ENTER VR', function () {
-        console.log('button, clicked goto VR button')
-        if (ui.useOrientationMode() && window.orientation == 0) {
+        if (!ui.hasWebVR()) {
+          showPopup('WebVR is not supported on your system');
+        } else if (ui.useOrientationMode() && window.orientation == 0) {
           ui.flipToLandscapeMessage(); // TODO: FIX
         } else {
-          console.log('button, on desktop')
-          console.log(">>>>>>>>>>>>button, SETTING VR MODE")
-          ui.setVRMode(true);
-          ui.setGoingToFullscreen(true);
-          ui.saveCSSStyle(renderer.domElement);
-          ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
+          if (ui.hasVRDisplay()) {
+            console.log('button, on desktop')
+            console.log(">>>>>>>>>>>>button, SETTING VR MODE")
+            ui.setVRMode(true);
+            ui.setGoingToFullscreen(true);
+            ui.saveCSSStyle(renderer.domElement);
+            ui.getVRDisplay().requestPresent([{source: renderer.domElement}]);
+          } else {
+            ui.showPopup('You need to attach a VR Display to your device for VR');
+          }
         }
-
       });
       ui.createButton('RESET', function () {
-        console.log("button, clicked reset button"); 
+        if (!ui.hasWebVR()) {
+          showPopup('WebVR is not supported on your system');
+        } else if (ui.hasVRDisplay()) {
           ui.getVRDisplay().resetPose();
+        } else {
+          ui.showPopup('You need to attach a VR Display to your device for VR');
+        }
       });
     }
 

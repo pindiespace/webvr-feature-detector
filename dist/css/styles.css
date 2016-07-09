@@ -19,27 +19,8 @@
 body {
     margin:0;
     padding:0;
-    width:100%;
-    height: 100%;
     overflow: hidden;
     font-family: "Open Sans", Aria, sans-serif;
-}
-
-/* <main> used to create sticky footer */
-.page-wrap {
- min-height: 100%;
-  /* equal to footer height */
-  margin-bottom: -1em; 
-}
-
-.page-wrap:after {
-  content: "";
-  display: block;
-}
-
-/* footer height */
-.page-footer, .page-wrap:after {
-  height: 4em; 
 }
 
 header, footer {
@@ -49,7 +30,7 @@ header, footer {
 }
 
 header {
-    margin:0 0 2em 0;
+    margin:0 0 1em 0;
 }
 
 header h1 {
@@ -67,7 +48,7 @@ header a {
 }
 
 section p, footer p {
-    margin: 0.5em;
+    margin: 20px 20px;
 }
 
 figure {
@@ -77,10 +58,6 @@ figure {
 figcaption {
     background-color: #eee;
     border-radius: 0 0 6px 6px;
-}
-
-footer p {
-    padding: 1em 0 0.5em 0;
 }
 
 /* container for canvas, here a figure element */

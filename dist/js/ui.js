@@ -187,7 +187,8 @@ var ui = (function () {
     /** 
      * @method showPopup
      */
-    function showPopup () {
+    function showPopup (msg) {
+        alert(msg);
         if (!popup) {
             console.error('ui.showPopup: popup not created');
         }
@@ -308,8 +309,22 @@ var ui = (function () {
         return (/HTML(?:.*)Element/).test(Object.prototype.toString.call(o).slice(8, -1));
     };
 
+    /** 
+     * @method hasWebVR
+     * @description see if WebVR is supported.
+     */
     function hasWebVR () {
         return !!(navigator.getVRDisplays || navigator.getVRDevices);
+    };
+
+    /** 
+     * @method hasWebVRDisplay
+     * @description if WebVR is supported, see if a display is attached. The WebVRPolyfill 
+     * attaches a generic Cardboard display, while native Chromium does not. Display can be 
+     * emulated using a Chrome Extension
+     */
+    function hasVRDisplay () {
+        return !!vrDisplay;
     };
 
     /**
@@ -820,9 +835,10 @@ var ui = (function () {
             // Set up the DOM for a swap
             setupDOMForSwap(canvas);
 
-      })/*.catch (function (err) { // Rejected, doesn't work for IE8 Promise polyfill
-          //console.error('ERROR in WebVRUi.init');
-      });*/
+      }).catch (function (err) { // Rejected doesn't work for IE8 Promise polyfill
+          setMessage(err);
+          showMessage();
+      });
 
     };
 
@@ -831,6 +847,9 @@ var ui = (function () {
         showMessage: showMessage,
         hideMessage: hideMessage,
         setMessage: setMessage,
+        createPopup: createPopup,
+        showPopup: showPopup,
+        hidePopup: hidePopup,
         createButton: createButton, // Container implicitly created
         showButtons: showButtons,
         hideButtons: hideButtons,
@@ -840,6 +859,7 @@ var ui = (function () {
         saveCSSStyle: saveCSSStyle,
         restoreCSSStyle: restoreCSSStyle,
         hasWebVR: hasWebVR,
+        hasVRDisplay: hasVRDisplay,
         isWebVRPolyfill: isWebVRPolyfill,
         useOrientationMode: useOrientationMode,
         isVRMode: isVRMode,
