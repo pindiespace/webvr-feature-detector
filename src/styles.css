@@ -34,3 +34,14 @@ canvas {
     padding: 1em;
     border-radius: 0.5em;
 }
+
+/* fading classes */
+
+.fade-message {
+opacity:1;
+transition: opacity 1s; 
+}
+
+.fade {
+opacity:0;
+}

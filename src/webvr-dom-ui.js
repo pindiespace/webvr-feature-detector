@@ -641,7 +641,13 @@ var domui = ( function () {
 
         replaceCanvasWithImage: replaceCanvasWithImage,
 
-        browserFail: browserFail
+        browserFail: browserFail,
+
+        createProgress: createProgress,
+
+        updateProgress: updateProgress,
+
+        hideProgress: hideProgress
 
     };
 

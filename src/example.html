@@ -136,7 +136,7 @@ var WebVRConfig = {
 
         //alert( 'Your browser does not support this page (upgrade).' );
 
-    } else if ( WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11 ) {
+0    } else if ( WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11 ) {
 
         domui.browserFail( 'Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
 
@@ -160,11 +160,65 @@ var WebVRConfig = {
 
     /** 
      * ==============================================
-     * Begin loading libraries.
+     * Begin loading libraries using WebVRFeatureDetector 
+     * load() function. Loaded in sequential batches, 
+     * with polyfill yes/no designation also supplied.
      * ==============================================
      */
 
      console.log ('loading world...');
+
+     // start <progress> dialog
+
+    //var prog = document.getElementById('progress-bar');
+    //prog.style.display = 'block';
+
+    // Load all scripts required for the virtual world.
+    WebVRFeatureDetector.load([
+      [
+        {name: 'addEventListener', path: 'js/polyfills/ie8.js', poly: true},
+        {name: 'querySelectorAll', path: 'js/polyfills/dom.js', poly: true}
+      ],
+      [
+        {name: 'defineProperty', path: 'js/polyfills/es5.js', poly: true},
+        {name: 'typedArray', path: 'js/polyfills/typedarray.js', poly: true},
+        {name: 'promise', path: 'js/polyfills/promise.min.js', poly: true}
+      ],
+      [
+        {name: 'WebVRPolyfill', path: 'js/polyfills/webvr-polyfill.js', poly: true}
+      ],
+      [
+        {name: 'CustomEvent', path: 'js/polyfills/custom-event-polyfill.js', poly: true},
+        {name: 'three', path: 'js/three/three.min.js', poly: false}
+      ],
+      [
+        {name: 'projector', path: 'js/three/Projector.js', poly: false},
+        {name: 'canvasRenderer', path: 'js/three/CanvasRenderer.js', poly: false},
+        {name: 'OrbitControls', path: 'js/three/OrbitControls.js', poly: false},
+        {name: 'VREffect', path: 'js/three/VREffect.js', poly: false},
+        {name: 'VRControls', path: 'js/three/VRControls.js', poly: false}
+      ],
+      [
+        {name: 'fetch', path: 'js/polyfills/fetch.js', poly: true},
+        {name: 'ui', path: 'js/plutonian.js', poly: false}
+      ]
+    ], function() { // Main callback function
+
+        // begin building the world
+
+
+    }, function( percent, msg ) { // WebVRFeatureDetector Progress Bar callback.
+
+        // this updates and completes BEFORE texture loading.
+        console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
+        //////domui.updateProgress(percent, msg);
+
+    }, function( msg, batch, script, s ) { // WebVRFeatureDetector Error callback.
+
+        console.error( msg  + ' batch#' + batch + ', script#' + script + ', value:' + s );
+
+    } );
+
 
     } // end of valid browser test
 
