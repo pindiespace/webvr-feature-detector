@@ -129,7 +129,8 @@ var WebVRConfig = {
 
     var failClass = 'fail-message';
 
-    if ( typeof WebVRFeatureDetector === undefined || ! WebVRFeatureDetector.canvas ) {
+    if ( typeof WebVRFeatureDetector === undefined || ! WebVRFeatureDetector.canvas || 
+        ! WebVRFeatureDetector.addEventListener ) {
 
         domui.browserFail( 'Your browser is too old to support 3d or VR (upgrade).', failImg, failClass, document.body );
 

@@ -8,6 +8,12 @@ var domui = ( function () {
 
     buttonStr = '-button',
 
+    fadeInInc = 10, // milliseconds between fadeIn increment
+
+    fadeOutInc = 50, // milliseconds between fadeOut increment
+
+    fadeDelay = 5000, // number of seconds until fading alerts begin fading
+
     counter = 0;
 
     /* 
@@ -145,6 +151,85 @@ var domui = ( function () {
         }
 
     };
+
+    /** 
+     * Fade in an element
+     * @param {DOMElement} elem the DOM element to fade
+     * @param {Number} inc the fading increment
+     * @param {Function} callback function to execute after fade complete
+     */
+    function fadeIn ( elem, inc, callback ) {
+
+        var op = 0.1;  // initial opacity
+
+        elem.style.display = 'block';
+
+        var t = setInterval( function () {
+
+            if ( op >= 1 ) {
+
+                clearInterval( t );
+
+            }
+
+            elem.style.opacity = op;
+
+            elem.style.filter = 'alpha(opacity=' + op * 100 + ")";
+
+            op += op * inc;
+
+        }, fadeInInc );
+
+    };
+
+    /** 
+     * Fade out an element.
+     * @param {DOMElement} elem the DOM element to fade
+     * @param {Number} inc the fading increment
+     * @param {Function} callback function to execute after fade complete
+     */
+    function fadeOut ( elem, inc, callback ) {
+
+        var op = 1;  // initial opacity
+
+        var t = setInterval( function () {
+
+            if ( op <= 0.1 ) {
+
+                clearInterval( t );
+
+                // elem is now invisible
+
+                elem.style.display = 'none';
+
+            }
+
+            elem.style.opacity = op;
+
+            // support old IE
+
+            elem.style.filter = 'alpha(opacity=' + op * 100 + ")";
+
+            op -= op * inc;
+
+        }, fadeOutInc );
+
+    };
+
+    /** 
+     * Wrapper for setInterval, call function after time delay
+     * @param {Number} del time delay, in milliseconds
+     * @param {Function} callback the callback function
+     */
+    function delay ( del, callback ) {
+
+        var t = setInterval( function () {
+
+            callback();
+
+        }, del );
+
+    }
 
     /** 
      * Create an alert-style dialog in the DOM.
@@ -327,9 +412,15 @@ var domui = ( function () {
     };
 
     /** 
-     * Hide the alret-style dialog with its message.
+     * Hide the alert-style dialog with its message.
+     * @param {DOMElement} elem the DOM element to hide
+     * @param {Function} callback function to execute after fade complete
+     * @param {Boolean} fadeFlag if true, fade out slowly
+     * @param {Number} inc a number beween 0 and 1 describing fade intervals
      */
-    function hideMessage ( elem ) {
+    function hideMessage ( elem, callback, fadeFlag, inc ) {
+
+        elem = getElement( elem);
 
         if ( ! elem ) {
 
@@ -340,7 +431,34 @@ var domui = ( function () {
 
         if ( elem ) {
 
-            elem.style.display = 'none';
+            if ( fadeFlag ) {
+
+                if ( inc ) {
+
+                    if (inc > 0.99 ) {
+
+                        console.error( 'domui.hideMessage(): invalid fade increment:' + inc );
+
+                        return;
+
+                    }
+
+                    fadeOut( elem, inc );
+
+                } else {
+
+                    fadeOut( elem, 0.1 );
+
+                }
+
+
+            } else {
+
+                // no fade
+
+                elem.style.display = 'none';
+
+            }
 
             return true;
 
@@ -399,6 +517,13 @@ var domui = ( function () {
      * @param {DOMElement|String} a DOM <progress> element, or its Id value,
      */
     function createProgress ( elem ) {
+
+        elem = getElement( elem );
+
+        if ( ! elem ) {
+
+            elem = document.createElement( 'progress' );
+        }
 
         return elem;
 
@@ -499,6 +624,16 @@ var domui = ( function () {
         var elem = setMessage( msg, true, true, className );
 
         showMessage( elem );
+
+        // show message for value shown in the delay
+
+        delay( 2000, function () {
+
+            // hide the message with fading, remove when invisible
+
+            hideMessage( elem, removeMessage, true, 0.1 );
+
+        });
 
     };
 

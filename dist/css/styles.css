@@ -2,6 +2,8 @@
  * Styles.css
  */
 
+/* basic styles needed for pseudo-fullscreen */
+
 html, body {
     width: 100%;
     height: 100%;
@@ -10,6 +12,7 @@ html, body {
     overflow: hidden;
 }
 
+/* needed for canvas as fullscreen element */
 canvas {
     position: absolute;
     top: 0;
@@ -22,10 +25,12 @@ canvas {
 
 }
 
+/* message when the browser can't run the virtual world */
+
 .fail-message {
     position: absolute;
     background-color: #ddd;
     margin: 0 auto;
-    padding: 6px;
-    border-radius: 6px;
+    padding: 1em;
+    border-radius: 0.5em;
 }
