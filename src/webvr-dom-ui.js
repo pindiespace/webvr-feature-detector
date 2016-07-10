@@ -2,9 +2,37 @@ var domui = ( function () {
 
     var messages = [], 
 
-    name = 'webvr-dom-ui-',
+    name = 'dom-ui-',
+
+    messageStr = '-message',
+
+    buttonStr = '-button',
 
     counter = 0;
+
+    /* 
+     * Set ids used for elements to a custom value.
+     * @param {String} id the base Id value (incremented with counter)
+     * @param {String} msgId added to text messages in dialogs
+     * @param {String} buttonId added to buttons in dialogs
+     */
+    function setIds ( id, msgId, buttonId ) {
+        if ( id ) {
+
+            name = id;
+
+        }
+
+        if ( msgId ) {
+
+            messageStr = msgId;
+        }
+
+        if ( buttonId ) {
+
+            buttonStr = buttonId;
+        }
+    }
 
     /** 
      * Get the element, either directly (just pass through) or by its id
@@ -36,21 +64,73 @@ var domui = ( function () {
 
     };
 
-    /**
-     * Replace <canvas> tags with images in
-     * browsers that can't support THREE or other libraries
-     * with a 3d canvas context.
-     * @param {String} imgPath the path to the replacement image.
+    /** 
+     * get the width of the window
      */
-    function replaceCanvasWithImage ( imgPath ) {
+    function getScreenWidth () {
+        return window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    };
+
+    /** 
+     * get the height of the window
+     */
+    function getScreenHeight () {
+        return window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+    };
+
+    /**
+     * Replace <canvas> tags with warning images in
+     * browsers that can't support THREE or other libraries
+     * with a 3d canvas context. If the <canvas> tag hasn't 
+     * been created yet, optionally attach a warning image to 
+     * a supplied parent DOMElement.
+     * @param {String} imgPath the path to the replacement image.
+     * @param {DOMElement} container if no <canvas> optionally supply a container to 
+     * attach the image to.
+     */
+    function replaceCanvasWithImage ( imgPath, container ) {
+
+        var img;
 
         var c = document.getElementsByTagName( 'canvas' );
+
+        // if no <canvas> exist, optionally append to supplied container element
+
+        if ( ! c[0] ) {
+
+            console.warn( 'dom-ui.replaceCanvasWithImage() warning: no <canvas> found.' );
+
+            if ( ! container ) {
+
+                console.warn( 'dom-ui.replaceCanvasWithImage() warning: no container, use document.body');
+
+                container = document.body;
+
+            }
+
+            img = document.createElement( 'img' );
+
+            img.src = imgPath;
+
+            img.style.display = 'block';
+
+            img.style.margin = 'auto';
+
+            // set container to relative positioning so centering works
+
+            container.style.position = 'relative';
+
+            container.appendChild( img );
+
+            return;
+
+        }
 
         // Replace each canvas with a default image
 
         for( var i = 0; i < c.length; i++ ) {
 
-            var img = document.createElement( 'img' );
+            img = document.createElement( 'img' );
 
             img.src = imgPath;
 
@@ -73,11 +153,19 @@ var domui = ( function () {
      */
     function createMessage ( className, useButton ) {
 
+        var padding = '';
+
         counter++;
+
+        if ( counter < 10 ) {
+
+            padding = '0';
+
+        }
 
         var elem = document.createElement( 'div' );
 
-        elem.id = name + counter;
+        elem.id = name + padding + counter;
 
         elem.className = className;
 
@@ -87,19 +175,25 @@ var domui = ( function () {
 
         var container = document.createElement( 'div' );
 
+        container.id = elem.id + messageStr;
+
         // make the message element
 
         var message = document.createElement( 'span' );
 
-        message.id = elem.id + '-message';
+        message.id = elem.id + messageStr;
 
         container.appendChild( message );
+
+        // optionally add close button
 
         if ( useButton ) {
 
             var button = document.createElement( 'button' );
 
-            button.id = elem.id + '-button';
+            button.id = elem.id + buttonStr;
+
+            button.innerHTML = 'close';
 
             button.onclick = function () {
 
@@ -107,11 +201,19 @@ var domui = ( function () {
 
                 }
 
+            container.appendChild( button );
+
         }
 
-        container.appendChild(button);
+        // add to alert
 
-        elem.appendChild(container);
+        elem.appendChild( container );
+
+        // invisible by default
+
+        elem.style.display = 'none';
+
+        // save a reference, and return
 
         messages.push( elem );
 
@@ -141,25 +243,24 @@ var domui = ( function () {
         if ( ! elem ) {
 
             elem = createMessage( className, useButton );
+
         }
 
         // find the element in our list
 
         for ( var i = 0, len = messages.length; i < len; i++ ) {
 
-            var m = messages[i];
-
             // change the element's text
 
-            if ( elem === m ) {
+            window.elem = elem;
 
-                //TODO: CHECK WHY NOT CREATED
+            if ( elem === messages[i] ) {
 
-                document.getElementById( elem.id + '-message' ).innerHTML = msg;
+                elem.childNodes[0].childNodes[0].innerHTML = msg;
 
                 if ( showFlag ) {
 
-                    showMessage( elem  );
+                    showMessage( elem );
 
                 }
 
@@ -178,19 +279,42 @@ var domui = ( function () {
     /** 
      * Show the alert-style dialog with its message.
      * @param {DOMElement|String} elem DOM element we want to get
+     * @param {DOMElement|String} overElem the element to position the alert over
      */
     function showMessage ( elem ) {
 
         if ( ! elem ) {
 
-            console.error( 'domui.showMessage(): failed to specify DOM element')
+            console.error( 'domui.showMessage(): failed to specify DOM element');
         }
+
+        // use document.body for centering
 
         elem = getElement( elem );
 
         if ( elem ) {
 
+            elem.style.position = 'absolute';
+
             elem.style.display = 'block';
+
+            var w = 0.8 * getScreenWidth();
+
+            if ( w > 460 ) {
+
+                w = 460;
+
+            }
+
+            elem.style.width = w + 'px';
+
+            // center horizontally and vertically
+
+            elem.style.left = ( ( getScreenWidth() / 2 ) - ( w / 2 ) ) + 'px';
+
+            elem.style.top = getScreenHeight() * 0.2 + 'px';
+
+            document.body.appendChild( elem );
 
             return true;
 
@@ -349,9 +473,10 @@ var domui = ( function () {
             prog.parentNode.removeChild( prog );
 
             prog = null;
+
         } else {
 
-            console.warn( 'domui.hideProgress(): tried to hid non-existent progress window.');
+            console.warn( 'domui.hideProgress() warning: tried to hide non-existent progress window.' );
         }
 
     };
@@ -361,16 +486,19 @@ var domui = ( function () {
      * 3d libraries, or WebVR.
      * @param {String} msg the message to show on failure.
      * @param {String} imgPath path to the replacement image
+     * @param {String} className apply CSS styles to alert
+     * @param {DOMElement} container if the <canvas> is created dynamically, supply 
+     * another DOMElement to append the "fail image" to.
      */
-    function browserFail ( msg, imgPath ) {
+    function browserFail ( msg, imgPath, className , container ) {
 
-        replaceCanvasWithImage( imgPath );
+        replaceCanvasWithImage( imgPath, container );
 
         hideProgress();
 
-        setMessage( msg, true, true );
+        var elem = setMessage( msg, true, true, className );
 
-        showMessage();
+        showMessage( elem );
 
     };
 

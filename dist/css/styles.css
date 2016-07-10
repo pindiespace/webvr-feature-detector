@@ -14,3 +14,18 @@ canvas {
     position: absolute;
     top: 0;
 }
+
+
+/* DOM alert and status windows */
+
+.dom-ui-message {
+
+}
+
+.fail-message {
+    position: absolute;
+    background-color: #ddd;
+    margin: 0 auto;
+    padding: 6px;
+    border-radius: 6px;
+}

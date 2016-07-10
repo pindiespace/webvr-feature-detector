@@ -52,7 +52,7 @@
 
     </script>
 
-    <!--load ui methods-->
+    <!--load ui methods directly-->
 
     <script src='js/webvr-dom-ui.js'></script>
 
@@ -60,9 +60,8 @@
 
 <body>
 
-    <!--canvas is added, rather than dynamically created so that 
-    we can replace it with an error image if loading fails-->
-    <canvas></canvas>
+    <!--canvas is dynamically created-->
+
 
 </body>
 
@@ -115,31 +114,38 @@ var WebVRConfig = {
  * 2. Flag browsers that pass the tests, 
  * but crash on this world (e.g. Google Chrome 9, which 
  * freezes when you try to get a WebGL context).
+ * 
+ * If the <canvas> already exists, .browserFail() will replace 
+ * it with a supplied warning image.
+ * 
+ * If there is no <canvas> yet, supply .browserFail() with a parent 
+ * DOM element where the warning image may be attached.
  * ==============================================
  */
 
     // the image to display when we can't load HTML5 <canvas>
 
     var failImg = 'img/icons/no-vr.gif';
+
     var failClass = 'fail-message';
 
     if ( typeof WebVRFeatureDetector === undefined || ! WebVRFeatureDetector.canvas ) {
 
-        domui.browserFail( 'Your browser is too old to support 3d or VR (upgrade).', failImg, failClass );
+        domui.browserFail( 'Your browser is too old to support 3d or VR (upgrade).', failImg, failClass, document.body );
 
         //alert( 'Your browser does not support this page (upgrade).' );
 
     } else if ( WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11 ) {
 
-        domui.browserFail( 'Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', failImg, failClass );
+        domui.browserFail( 'Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
 
     } else if (WebVRFeatureDetector.browser.firefox && WebVRFeatureDetector.browser.firefox < 15) {
 
-        domui.browserFail( 'Old versions of Firefox do not support THREE.js, WebVR cannot run.', failImg, failClass );
+        domui.browserFail( 'Old versions of Firefox do not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
 
     } else if (WebVRFeatureDetector.browser.chrome && WebVRFeatureDetector.browser.chrome == 9) {
 
-        domui.browserFail('This version of Chrome does not support THREE.js, WebVR cannot run.', failImg, failClass );
+        domui.browserFail('This version of Chrome does not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
 
     } else {
 
