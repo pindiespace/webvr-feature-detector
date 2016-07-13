@@ -1,12 +1,16 @@
 var domui = ( function () {
 
-    var messages = [], 
+    var messages = [],
 
     name = 'dom-ui-',
 
     messageStr = '-message',
 
     buttonStr = '-button',
+
+    progressStr = '-progress',
+
+    containerStr = '-container',
 
     fadeInInc = 10, // milliseconds between fadeIn increment
 
@@ -100,7 +104,7 @@ var domui = ( function () {
 
         var c = document.getElementsByTagName( 'canvas' );
 
-        // if no <canvas> exist, optionally append to supplied container element
+        // if no <canvas> exists, optionally append to supplied container element
 
         if ( ! c[0] ) {
 
@@ -252,7 +256,7 @@ var domui = ( function () {
 
         elem.id = name + padding + counter;
 
-        elem.className = className;
+        elem.className = className || '';
 
         hideMessage( elem );
 
@@ -329,6 +333,12 @@ var domui = ( function () {
 
             elem = createMessage( className, useButton );
 
+            if ( ! elem ) {
+
+                return;
+
+            }
+
         }
 
         // find the element in our list
@@ -336,8 +346,6 @@ var domui = ( function () {
         for ( var i = 0, len = messages.length; i < len; i++ ) {
 
             // change the element's text
-
-            window.elem = elem;
 
             if ( elem === messages[i] ) {
 
@@ -393,7 +401,7 @@ var domui = ( function () {
 
             elem.style.width = w + 'px';
 
-            // center horizontally and vertically
+            // center horizontally and down a bit vertically
 
             elem.style.left = ( ( getScreenWidth() / 2 ) - ( w / 2 ) ) + 'px';
 
@@ -472,6 +480,7 @@ var domui = ( function () {
 
     /** 
      * delete a message entirely
+     * @param {DOMElement} elem the message element
      */
     function removeMessage ( elem ) {
 
@@ -502,107 +511,132 @@ var domui = ( function () {
 
             }
 
-            return true;
-
         }
 
         console.error ( 'domui.removeMessage(): could not find message DOM element');
-
-        return false;
 
     }
 
     /** 
      * Create a Progress dialog, with fallback to text-style presentation.
-     * @param {DOMElement|String} a DOM <progress> element, or its Id value,
+     * @param {String} className the className CSS class to apply to the element
+     * @param {String} containerClassName the className for the container element
+     * @param {Number} value the current value of the <progress>
+     * @param {Number} max the max value of the <progress>
+     * @param {DOMElement} parent optional specified for <progress> parent
      */
-    function createProgress ( elem ) {
+    function createProgress ( containerClassName, className, value, max, parent ) {
 
-        elem = getElement( elem );
+        // Create unique ID
 
-        if ( ! elem ) {
+        var padding = '';
 
-            elem = document.createElement( 'progress' );
+        counter++;
+
+        if ( counter < 10 ) {
+
+            padding = '0';
+
         }
 
-        return elem;
+        // Create a container
+
+        var container = document.createElement( 'div' );
+
+        container.id = name + counter + progressStr + containerStr;
+
+        container.className = containerClassName || '';
+
+        // Create <progress>
+
+        var progElem = document.createElement( 'progress' );
+
+        progElem.id = name + counter + progressStr;
+
+        progElem.className = className || '';
+
+        progElem.value = value || 0;
+
+        progElem.max = max || 100;
+
+        progElem.innerHTML = '<span>0</span>%';
+
+        container.appendChild( progElem );
+
+        parent = parent || document.body;
+
+        parent.appendChild( container );
+
+        return progElem;
 
     };
 
     /** 
-     * Update the progress dialog.
-     * @param {DOMElement|String} a DOM <progress> element, or its Id value,
-     * falls back to inserting equivalent text.
+     * Update the progress dialog, using local scope 'that', since 
+     * we are likely to be in a callback.
+     * @param {DOMElement} prog the <progress> element
      * @param {Number} percent (value between 0-100)
      * @param {String} msg additional message
      */
-    function updateProgress ( elem, percent, msg ) {
-
-        var prog;
+    function updateProgress ( progElem, percent, msg ) {
 
         console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
 
-        // convert an id string to the equivalent element in DOM
+        if ( ! progElem ) {
 
-        if ( typeof elem === 'string' ) {
+            console.error( 'domui.updateProgress() error: <progress> element not provided' );
 
-            prog = document.getElementById( elem );
-
-        } else {
-
-            prog = elem;
+            return;
 
         }
 
-        if( prog ) {
+        // Handle non-<progress> tags
 
-            if ( elem.tagName === 'PROGRESS' ) {
+        if ( progElem.tagName.toUpperCase() === 'PROGRESS' ) {
 
-                elem.value = percent;
+            progElem.value = percent;
 
-            } else {
+        } else { // text fallback
 
-                elem.getElementsByTagName( 'span' )[0].innerHTML = percent;
-
-            }
-
-        } else {
-
-            console.error( 'domui.updateProgress: progress element not found on page');
+            progElem.getElementsByTagName( 'span' )[0].innerHTML = percent;
 
         }
 
     };
 
     /** 
-     * Hide the progress dialog.
+     * Hide and remove the progress dialog, using local scope 'that', since 
+     * we are likely to be in a callback.
      * @param {DOMElement|String} a DOM <progress> element, or its Id value,
      * falls back to inserting equivalent text.
      */
-    function hideProgress ( elem ) {
+    function hideProgress ( progElem ) {
 
-       var prog = getElement( elem );
+        if ( ! progElem ) {
 
-          // set to final value for consistency
+            console.error( 'domui.hideProgress() error: <progress> element not provided' );
 
-        if ( prog ) {
+            return;
 
-            prog.value = 100;
-
-            prog.getElementsByTagName('span')[0].innerHTML = '100%';
-
-            // remove it
-
-            prog.style.display = 'none';
-
-            prog.parentNode.removeChild( prog );
-
-            prog = null;
-
-        } else {
-
-            console.warn( 'domui.hideProgress() warning: tried to hide non-existent progress window.' );
         }
+
+        var container = progElem.parentNode;
+
+        // set to final value for consistency
+
+        progElem.value = 100;
+
+        progElem.getElementsByTagName('span')[0].innerHTML = '100%';
+
+        // remove it via removing its parent
+
+        progElem.style.display = 'none';
+
+        container.parentNode.removeChild( progElem );
+
+        container.parentNode.removeChild( container );
+
+        progElem = container = null;
 
     };
 
@@ -619,7 +653,9 @@ var domui = ( function () {
 
         replaceCanvasWithImage( imgPath, container );
 
-        hideProgress();
+        // Hide any active <progress>
+
+        hideProgress( progress );
 
         var elem = setMessage( msg, true, true, className );
 

@@ -62,9 +62,6 @@
 
     <!--canvas is dynamically created-->
 
-
-</body>
-
 <script>
 
 // webvr-polyfill configuration, only used if native API not available
@@ -170,8 +167,7 @@ var WebVRConfig = {
 
      // start <progress> dialog
 
-    //var prog = document.getElementById('progress-bar');
-    //prog.style.display = 'block';
+     var progress = domui.createProgress( 'domui-progress-container', 'domui-progress', 0, 100 );
 
     // Load all scripts required for the virtual world.
     WebVRFeatureDetector.load([
@@ -210,12 +206,14 @@ var WebVRConfig = {
     }, function( percent, msg ) { // WebVRFeatureDetector Progress Bar callback.
 
         // this updates and completes BEFORE texture loading.
-        console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
-        //////domui.updateProgress(percent, msg);
+        //console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
+        domui.updateProgress( progress, percent, msg );
 
     }, function( msg, batch, script, s ) { // WebVRFeatureDetector Error callback.
 
         console.error( msg  + ' batch#' + batch + ', script#' + script + ', value:' + s );
+
+        domui.hideProgress( progress );
 
     } );
 
