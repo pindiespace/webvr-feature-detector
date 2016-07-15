@@ -580,6 +580,8 @@ var domui = ( function () {
      */
     function updateProgress ( progElem, percent, msg ) {
 
+        progElem = getElement( progElem );
+
         console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
 
         if ( ! progElem ) {
@@ -605,16 +607,18 @@ var domui = ( function () {
     };
 
     /** 
-     * Hide and remove the progress dialog, using local scope 'that', since 
-     * we are likely to be in a callback.
+     * Hide and remove the progress dialog, using a supplied DOM element 
+     * containing the <progress> bar. 
      * @param {DOMElement|String} a DOM <progress> element, or its Id value,
      * falls back to inserting equivalent text.
      */
     function hideProgress ( progElem ) {
 
+        progElem = getElement( progElem );
+
         if ( ! progElem ) {
 
-            console.error( 'domui.hideProgress() error: <progress> element not provided' );
+            console.warn( 'domui.hideProgress() error: <progress> element not provided' );
 
             return;
 
@@ -655,7 +659,7 @@ var domui = ( function () {
 
         // Hide any active <progress>
 
-        hideProgress( progress );
+        hideProgress();
 
         var elem = setMessage( msg, true, true, className );
 

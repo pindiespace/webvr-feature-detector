@@ -133,7 +133,7 @@ var WebVRConfig = {
 
         //alert( 'Your browser does not support this page (upgrade).' );
 
-0    } else if ( WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11 ) {
+    } else if ( WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11 ) {
 
         domui.browserFail( 'Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
 
@@ -202,14 +202,190 @@ var WebVRConfig = {
 
         // begin building the world
 
+        if ( ! plutonian ) {
 
-    }, function( percent, msg ) { // WebVRFeatureDetector Progress Bar callback.
+            console.error( 'Main error: plutonian.js is not defined.' );
+
+            return;
+
+        }
+
+        // window width and height
+
+        var w = window.innerWidth;
+
+        var h = window.innerHeight;
+
+        // Use device device pixel ratio
+
+        if ( window.devicePixelRatio !== undefined ) {
+
+            dpr = window.devicePixelRatio;
+
+        } else {
+
+            dpr = 1;
+
+        }
+
+        // Use WebGL, but fall back to <canvas> render for just one static scene if necessary
+
+        if( WebVRFeatureDetector.webGL ) { // 3D scenes ok.
+
+                renderer = new THREE.WebGLRenderer({
+
+                antialias: true, //slow
+
+                //canvas: canvas
+
+            });
+
+        } else { // Can't do 3d, draw the scene once and use as a fallback image.
+
+            console.warn( 'Main warning: no webGL, fallback to still image snapshot' );
+
+                renderer = new THREE.CanvasRenderer({
+
+                antialias: true,
+
+                //canvas: canvas
+
+            });
+
+        }
+
+        // Additional renderer properties
+
+        renderer.setViewport( 0, 0, w, h );
+
+        renderer.setClearColor( 0x101010 );
+
+        renderer.setPixelRatio( dpr );
+
+        renderer.setSize( w, h );
+
+        renderer.sortObjects = false;
+
+        // Create the Scene
+
+        var scene = new THREE.Scene();
+
+        // Create the Camera
+
+        var camera = new THREE.PerspectiveCamera(70, w / h, 0.1, 10000);
+
+        camera.position.z = 0.0001;
+
+        // Create a dolly for moving the VR head-tracking camera
+
+        var dolly = new THREE.PerspectiveCamera();
+
+        dolly.position.x = 0;
+
+        dolly.position.y = 2;
+
+        dolly.position.z = -8;
+
+        dolly.add( camera );
+
+        //dolly.rotation.x = Math.PI / 2;
+        //dolly.rotation.y = Math.PI / 2.3; //firefox native webvr
+        //dolly.rotation.z = Math.PI / 2;
+
+        // Non-VR controls
+
+        var controls = new THREE.OrbitControls( dolly, renderer.domElement ); // WORKS
+
+        // Set up VR camera controls for head and position tracking.
+
+        var vrControls = new THREE.VRControls( camera, function( err ) {
+
+            if (err) {
+
+                console.log("Main error: failed to create VRControls: ", err);
+
+            }
+
+        });
+
+        // Apply VR stereo rendering vrEffect to renderer
+
+        var vrEffect = new THREE.VREffect( renderer, function( err ) {
+
+            if ( err ) {
+
+                console.log("Main error: failed to create VREffect: ", err);
+
+            }
+
+        });
+
+        // Create the virtal world scene, using the renderer
+
+        plutonian.init( scene, camera, renderer, dolly );
+
+        // TODO: Need polling here for Texture, Model, WebVR PolyfilL DPI files.
+
+        // Build the Ui
+
+        // Event listeners
+
+        function addListeners () {
+
+        };
+
+        // Rendering loop
+
+        function animate () {
+
+            requestAnimationFrame( animate );
+
+            render();
+
+        };
+
+        function render () {
+
+            var delta = clock.getDelta(); // needed for composer (postprocessing image)
+
+            plutonian.update();
+
+        };
+
+        // Starting time
+
+        var clock = new THREE.Clock();
+
+        // Enter the rendering loop
+
+        if ( WebVRFeatureDetector.canvas ) {
+            if ( WebVRFeatureDetector.webGL ) {
+
+                addListeners();
+
+                animate();
+
+            } else {
+
+            // WebGL not supported, so just draw one frame and end
+
+            WebVRUi.setMessage('WebVR cannnot run (No 3D support, static frame shown)', false);
+
+            render();
+
+            }
+
+        }
+
+        // End of load and render VR world
+
+    }, function( percent, msg ) { // Callback - Progress Bar values from WebVRFeatureDetector
 
         // this updates and completes BEFORE texture loading.
         //console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
         domui.updateProgress( progress, percent, msg );
 
-    }, function( msg, batch, script, s ) { // WebVRFeatureDetector Error callback.
+    }, function( msg, batch, script, s ) { // Callback - error in WebVRFeatureDetector
 
         console.error( msg  + ' batch#' + batch + ', script#' + script + ', value:' + s );
 
