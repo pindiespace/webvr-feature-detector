@@ -1,5 +1,7 @@
 var domui = ( function () {
 
+    // Ui elements
+
     var messages = [],
 
     name = 'dom-ui-',
@@ -20,6 +22,12 @@ var domui = ( function () {
 
     counter = 0;
 
+    // In VR, DOM or Fullscreen
+
+    var vrFlag = false,
+
+    fullscreenFlag = false;
+
     /* 
      * Set ids used for elements to a custom value.
      * @param {String} id the base Id value (incremented with counter)
@@ -27,6 +35,7 @@ var domui = ( function () {
      * @param {String} buttonId added to buttons in dialogs
      */
     function setIds ( id, msgId, buttonId ) {
+
         if ( id ) {
 
             name = id;
@@ -547,6 +556,8 @@ var domui = ( function () {
 
         container.className = containerClassName || '';
 
+        container.style.display = 'block';
+
         // Create <progress>
 
         var progElem = document.createElement( 'progress' );
@@ -567,6 +578,8 @@ var domui = ( function () {
 
         parent.appendChild( container );
 
+        container.parentNode = parent;
+
         return progElem;
 
     };
@@ -574,7 +587,7 @@ var domui = ( function () {
     /** 
      * Update the progress dialog, using local scope 'that', since 
      * we are likely to be in a callback.
-     * @param {DOMElement} prog the <progress> element
+     * @param {DOMElement} the DOM <progress> element, or its Id value (not its wrapper)
      * @param {Number} percent (value between 0-100)
      * @param {String} msg additional message
      */
@@ -609,7 +622,7 @@ var domui = ( function () {
     /** 
      * Hide and remove the progress dialog, using a supplied DOM element 
      * containing the <progress> bar. 
-     * @param {DOMElement|String} a DOM <progress> element, or its Id value,
+     * @param {DOMElement|String} the DOM <progress> element, or its Id value (not its wrapper)
      * falls back to inserting equivalent text.
      */
     function hideProgress ( progElem ) {
@@ -634,13 +647,28 @@ var domui = ( function () {
 
         // remove it via removing its parent
 
-        progElem.style.display = 'none';
-
-        container.parentNode.removeChild( progElem );
+        container.style.display = 'none';
 
         container.parentNode.removeChild( container );
 
         progElem = container = null;
+
+    };
+
+    /** 
+     * Set <progress> to complete, fade out
+     */
+    function finishProgress ( progElem ) {
+
+        // show message for value shown in the delay
+
+        delay( 1000, function () {
+
+            // hide the message with fading, remove when invisible
+
+            hideProgress( progElem );
+
+        });
 
     };
 
@@ -677,6 +705,24 @@ var domui = ( function () {
 
     };
 
+    /** 
+     * toggle flag for VR mode selected in Ui
+     */
+    function isVRMode () {
+
+        return false;
+
+    };
+
+    /**
+     * toggle flag for fullscreen mode selected in Ui
+     */
+    function isFullscreenMode () {
+
+        return false;
+
+    };
+
     return {
 
         replaceCanvasWithImage: replaceCanvasWithImage,
@@ -687,7 +733,13 @@ var domui = ( function () {
 
         updateProgress: updateProgress,
 
-        hideProgress: hideProgress
+        finishProgress: finishProgress,
+
+        hideProgress: hideProgress,
+
+        isVRMode: isVRMode,
+
+        isFullscreenMode: isFullscreenMode
 
     };
 

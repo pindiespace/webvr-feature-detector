@@ -167,7 +167,7 @@ var WebVRConfig = {
 
      // start <progress> dialog
 
-     var progress = domui.createProgress( 'domui-progress-container', 'domui-progress', 0, 100 );
+     var progress = domui.createProgress( 'dom-ui-progress-container', 'dom-ui-progress', 0, 100 );
 
     // Load all scripts required for the virtual world.
     WebVRFeatureDetector.load([
@@ -266,6 +266,8 @@ var WebVRConfig = {
 
         renderer.sortObjects = false;
 
+        document.body.appendChild( renderer.domElement );
+
         // Create the Scene
 
         var scene = new THREE.Scene();
@@ -324,31 +326,161 @@ var WebVRConfig = {
 
         plutonian.init( scene, camera, renderer, dolly );
 
+        /* 
+         * World updates and events 
+         */
+
         // TODO: Need polling here for Texture, Model, WebVR PolyfilL DPI files.
 
         // Build the Ui
 
         // Event listeners
 
+        /** 
+         * Listen for mouseDown
+         * @param {Event} e the event
+         */
+        function onMouseDown ( e ) {
+
+        };
+
+        /** 
+         * Listen for mouseUp
+         * @param {Event} e the event
+         */
+        function onMouseUp ( e ) {
+
+        };
+
+        /** 
+         * Listen for keyDown
+         * @param {Event} e the event
+         */
+        function onKeydown ( e ) {
+
+        };
+
+        /** 
+         * Listen for window Resizing
+         * @param {Event} e the event
+         */
+        function onWindowResize ( e ) {
+
+            w = window.innerWidth;
+
+            h = window.innerHeight;
+
+            console.log( 'Main: Resizing to %s x %s.', w, h );
+
+            vrEffect.setSize( w, h );
+
+            camera.aspect = w / h ;
+
+            camera.updateProjectionMatrix();
+
+        };
+
+        /** 
+         * Listen for a fullScreen change
+         * @param {Event} e the event
+         */
+        function onFullscreenChange ( e ) {
+
+        };
+
+        /** 
+         * Listen for an orientation change
+         * @param {Event} e the event
+         */
+        function onOrientationChange ( e ) {
+
+        };
+
+        // VR specific events
+
+        function onVRDisplayPresentChange ( e ) {
+
+        };
+
+        function onVRDisplayDeviceParamsChange ( e ) {
+
+        };
+
+
+        /**
+         * Add event listeners.
+         */
         function addListeners () {
+
+            // Add mouse events
+
+            renderer.domElement.addEventListener( 'mousedown', onMouseDown, false );
+
+            renderer.domElement.addEventListener( 'mouseup', onMouseUp, false );
+
+            renderer.domElement.addEventListener( 'touchstart', onMouseDown, false );
+
+            renderer.domElement.addEventListener( 'touchend', onMouseUp, false );
+
+            // Escape key
+
+            document.addEventListener( 'keydown', onKeydown, false );
+
+            // Add resize events
+
+            window.addEventListener( 'resize', onWindowResize, false );
+
+            // Detect fullscreen API changes
+
+            document.addEventListener( 'webkitfullscreenchange', onFullscreenChange, false );
+
+            document.addEventListener( 'mozfullscreenchange', onFullscreenChange, false );
+
+            document.addEventListener( 'fullscreenchange', onFullscreenChange, false );
+
+            document.addEventListener( 'MSFullscreenChange', onFullscreenChange, false );
+
+            // Listen for orientation changes on mobiles
+
+            window.addEventListener( 'orientationchange', onOrientationChange, false );
+
+            // Bind to VR* specific events
+
+            window.addEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange );
+
+            window.addEventListener( 'vrdisplaydeviceparamschange', onVRDisplayDeviceParamsChange );
 
         };
 
         // Rendering loop
-
-        function animate () {
-
-            requestAnimationFrame( animate );
-
-            render();
-
-        };
 
         function render () {
 
             var delta = clock.getDelta(); // needed for composer (postprocessing image)
 
             plutonian.update();
+
+          if (domui.isVRMode()) {
+
+            vrControls.update();
+
+            vrEffect.render( scene, camera );
+
+          }  else {
+
+            controls.update(delta);
+
+            renderer.render( scene, camera );
+
+          }
+
+        };
+
+        function animate () {
+
+            requestAnimationFrame( animate );
+
+            render();
 
         };
 
@@ -359,6 +491,7 @@ var WebVRConfig = {
         // Enter the rendering loop
 
         if ( WebVRFeatureDetector.canvas ) {
+
             if ( WebVRFeatureDetector.webGL ) {
 
                 addListeners();
@@ -381,9 +514,23 @@ var WebVRConfig = {
 
     }, function( percent, msg ) { // Callback - Progress Bar values from WebVRFeatureDetector
 
-        // this updates and completes BEFORE texture loading.
-        //console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
-        domui.updateProgress( progress, percent, msg );
+        console.log("IN CALLBACK FOR FEATURE DETECTOR")
+
+        if ( percent >= 100 ) {
+
+            console.log(" PROGRESS IS NOW A:" + typeof progress)
+
+            //TODO: progress not reading 100%, mis-calculation
+            //TODO: in WebVRFeatureDetector!
+
+            //domui.finishProgress( progress );
+
+        } else {
+
+            // this updates and completes BEFORE texture loading.
+
+            domui.updateProgress( progress, percent, msg );
+        }
 
     }, function( msg, batch, script, s ) { // Callback - error in WebVRFeatureDetector
 

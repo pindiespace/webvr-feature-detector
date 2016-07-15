@@ -343,7 +343,15 @@ var plutonian = (function () {
      * Load textures and models for the defined planets
      * @param {Function} callback the main program function to call after callback
      */
-    function loadTexturesAndModels ( callback ) {
+    function loadPlanets ( callback ) {
+
+    };
+
+    /** 
+     * Load the stars from a stellar position file, plus any 
+     * background Milky Way texture.
+     */
+    function loadStars ( callback ) {
 
     };
 
@@ -394,13 +402,17 @@ var plutonian = (function () {
             scene.add( planetArray[i].group );
         }
 
+        // Load texture and model data
+
+        loadPlanets();
+
+        loadStars();
+
     };
 
     return {
 
         init: init,
-
-        loadTexturesAndModels: loadTexturesAndModels,
 
         update: update
 
