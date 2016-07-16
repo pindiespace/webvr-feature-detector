@@ -167,7 +167,7 @@ var WebVRConfig = {
 
      // start <progress> dialog
 
-     var progress = domui.createProgress( 'dom-ui-progress-container', 'dom-ui-progress', 0, 100 );
+     var progElem = domui.createProgress( 'dom-ui-progress-container', 'dom-ui-progress', 0, 100 );
 
     // Load all scripts required for the virtual world.
     WebVRFeatureDetector.load([
@@ -265,6 +265,8 @@ var WebVRConfig = {
         renderer.setSize( w, h );
 
         renderer.sortObjects = false;
+
+        // Add the <canvas> to the browser <body> (document.body)
 
         document.body.appendChild( renderer.domElement );
 
@@ -512,31 +514,28 @@ var WebVRConfig = {
 
         // End of load and render VR world
 
-    }, function( percent, msg ) { // Callback - Progress Bar values from WebVRFeatureDetector
+    }, function( percent, msg, part, total ) { // Callback - Progress Bar values from WebVRFeatureDetector
 
-        console.log("IN CALLBACK FOR FEATURE DETECTOR")
+        console.log("PART:" + part + " total:" + total)
 
         if ( percent >= 100 ) {
 
-            console.log(" PROGRESS IS NOW A:" + typeof progress)
+            domui.updateProgress( progElem, percent, msg );
 
-            //TODO: progress not reading 100%, mis-calculation
-            //TODO: in WebVRFeatureDetector!
-
-            //domui.finishProgress( progress );
+            domui.finishProgress( progElem );
 
         } else {
 
             // this updates and completes BEFORE texture loading.
 
-            domui.updateProgress( progress, percent, msg );
+            domui.updateProgress( progElem, percent, msg );
         }
 
     }, function( msg, batch, script, s ) { // Callback - error in WebVRFeatureDetector
 
         console.error( msg  + ' batch#' + batch + ', script#' + script + ', value:' + s );
 
-        domui.hideProgress( progress );
+        domui.hideProgress( progElem );
 
     } );
 

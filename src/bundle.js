@@ -15,49 +15,66 @@
  * limitations under the License.
  */
 (function (win) {
-  var self = this; // Scope.
-  var cs, ctx, glType = '', glVers = '', tests = [], retests = {}; self.results = {};
 
-  var names = ['webgl', 'experimental-webgl', 'moz-webgl', 'experimental-webgl2', '3d'];
+    var self = this; // Scope.
 
-  /*
-   * Patches and fixes.
-   *
-   * This hack lets IE10 render to canvas with newer versions of
-   * of THREE.js (which use overrideMimeType in the Object loader).
-   */
-  if(win.XMLHttpRequest && !XMLHttpRequest.overrideMimeType) {
-    XMLHttpRequest.prototype.overrideMimeType = function (type) {};
-  }
+    var cs, ctx, glType = '', glVers = '', tests = [], retests = {}; self.results = {};
+
+    var names = ['webgl', 'experimental-webgl', 'moz-webgl', 'experimental-webgl2', '3d'];
+
+    /*
+     * Patches and fixes.
+     *
+     * This hack lets IE10 render to canvas with newer versions of
+     * of THREE.js (which use overrideMimeType in the Object loader).
+     */
+    if( win.XMLHttpRequest && !XMLHttpRequest.overrideMimeType ) {
+
+        XMLHttpRequest.prototype.overrideMimeType = function ( type ) {};
+
+    }
 
   /* 
    * Remove errors for console.log or console.error executing on ancient browsers.
    * Add 'alert' if debugging is desired.
    */
-  (function (con) {
-    if (!con.log) con.log = function (val) {}; // debug with alert(val)
-    if (!con.error) con.error = function (val) {}; // debug with alert(val)
-  })(win.console = win.console || {});
+    ( function ( con ) {
+        if (!con.log) con.log = function (val) {}; // debug with alert(val)
+        if (!con.error) con.error = function (val) {}; // debug with alert(val)
+    } )( win.console = win.console || {} );
 
-  /* 
-   * feature detect browsers, modified from: 
-   * @link https://jsfiddle.net/9atsffau/
-   * @link http://www.opentechguides.com/how-to/article/javascript/99/browser-detect.html
-   */
-  var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false, m, verReg = new RegExp('[0-9]+');
+    /* 
+     * feature detect browsers, modified from: 
+     * @link https://jsfiddle.net/9atsffau/
+     * @link http://www.opentechguides.com/how-to/article/javascript/99/browser-detect.html
+     */
+    var ua = navigator.userAgent.toLowerCase(), verOffset = -1, ver = false, m, verReg = new RegExp('[0-9]+');
 
+    /* 
+     * Preliminary feature detect to differentiate common browsers
+     */
   var browser = {
-    opera: (!!win.opr && !!opr.addons) || !!win.opera || ua.indexOf(' opr/') > -1 || ua.indexOf('opios') > -1 || false,
-    // Firefox 1.0+
-    firefox: !!win.netscape || typeof InstallTrigger !== 'undefined' || 'MozAppearance' in document.documentElement.style,
-    // At least Safari 3+: "[object HTMLElementConstructor]"
-    safari: Object.prototype.toString.call(win.HTMLElement).indexOf('Constructor') > 0,
-    // Internet Explorer 6-11
-    ie: /*@cc_on!@*/false || !!document.documentMode
-    // Chrome 1+
+
+        // Opera old and new
+
+        opera: (!!win.opr && !!opr.addons) || !!win.opera || ua.indexOf(' opr/') > -1 || ua.indexOf('opios') > -1 || false,
+
+        // Firefox 1.0+
+
+        firefox: !!win.netscape || typeof InstallTrigger !== 'undefined' || 'MozAppearance' in document.documentElement.style,
+
+        // At least Safari 3+: "[object HTMLElementConstructor]"
+
+        safari: Object.prototype.toString.call(win.HTMLElement).indexOf('Constructor') > 0,
+
+        // Internet Explorer 6-11
+        ie: /*@cc_on!@*/false || !!document.documentMode
+
   };
+
   // Blink engine detection
   //blink: (isChrome || isOpera) && !!win.CSS
+
   browser.chrome = !browser.opera && (!!win.chrome && !win.Geolocation) || !!(win.chrome && win.chrome.webstore) || ua.match('crios') || false;
   browser.edge = !browser.safari && !browser.ie && !!win.Geolocation && !browser.chrome && !browser.firefox && !browser.opera && !!win.styleMedia && !!win.Promise;
   browser.mobileSafari = browser.safari && ua.indexOf('mobile') > -1 || false; //detect later
@@ -928,7 +945,7 @@
 
       if (s) {
         gScriptCount++;
-        progressFn(parseInt(100 * gScriptCount / scriptsToLoad), s.src);
+        progressFn(parseInt(100 * gScriptCount / scriptsToLoad), s.src, gScriptCount, scriptsToLoad);
         
         //try {
         //  head.removeChild(s);

@@ -240,6 +240,8 @@ var domui = ( function () {
 
             callback();
 
+            clearInterval( t );
+
         }, del );
 
     }
@@ -593,17 +595,28 @@ var domui = ( function () {
      */
     function updateProgress ( progElem, percent, msg ) {
 
-        progElem = getElement( progElem );
+        msg = msg || '';
 
-        console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
+        progElem = getElement( progElem );
 
         if ( ! progElem ) {
 
-            console.error( 'domui.updateProgress() error: <progress> element not provided' );
+            console.error( 'domui.updateProgress() error: <progress> element not provided.' );
 
             return;
 
         }
+
+        if ( isNaN( percent ) ) {
+
+            console.error( 'domui.updateProgress() error: supplied % value:' + percent + ' is not a number.');
+
+            return;
+
+        }
+
+        console.log( 'progress function, ' + percent + '%' + ' for:' + msg );
+
 
         // Handle non-<progress> tags
 
@@ -660,15 +673,19 @@ var domui = ( function () {
      */
     function finishProgress ( progElem ) {
 
-        // show message for value shown in the delay
+        // Leave up for a bit, then fade out
 
-        delay( 1000, function () {
+        delay( 500, function () {
 
-            // hide the message with fading, remove when invisible
+            // Hide the message with fading, remove when invisible
 
-            hideProgress( progElem );
+            fadeOut ( progElem.parentNode, 0.1, function () {
 
-        });
+                hideProgress( progElem );
+
+            } );
+
+        } );
 
     };
 
