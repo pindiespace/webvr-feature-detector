@@ -24,9 +24,9 @@ var domui = ( function () {
 
     // In VR, DOM or Fullscreen
 
-    var vrFlag = false,
+    var vrMode = false,
 
-    fullscreenFlag = false;
+    fullscreenMode = false;
 
     /* 
      * Set ids used for elements to a custom value.
@@ -718,7 +718,7 @@ var domui = ( function () {
 
             hideMessage( elem, removeMessage, true, 0.1 );
 
-        });
+        } );
 
     };
 
@@ -727,7 +727,13 @@ var domui = ( function () {
      */
     function isVRMode () {
 
-        return false;
+        return vrMode;
+
+    };
+
+    function setVRMode ( mode ) {
+
+        vrMode = mode;
 
     };
 
@@ -736,7 +742,13 @@ var domui = ( function () {
      */
     function isFullscreenMode () {
 
-        return false;
+        return fsMode;
+
+    };
+
+    function setFullscreenMode ( mode ) {
+
+        return fsMode;
 
     };
 
@@ -756,7 +768,11 @@ var domui = ( function () {
 
         isVRMode: isVRMode,
 
-        isFullscreenMode: isFullscreenMode
+        setVRMode: setVRMode,
+
+        isFullscreenMode: isFullscreenMode,
+
+        setFullscreenMode: setFullscreenMode
 
     };
 

@@ -61,9 +61,11 @@ var plutonian = (function () {
      */
     var baryCenter = 0.885 + 0.5;
 
-    // Ice dwarf and moon features in detail
-
-    planetArray = [
+    /** 
+     * Ice dwarf and moon features in detail
+     * @type {Array<Object>}
+     */
+    plutoArray = [
 
         {
 
@@ -209,7 +211,40 @@ var plutonian = (function () {
 
         }
 
-    ]; // End of planetArray
+    ]; // End of plutoArray
+
+
+    /** 
+     * Other Planets in the solar system
+     * @type {Array<Object>}
+     */
+    var solarSystemArray = [
+
+    ];
+
+    /** 
+     * Array of coordinates for bright stars
+     * @link https://github.com/mrdoob/three.js/issues/263
+     * @link https://gielberkers.com/evenly-distribute-particles-shape-sphere-threejs/
+     * @type {Array<Object>}
+     */
+    var starData = [
+
+    ];
+
+    /** 
+     * Texture for Milky Way Galaxy
+     * @type {Array<Object>}
+     */
+    var galaxyTexture = {
+
+          name: 'milky way',
+
+          path: 'img/milky_way.png',
+
+          material: new THREE.PointsMaterial(),
+
+    };
 
     /*
      * @method doGeometryScale
@@ -339,19 +374,162 @@ var plutonian = (function () {
 
     };
 
-    /** 
-     * Load textures and models for the defined planets
-     * @param {Function} callback the main program function to call after callback
-     */
-    function loadPlanets ( callback ) {
+    function loadPlanet ( planetData, resolve, reject ) {
+
+        texLoader.load( planet.path, function ( texture ) {
+
+                console.log('in texLoader, typeof planet.geometry:' + typeof planet.geometry)
+                    
+                //TODO: update progress indicator here...
+
+                resolve( planetData );
+            },
+
+            function (xhr) { // Report loading progress
+
+                console.log(planet.name + ' ' + parseInt(xhr.loaded / xhr.total * 100) + '% loaded');
+
+            },
+
+            function (xhr) { // Report loading error.
+
+                reject( new Error ('loadPlanet() error:' + xhr + ' An error occurred loading while loading' + planet.path));
+
+            }
+
+        );
 
     };
 
     /** 
-     * Load the stars from a stellar position file, plus any 
-     * background Milky Way texture.
+     * Load all textures and models for the defined planets
+     * @param {Function} callback the main program function to call after callback
+     */
+    function loadPlanets ( callback ) {
+
+        var promiseArray = [];
+
+        plutoArray.forEach( function ( planetData ) {
+
+            console.log('domui.loadPlanets(): loading ' + planetData.name + '.');
+
+            promiseArray.push( new Promise( function ( resolve , reject ) {
+
+                loadPlanet( planetData, resolve, reject );
+
+            } ) ); // nested .push( new Promise() )
+
+        } );
+
+        Promise.all( promiseArray ).then( function ( planets ) {
+
+            console.log('domui.loadPlanets(): successfully loaded all Planets.');
+
+            callback(); // this is start() in example.html
+
+        } ).catch ( function ( planet ) {
+
+            console.log( 'domui.loadPlanets(): error loading a Planet:' + planet );
+
+        } );
+
+    };
+
+    /** 
+     * Load a Milky Way galaxy texture
+     */
+    function loadGalaxy ( callback ) {
+
+        return false;
+
+    };
+
+    /** 
+     * Load the stars from a stellar position file
      */
     function loadStars ( callback ) {
+
+        return false;
+
+    };
+
+    /** 
+     * Load other solar system objects
+     */
+    function loadSolarSystem ( callback ) {
+
+        return false;
+
+    };
+
+    /** 
+     * Load the surrounding universe of other Solar System 
+     * Planets, stars, and the galaxy band.
+     */
+    function loadUniverse ( callback ) {
+
+        var promiseArray = [];
+
+        solarSystemArray.forEach( function ( planet ) { 
+
+            promiseArray.push( new Promise( function ( resolve , reject ) {
+
+                if ( loadSolarSystem( planet ) ) {
+
+                    resolve( planet );
+
+                } else {
+
+                    reject( planet );
+
+                }
+
+            } ) ); // nested .push( new Promise() )
+
+        } ); // foreach
+
+        // Load the Stars
+
+        promiseArray.push( new Promise ( function ( resolve, reject ) {
+
+            if( loadStars( starData ) ) {
+
+                resolve( starData );
+
+            } else {
+
+                reject( starData );
+
+            }
+
+        } ) );
+
+
+        promiseArray.push( new Promise ( function ( resolve, reject ) {
+
+            if( loadGalaxy( galaxyTexture ) ) {
+
+                resolve( galaxyTexture );
+
+            } else {
+
+                reject( galaxyTexture );
+
+            }
+
+        } ) );
+
+        Promise.all( promiseArray ).then( function ( objects ) {
+
+            console.log('domui.loadUniverse(): successfully loaded all Universe objects.');
+
+        } ).catch ( function ( object ) {
+
+            window.p  =  object;
+
+            console.log( 'domui.loadUniverse(): error loading a Universe object:' + object );
+
+        } );
 
     };
 
@@ -368,6 +546,12 @@ var plutonian = (function () {
      */
     function update () {
 
+        for (var i in plutoArray) {
+
+          plutoArray[i].group.rotation.y += plutoArray[i].rotation;
+
+        }
+
     };
 
     /** 
@@ -375,11 +559,11 @@ var plutonian = (function () {
      * @param {CanvasElement} HTML5 <canvas> element
      * @param {THREE.renderer} renderer the standard (not VR) renderer for the scene
      */
-    function init( threeScene, threeCamera, threeRenderer, threeDolly ) {
+    function init( threeScene, threeCamera, threeRenderer, threeDolly, callback, progressCallback ) {
 
         // Local reference to <canvas>
 
-        console.log( 'Initializing Plutonian system...' );
+        console.log( 'Initializing Plutonian simulation...' );
 
         scene = threeScene;
 
@@ -397,16 +581,18 @@ var plutonian = (function () {
 
         // Add groups defined for the planets to scene
 
-        for ( var i = 0, len = planetArray.length; i < len; i++ ) {
+        for ( var i = 0, len = plutoArray.length; i < len; i++ ) {
 
-            scene.add( planetArray[i].group );
+            scene.add( plutoArray[i].group );
         }
 
-        // Load texture and model data
+        // Load texture and model data for Plutonian System
 
-        loadPlanets();
+        loadPlanets( callback );
 
-        loadStars();
+        // Load texture and model data from the Universe (can happen independently)
+
+        loadUniverse();
 
     };
 

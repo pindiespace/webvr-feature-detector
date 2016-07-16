@@ -13,11 +13,6 @@ html, body {
     position: relative; /* TODO: CHECK THIS ONE */
 }
 
-/* set <body> color to match <canvas> color */
-body {
-    background-color:#000;
-}
-
 /* needed for canvas as fullscreen element */
 canvas {
     position: absolute;
