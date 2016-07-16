@@ -11,7 +11,7 @@ var plutonian = (function () {
 
     // THREE components
 
-    var scene, canvas, camera, dolly, renderer;
+    var scene, canvas, camera, dolly, keyLight, renderer;
 
     // VR components
 
@@ -246,9 +246,19 @@ var plutonian = (function () {
 
     };
 
+    /** 
+     * Detect if an object is a string
+     * @param {Object} str an Object that might be a String
+     * @returns {Boolean} if a String, return true, else false
+     */
+    function isString( str ) {
+
+        return Object.prototype.toString.call( str ) == '[object String]';
+
+    };
+
     /*
-     * @method doGeometryScale
-     * @description Scale the geometry (rather than scale Scene or Mesh)
+     * Scale the geometry (rather than scale Scene or Mesh)
      * Similar to: 
      * @link http://learningthreejs.com/data/THREEx/docs/THREEx.GeometryUtils.html
      * @param {THREE.Geometry} geometry basic shape (unity size).
@@ -374,30 +384,119 @@ var plutonian = (function () {
 
     };
 
-    function loadPlanet ( planetData, resolve, reject ) {
+    /** 
+     * light the scene
+     */
+    function loadLights ( scene ) {
 
-        texLoader.load( planet.path, function ( texture ) {
+        // Using MeshPhongMaterial REQUIRES a DirectionalLight!
 
-                console.log('in texLoader, typeof planet.geometry:' + typeof planet.geometry)
-                    
+        keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+
+        keyLight.position.set(0, 25, 15).normalize();
+
+        scene.add( keyLight );
+
+    };
+
+    /** 
+     * Load an individual Planet's texture and model.
+     * Load the texture
+     * In the callback, load a standard or custom mesh
+     */
+    function loadPlanet ( planetData, scene, resolve, reject ) {
+
+        texLoader.load( planetData.path, function ( texture ) {
+
+            console.log('in texLoader, typeof planet.geometry:' + typeof planetData.geometry);
+
+            if ( isString( planetData.geometry ) ) { // path to mesh file
+
+                modLoader.load( planetData.geometry, function ( obj ) {
+
+                    planetData.geometry = obj.children[0].geometry;
+
+                    planetData.material.map = texture;
+
+                    //planet.geometry.scale( 0.1, 0.1, 0.1 ); // might need later
+
+                    planetData.geometry.center(); // center model within bounding box
+
+                    planetData.mesh = new THREE.Mesh( planetData.geometry, planetData.material );
+
+                    planetData.mesh.position.set( 0, 0, 0 );
+
+                    planetData.geometry.applyMatrix( planetData.translation );
+
+                    planetData.group.add( planetData.mesh );
+
+                    planetData.orbit = createRing( 50, 50, planetData.distance - 0.25, planetData.distance + 0.25,
+
+                    new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true, opacity: 0.2 } ),
+
+                    new THREE.Vector3( 0, 0, 0 ), // position
+
+                    new THREE.Vector3( Math.PI / 2, 0, 0 ) // rotation
+
+                    );
+
+                    scene.add( planetData.orbit );
+
+                    // Resolve the Promise if our texture loaded successfully
+
+                    if( texture instanceof THREE.Texture) {
+
+                        resolve( planetData );
+
+                    } else {
+
+                        reject( planetData );
+
+                    }
+
+                } ); // End of mesh loaded by program
+
+            } else { // Use THREE.Sphere primitive
+
+                planetData.geometry.applyMatrix( planetData.translation );
+
+               planetData.material.map = texture;
+
+                planetData.mesh = new THREE.Mesh( planetData.geometry, planetData.material );
+
+                planetData.group.add( planetData.mesh );
+
+                if( texture instanceof THREE.Texture ) {
+
+                    resolve( planetData );
+
+                } else {
+
+                    reject( planetData );
+                }
+
+            } // End of THREE.Sphere load
+
                 //TODO: update progress indicator here...
 
-                resolve( planetData );
+                // fallthrough reject
+
+                //reject( planetData );
             },
 
             function (xhr) { // Report loading progress
 
-                console.log(planet.name + ' ' + parseInt(xhr.loaded / xhr.total * 100) + '% loaded');
+                console.log(planetData.name + ' ' + parseInt(xhr.loaded / xhr.total * 100) + '% loaded');
 
             },
 
             function (xhr) { // Report loading error.
 
-                reject( new Error ('loadPlanet() error:' + xhr + ' An error occurred loading while loading' + planet.path));
+                reject( new Error ('loadPlanet() error:' + xhr + ' An error occurred loading while loading' + planetData.path));
 
             }
 
-        );
+        ); // end of texLoader
 
     };
 
@@ -405,7 +504,7 @@ var plutonian = (function () {
      * Load all textures and models for the defined planets
      * @param {Function} callback the main program function to call after callback
      */
-    function loadPlanets ( callback ) {
+    function loadPlanets ( scene, callback ) {
 
         var promiseArray = [];
 
@@ -415,7 +514,7 @@ var plutonian = (function () {
 
             promiseArray.push( new Promise( function ( resolve , reject ) {
 
-                loadPlanet( planetData, resolve, reject );
+                loadPlanet( planetData, scene, resolve, reject );
 
             } ) ); // nested .push( new Promise() )
 
@@ -427,9 +526,9 @@ var plutonian = (function () {
 
             callback(); // this is start() in example.html
 
-        } ).catch ( function ( planet ) {
+        } ).catch ( function ( planetData ) {
 
-            console.log( 'domui.loadPlanets(): error loading a Planet:' + planet );
+            console.log( 'domui.loadPlanets(): error loading a Planet:' + planetData );
 
         } );
 
@@ -579,6 +678,8 @@ var plutonian = (function () {
 
         scene.add( dolly );
 
+        loadLights( scene );
+
         // Add groups defined for the planets to scene
 
         for ( var i = 0, len = plutoArray.length; i < len; i++ ) {
@@ -588,11 +689,11 @@ var plutonian = (function () {
 
         // Load texture and model data for Plutonian System
 
-        loadPlanets( callback );
+        loadPlanets( scene, callback );
 
         // Load texture and model data from the Universe (can happen independently)
 
-        loadUniverse();
+        loadUniverse( scene, callback );
 
     };
 
