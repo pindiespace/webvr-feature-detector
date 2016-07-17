@@ -58,13 +58,52 @@ canvas {
 
 }
 
-/* fading classes */
+/* control panel */
+.dom-ui-control-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  background: white;
+  width: 100%;
+}
 
+/* all children of the control panel */
+.dom-ui-control-panel > * {
+    display: inline-block;
+}
+
+/* text sub-container */
+.dom-ui-text {
+    width: 30%;
+}
+
+/* button sub-container */
+.dom-ui-buttons {
+    
+}
+
+/* individual buttons */
+.dom-ui-buttons button {
+
+}
+
+/* link sub-container */
+.dom-ui-links {
+    width: 30%;
+}
+
+/* links */
+.dom-ui-links a {
+
+}
+
+/* fading classes */
 .fade-message {
-opacity:1;
-transition: opacity 1s; 
+    opacity:1;
+    transition: opacity 1s; 
 }
 
 .fade {
-opacity:0;
+    opacity:0;
 }

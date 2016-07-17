@@ -401,8 +401,8 @@ var plutonian = (function () {
 
     /** 
      * Load an individual Planet's texture and model.
-     * Load the texture
-     * In the callback, load a standard or custom mesh
+     * 1. Load the texture
+     * 2. In the callback, load a standard or custom mesh
      */
     function loadPlanet ( planetData, scene, resolve, reject ) {
 
@@ -429,6 +429,8 @@ var plutonian = (function () {
                     planetData.geometry.applyMatrix( planetData.translation );
 
                     planetData.group.add( planetData.mesh );
+
+                    //  create a visible ring for the planetary orbit
 
                     planetData.orbit = createRing( 50, 50, planetData.distance - 0.25, planetData.distance + 0.25,
 

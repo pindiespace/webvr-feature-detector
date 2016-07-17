@@ -301,13 +301,29 @@ var WebVRConfig = {
 
         var controls = new THREE.OrbitControls( dolly, renderer.domElement ); // WORKS
 
+        // Get the VRDisplay and save it for later
+
+        var vrDisplay = null;
+
+        navigator.getVRDisplays().then( function( displays ) {
+
+
+            if ( displays.length > 0 ) {
+
+                alert("setting display")
+                vrDisplay = displays[0];
+
+            }
+
+        } );
+
         // Set up VR camera controls for head and position tracking.
 
         var vrControls = new THREE.VRControls( camera, function( err ) {
 
             if (err) {
 
-                console.log("Main error: failed to create VRControls: ", err);
+                console.log( 'Main error: failed to create VRControls: ', err);
 
             }
 
@@ -319,11 +335,13 @@ var WebVRConfig = {
 
             if ( err ) {
 
-                console.log("Main error: failed to create VREffect: ", err);
+                console.log('Main error: failed to create VREffect: ', err);
 
             }
 
         } );
+
+        vrEffect.setSize( w, h );
 
         /* 
          * World updates and events 
@@ -399,6 +417,8 @@ var WebVRConfig = {
 
         function onVRDisplayPresentChange ( e ) {
 
+              onWindowResize();
+
         };
 
         function onVRDisplayDeviceParamsChange ( e ) {
@@ -461,29 +481,31 @@ var WebVRConfig = {
 
             var delta = clock.getDelta(); // needed for composer (postprocessing image)
 
-            plutonian.update();
-
-          if ( domui.isVRMode() ) {
+            if ( isVR ) {
+                console.log('vr') ///////////////////////
 
                 vrControls.update();
 
                 vrEffect.render( scene, camera );
 
-          }  else {
+            }  else {
+                console.log('fs') ///////////////////////
 
                 controls.update( delta );
 
                 renderer.render( scene, camera );
 
-          }
+            }
 
         };
 
         function animate () {
 
-            requestAnimationFrame( animate );
+            plutonian.update();
 
             render();
+
+            requestAnimationFrame( animate );
 
         };
 
@@ -516,10 +538,55 @@ var WebVRConfig = {
         }
 
         /* 
-         * Create the virtal world scene, loading models and textures. 
+         * Flags for VR and fullscreen
+         */
+        var isVR = false, isFullscreen = false;
+
+        /* 
+         * Set up the button Ui, overlay on the <canvas> element
+         */
+        domui.createControlPanel( 'Plutonian', 
+            'dom-ui-control-panel', 
+            'dom-ui-text', 
+            'dom-ui-buttons', 
+            'dom-ui-links');
+
+        //TODO: vrDisplay is NULL when created, attach in callback and activate button
+        //TODO:
+        //TODO:
+
+        domui.addControlButton( 'fullscreen', function () {
+
+            isFullscreen = true;
+
+            isVR = false;
+
+            domui.enterFullscreen( renderer.domElement );
+
+        } );
+
+            window.disp = vrDisplay;
+            window.cc = renderer.domElement;
+
+        domui.addControlButton( 'VR', function () {
+
+            isVR = true;
+
+            isFullscreen = false;
+
+            alert('setting display:' + vrDisplay)
+
+            vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
+
+        } );
+
+        domui.addControlLink( 'home');
+
+        /* 
+         * Create the virtual world simulation, loading models and textures. 
          * When it is complete, start the animation.
          */
-        plutonian.init( scene, camera, renderer, dolly, start );
+        plutonian.init( scene, camera, renderer, dolly, start);
 
 
         // End of load and render VR world

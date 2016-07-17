@@ -14,6 +14,14 @@ var domui = ( function () {
 
     containerStr = '-container',
 
+    controlPanel = null,
+
+    textContainer = null,
+
+    buttonContainer = null,
+
+    linkContainer = null,
+
     fadeInInc = 10, // milliseconds between fadeIn increment
 
     fadeOutInc = 50, // milliseconds between fadeOut increment
@@ -723,32 +731,163 @@ var domui = ( function () {
     };
 
     /** 
-     * toggle flag for VR mode selected in Ui
+     * Create buttons controling fullscreen and VR
+     * The control panel is a top horizontal header with 
+     * identity plus Ui buttons for entering fullscreen, VR 
+     * and re-setting pose
+     * @param {DOMElemen} parentElem the parent element on the page, if specified
+     * @param {String} panelClass the CSS class for styling the panel
      */
-    function isVRMode () {
+    function createControlPanel ( text, panelClass, textClass, buttonClass, linkClass ) {
 
-        return vrMode;
+        if( controlPanel ) {
+
+            console.warn( 'domui.createControlPanel() warning: button container already created' );
+
+            return;
+
+        }
+
+        controlPanel = document.createElement( 'div' );
+
+        if ( controlPanel ) {
+
+            controlPanel.className = panelClass;
+
+        }
+
+        textContainer = document.createElement( 'div' );
+
+        textContainer.className = textClass || '';
+
+        textContainer.innerHTML = text;
+
+        buttonContainer = document.createElement( 'div' );
+
+        buttonContainer.className = buttonClass || '';
+
+        linkContainer = document.createElement( 'div' );
+
+        linkContainer.className = linkClass || '';
+
+        // Adjust the buttonContainer to enclose the created button
+
+        var b = document.createElement('button');
+
+        // CSS styles
+        b.className = buttonClass;
+
+        // Dynamic styles.
+        buttonContainer.style.height = getComputedStyle(b).getPropertyValue('height');
+
+        b = null;
+
+        // Add to the container (holds buttons and canvas)
+
+        controlPanel.appendChild( textContainer );
+
+        controlPanel.appendChild( buttonContainer );
+
+        controlPanel.appendChild( linkContainer );
+
+        document.body.insertBefore( controlPanel, document.body.childNodes[0] );
+
+        return controlPanel;
 
     };
 
-    function setVRMode ( mode ) {
-
-        vrMode = mode;
-
-    };
-
-    /**
-     * toggle flag for fullscreen mode selected in Ui
+    /** 
+     * Create an individual button for the control panel
+     * @param {DOMElement} container the container for buttons in the Ui
+     * @param String text the button text.
+     * @param Function clickHandler the function handling button clicks.
+     * @param String buttonClass the CSS className for the button.
      */
-    function isFullscreenMode () {
+    function addControlButton ( text, clickHandler, buttonClass ) {
 
-        return fsMode;
+        if (!buttonContainer) {
+
+            console.error( 'domui.addButton: button container not initialized' );
+
+            return;
+ 
+        } else {
+
+            // Create the button
+
+            var button = document.createElement( 'button' );
+
+            button.innerHTML = text;
+
+            button.className = buttonClass || '';
+
+            // Add the event handler
+
+            if (typeof clickHandler == 'function') {
+
+                button.addEventListener( 'click', clickHandler );
+
+            }
+
+            buttonContainer.appendChild(button);
+
+        }
+
+        return button;
 
     };
 
-    function setFullscreenMode ( mode ) {
+    function addControlLink ( text, link ) {
 
-        return fsMode;
+    };
+
+    /** 
+     * Show the Ui buttons
+     */
+    function showControlPanel () {
+
+    };
+
+    /** 
+     * Hide the Ui buttons
+     */
+    function hideControlPanel () {
+
+    };
+
+    /** 
+     * Request fullScreen using vendor prefixes.
+     * @param DOMElement elem the element to set fullscreen.
+     */
+    function enterFullscreen ( elem ) {
+
+        if ( elem.requestFullscreen ) {
+
+            elem.requestFullscreen();
+
+            return true;
+
+        } else if ( elem.mozRequestFullscreen ) {
+
+            elem.mozRequestFullscreen();
+
+            return true;
+
+        } else if ( elem.webkitRequestFullscreen ) {
+
+            elem.webkitRequestFullscreen();
+
+            return true;
+
+        } else if ( elem.msRequestFullscreen ) {
+
+            elem.msRequestFullscreen();
+
+            return true;
+
+        }
+
+        return false;
 
     };
 
@@ -766,13 +905,13 @@ var domui = ( function () {
 
         hideProgress: hideProgress,
 
-        isVRMode: isVRMode,
+        createControlPanel: createControlPanel,
 
-        setVRMode: setVRMode,
+        addControlButton: addControlButton,
 
-        isFullscreenMode: isFullscreenMode,
+        addControlLink: addControlLink,
 
-        setFullscreenMode: setFullscreenMode
+        enterFullscreen: enterFullscreen
 
     };
 
