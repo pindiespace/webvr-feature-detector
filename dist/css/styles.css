@@ -88,6 +88,12 @@ canvas {
 
 }
 
+/* disabled buttons */
+.dom-ui-buttons button[disabled=disabled], 
+    .dom-ui-buttons button:disabled {
+    
+}
+
 /* link sub-container */
 .dom-ui-links {
     width: 30%;

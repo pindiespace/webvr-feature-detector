@@ -827,6 +827,10 @@ var domui = ( function () {
 
                 button.addEventListener( 'click', clickHandler );
 
+            } else {
+
+                button.disabled = true;
+
             }
 
             buttonContainer.appendChild(button);

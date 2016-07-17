@@ -301,22 +301,6 @@ var WebVRConfig = {
 
         var controls = new THREE.OrbitControls( dolly, renderer.domElement ); // WORKS
 
-        // Get the VRDisplay and save it for later
-
-        var vrDisplay = null;
-
-        navigator.getVRDisplays().then( function( displays ) {
-
-
-            if ( displays.length > 0 ) {
-
-                alert("setting display")
-                vrDisplay = displays[0];
-
-            }
-
-        } );
-
         // Set up VR camera controls for head and position tracking.
 
         var vrControls = new THREE.VRControls( camera, function( err ) {
@@ -482,14 +466,12 @@ var WebVRConfig = {
             var delta = clock.getDelta(); // needed for composer (postprocessing image)
 
             if ( isVR ) {
-                console.log('vr') ///////////////////////
 
                 vrControls.update();
 
                 vrEffect.render( scene, camera );
 
             }  else {
-                console.log('fs') ///////////////////////
 
                 controls.update( delta );
 
@@ -540,7 +522,7 @@ var WebVRConfig = {
         /* 
          * Flags for VR and fullscreen
          */
-        var isVR = false, isFullscreen = false;
+        var isVR = false, isFullscreen = false, isPolyfill = false;
 
         /* 
          * Set up the button Ui, overlay on the <canvas> element
@@ -551,9 +533,10 @@ var WebVRConfig = {
             'dom-ui-buttons', 
             'dom-ui-links');
 
-        //TODO: vrDisplay is NULL when created, attach in callback and activate button
-
-        domui.addControlButton( 'fullscreen', function () {
+        /* 
+         * create a fullscreen button if Fullscreen API is available (or a shim)
+         */
+        var fullScreenButton = domui.addControlButton( 'fullscreen', function ( e ) {
 
             isFullscreen = true;
 
@@ -563,22 +546,79 @@ var WebVRConfig = {
 
         } );
 
-            window.disp = vrDisplay;
-            window.cc = renderer.domElement;
+        // Add the VR button, activate only when we've confirmed WebVR is present
 
-        domui.addControlButton( 'VR', function () {
+        var vrButton = domui.addControlButton( 'VR' ); // Assign the handler elsewhere
 
-            isVR = true;
+        var vrPoseButton = domui.addControlButton( 'Reset Pose' );
 
-            isFullscreen = false;
+        // Add hyperlinks to the control bar
 
-            alert('setting display:' + vrDisplay)
+        domui.addControlLink( 'home' );
 
-            vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
+        /* 
+         * The VR button is only activated when a valid VRDisplay has been 
+         * returned by the getVRDevices() or polyfill in a Promise. 
+         * Unlike fullscreen, this could take some time. 
+         * 
+         * Note that the native API won't go to VR on desktops (but the 
+         * polyfill will with FORCE_ENABLE_VR in its configuration
+         */
+        var vrDisplay = null;
+
+        navigator.getVRDisplays().then( function( displays ) {
+
+            if ( displays.length > 0 ) {
+
+                vrDisplay = displays[0];
+
+                // flag whether this is native API or polyfill
+
+                if ( vrDisplay.deviceName && vrDisplay.deviceName.indexOf('webvr-polyfill') !== -1 ) {
+
+                    isPolyfill = true;
+
+                } else {
+
+                    isPolyfill = false;
+
+                }
+
+                /* 
+                 * activate the VR button if:
+                 * WebVR is native API, and we're on mobile
+                 * WebVR is polyfill
+                 */
+                //TODO: CHECK IF WE ARE DESKTOP NATIVE!!!!!!
+                vrButton.disabled = false;
+
+                vrButton.addEventListener( 'click', function ( e ) {
+
+                    // set state flags
+
+                    isVR = true;
+
+                    isFullscreen = false;
+
+                    // begin presenting
+
+                    vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
+
+                } );
+
+                vrPoseButton.disabled = false;
+
+                vrPoseButton.addEventListener( 'click', function ( e ) {
+
+                    // reset pose
+
+                    vrDisplay.resetPose();
+
+                } );
+
+            }
 
         } );
-
-        domui.addControlLink( 'home');
 
         /* 
          * Create the virtual world simulation, loading models and textures. 
