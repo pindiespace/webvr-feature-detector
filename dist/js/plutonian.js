@@ -27,6 +27,10 @@ var plutonian = (function () {
 
     texLoader.crossOrigin = '';
 
+    // Count the number of loads we have to do
+
+    var numLoads = 0, totalLoads = 0;
+
     // Events and picking
 
     // TODO: event variables
@@ -60,6 +64,11 @@ var plutonian = (function () {
      * @type {Number}
      */
     var baryCenter = 0.885 + 0.5;
+
+    /** 
+     * Other non-Plutonian planets are present
+     */
+    var solarCenter = 100; // TODO: GET RIGHT FIGURE HERE
 
     /** 
      * Ice dwarf and moon features in detail
@@ -220,6 +229,29 @@ var plutonian = (function () {
      */
     var solarSystemArray = [
 
+        {
+
+          name: 'neptune',
+
+          path: 'img/neptune_rgb_cyl_1024.png',
+
+          material: new THREE.MeshPhongMaterial( { shininess: "10", emissive:"#272222" } ),
+
+          geometry: new THREE.SphereGeometry( plutoSize * 0.51, plutoSegments, plutoSegments ),
+
+          diameter: plutoSize * 20, //49528km
+
+          distance: 80 - solarCenter, // TODO: TEMPORARY!!!!!!!! NOT ACCURATE
+
+          translation: new THREE.Matrix4().makeTranslation( 80 - solarCenter, 0, 0 ), // TODO: GET RIGHT VALUE
+
+          rotation: -plutoCharonRot * 0.129, // about 19 hours
+
+          mesh: null, // Spherical
+
+          group: new THREE.Group() // Charon and Pluto are in same orbit group
+
+        }
     ];
 
     /** 
@@ -404,7 +436,7 @@ var plutonian = (function () {
      * 1. Load the texture
      * 2. In the callback, load a standard or custom mesh
      */
-    function loadPlanet ( planetData, scene, resolve, reject ) {
+    function loadPlanet ( planetData, scene, progressCallback, resolve, reject ) {
 
         texLoader.load( planetData.path, function ( texture ) {
 
@@ -479,20 +511,23 @@ var plutonian = (function () {
 
             } // End of THREE.Sphere load
 
-                //TODO: update progress indicator here...
+                // compute the number of loads
 
-                // fallthrough reject
+                numLoads++;
 
-                //reject( planetData );
+                // progressCallback used bind() to keep global scope inside this object
+
+                progressCallback( numLoads / totalLoads, planetData.name );
+
             },
 
-            function (xhr) { // Report loading progress
+            function ( xhr ) { // Report loading progress
 
                 console.log(planetData.name + ' ' + parseInt(xhr.loaded / xhr.total * 100) + '% loaded');
 
             },
 
-            function (xhr) { // Report loading error.
+            function ( xhr ) { // Report loading error.
 
                 reject( new Error ('loadPlanet() error:' + xhr + ' An error occurred loading while loading' + planetData.path));
 
@@ -504,9 +539,11 @@ var plutonian = (function () {
 
     /** 
      * Load all textures and models for the defined planets
-     * @param {Function} callback the main program function to call after callback
+     * @param {THREE.Scene} scene the THREE.js Scene to use
+     * @param {Function} callback the function to call when initialization is complete
+     * @param {Function} progressCallback the function to call after individual objects are loaded
      */
-    function loadPlanets ( scene, callback ) {
+    function loadPlanets ( scene, callback, progressCallback ) {
 
         var promiseArray = [];
 
@@ -516,7 +553,7 @@ var plutonian = (function () {
 
             promiseArray.push( new Promise( function ( resolve , reject ) {
 
-                loadPlanet( planetData, scene, resolve, reject );
+                loadPlanet( planetData, scene, progressCallback, resolve, reject );
 
             } ) ); // nested .push( new Promise() )
 
@@ -537,27 +574,11 @@ var plutonian = (function () {
     };
 
     /** 
-     * Load a Milky Way galaxy texture
-     */
-    function loadGalaxy ( callback ) {
-
-        return false;
-
-    };
-
-    /** 
      * Load the stars from a stellar position file
+     * @param {Function} callback the function to call when initialization is complete
+     * @param {Function} progressCallback the function to call after individual objects are loaded
      */
-    function loadStars ( callback ) {
-
-        return false;
-
-    };
-
-    /** 
-     * Load other solar system objects
-     */
-    function loadSolarSystem ( callback ) {
+    function loadStars ( callback, progressCallback ) {
 
         return false;
 
@@ -566,8 +587,12 @@ var plutonian = (function () {
     /** 
      * Load the surrounding universe of other Solar System 
      * Planets, stars, and the galaxy band.
+     * @param {Function} callback the function to call when initialization is complete
+     * @param {Function} progressCallback the function to call after individual objects are loaded
      */
-    function loadUniverse ( callback ) {
+    function loadUniverse ( callback, progressCallback ) {
+
+        // Load the non-Plutonian planets
 
         var promiseArray = [];
 
@@ -605,6 +630,7 @@ var plutonian = (function () {
 
         } ) );
 
+        // Load the Galaxy texture
 
         promiseArray.push( new Promise ( function ( resolve, reject ) {
 
@@ -657,9 +683,14 @@ var plutonian = (function () {
 
     /** 
      * Begin creating the Plutonian system
-     * @param {CanvasElement} HTML5 <canvas> element
-     * @param {THREE.renderer} renderer the standard (not VR) renderer for the scene
-     */
+     * @param {THREE.Scene} threeScene the THREE.js scene
+     * @param {THREE.Camera} threeCamera the main THREE camera for the scene
+     * @param {CanvasElement} the HTML5 <canvas> element
+     * @param {THREE.Renderer} renderer the standard THREE.js (not VR) renderer for the scene
+     * @param {THREE.Camera} dolly a moveable camera used to shift point of view in VR simulations
+     * @param {Function} callback the function to call when initialization is complete
+     * @param {Function} progressCallback the function to call after individual objects are loaded
+      */
     function init( threeScene, threeCamera, threeRenderer, threeDolly, callback, progressCallback ) {
 
         // Local reference to <canvas>
@@ -691,11 +722,15 @@ var plutonian = (function () {
 
         // Load texture and model data for Plutonian System
 
-        loadPlanets( scene, callback );
+        loadPlanets( scene, callback, progressCallback );
 
         // Load texture and model data from the Universe (can happen independently)
 
-        loadUniverse( scene, callback );
+        loadUniverse( scene, callback, progressCallback );
+
+        // we load textures for Plutonian and other planets, plus Stars, + 1 Galaxy texture
+
+        totalLoads = plutoArray.length + solarSystemArray.length + 1;
 
     };
 

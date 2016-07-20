@@ -165,9 +165,32 @@ var WebVRConfig = {
 
     console.log ('loading libraries...');
 
-     // start <progress> dialog (updated in callbacks from WebVRFeatureDetector.load() )
+     // Start <progress> dialog (updated in callbacks from WebVRFeatureDetector.load() )
 
      var progElem = domui.createProgress( 'dom-ui-progress-container', 'dom-ui-progress', 0, 100 );
+
+     /** 
+      * Progress function, using both library loading and texture/model loading status
+      * @param {DOMElement} progElem a <progress> elemet
+      * @param {Number} percent the percent of loading
+      * @param {String} msg if not null, use to update the <progress> Ui widget
+      */
+     function loadStatus ( percent, msg ) {
+
+        if ( percent >= 100 ) {
+
+            domui.updateProgress( progElem, percent, msg );
+
+            domui.finishProgress( progElem );
+
+        } else {
+
+            // this updates and completes BEFORE texture loading.
+
+            domui.updateProgress( progElem, percent, msg );
+        }
+
+     };
 
     // Load all libraries and polyfills required for WebGL VR and fullscreen rendering
 
@@ -211,12 +234,6 @@ var WebVRConfig = {
 
         }
 
-        // window width and height
-
-        var w = window.innerWidth;
-
-        var h = window.innerHeight;
-
         // Use device device pixel ratio
 
         if ( window.devicePixelRatio !== undefined ) {
@@ -254,6 +271,12 @@ var WebVRConfig = {
             } );
 
         }
+
+        // window width and height
+
+        var w = window.innerWidth * dpr;
+
+        var h = window.innerHeight * dpr;
 
         // Additional renderer properties
 
@@ -367,9 +390,14 @@ var WebVRConfig = {
          */
         function onWindowResize ( e ) {
 
-            w = window.innerWidth;
+           //w = window.innerWidth;
 
-            h = window.innerHeight;
+            //h = window.innerHeight;
+
+            w = window.innerWidth * dpr;
+
+            h = window.innerHeight * dpr;
+
 
             console.log( 'Main: Resizing to %s x %s.', w, h );
 
@@ -449,9 +477,9 @@ var WebVRConfig = {
 
             // Bind to VR* specific events
 
-            window.addEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange );
+            window.addEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange, false );
 
-            window.addEventListener( 'vrdisplaydeviceparamschange', onVRDisplayDeviceParamsChange );
+            window.addEventListener( 'vrdisplaydeviceparamschange', onVRDisplayDeviceParamsChange, false );
 
         };
 
@@ -554,7 +582,7 @@ var WebVRConfig = {
 
         // Add hyperlinks to the control bar
 
-        domui.addControlLink( 'home' );
+        domui.addControlLink( 'home', 'index.html' );
 
         /* 
          * The VR button is only activated when a valid VRDisplay has been 
@@ -589,7 +617,6 @@ var WebVRConfig = {
                  * WebVR is native API, and we're on mobile
                  * WebVR is polyfill
                  */
-                //TODO: CHECK IF WE ARE DESKTOP NATIVE!!!!!!
                 vrButton.disabled = false;
 
                 vrButton.addEventListener( 'click', function ( e ) {
@@ -622,27 +649,16 @@ var WebVRConfig = {
 
         /* 
          * Create the virtual world simulation, loading models and textures. 
-         * When it is complete, start the animation.
+         * While loading libraries, models, and textures, fire loadStatus.
+         * When it is complete, start the animation with start().
          */
-        plutonian.init( scene, camera, renderer, dolly, start);
-
+        plutonian.init( scene, camera, renderer, dolly, start, loadStatus.bind( this ) );
 
         // End of load and render VR world
 
     }, function( percent, msg ) { // Callback - Progress Bar values from WebVRFeatureDetector
 
-        if ( percent >= 100 ) {
-
-            domui.updateProgress( progElem, percent, msg );
-
-            domui.finishProgress( progElem );
-
-        } else {
-
-            // this updates and completes BEFORE texture loading.
-
-            domui.updateProgress( progElem, percent, msg );
-        }
+        loadStatus( percent, msg ); // callback sees globally-defined loadStatus(), used here and in plutonian.js
 
     }, function( msg, batch, script, s ) { // Callback - error in WebVRFeatureDetector
 

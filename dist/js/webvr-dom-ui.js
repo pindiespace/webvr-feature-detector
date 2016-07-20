@@ -37,7 +37,7 @@ var domui = ( function () {
     fullscreenMode = false;
 
     /* 
-     * Set ids used for elements to a custom value.
+     * Set ids used for DOM elements used in the Ui to a custom value.
      * @param {String} id the base Id value (incremented with counter)
      * @param {String} msgId added to text messages in dialogs
      * @param {String} buttonId added to buttons in dialogs
@@ -805,43 +805,80 @@ var domui = ( function () {
      */
     function addControlButton ( text, clickHandler, buttonClass ) {
 
-        if (!buttonContainer) {
+        if ( ! buttonContainer) {
 
-            console.error( 'domui.addButton: button container not initialized' );
+            console.error( 'domui.addButton(): button container not initialized' );
 
             return;
  
-        } else {
+        }
 
-            // Create the button
+        if ( ! text ) {
 
-            var button = document.createElement( 'button' );
+            console.error( 'domui.addControlButton() error: no button text supplied.');
 
-            button.innerHTML = text;
-
-            button.className = buttonClass || '';
-
-            // Add the event handler
-
-            if (typeof clickHandler == 'function') {
-
-                button.addEventListener( 'click', clickHandler );
-
-            } else {
-
-                button.disabled = true;
-
-            }
-
-            buttonContainer.appendChild(button);
+            return;
 
         }
+
+        // Create the button
+
+        var button = document.createElement( 'button' );
+
+        button.innerHTML = text;
+
+        button.className = buttonClass || '';
+
+        // Add the event handler
+
+        if (typeof clickHandler == 'function') {
+
+            button.addEventListener( 'click', clickHandler );
+
+        } else {
+
+            button.disabled = true;
+
+        }
+
+        buttonContainer.appendChild(button);
 
         return button;
 
     };
 
-    function addControlLink ( text, link ) {
+    /**
+     * Define a hyperlink in the control panel
+     */
+    function addControlLink ( text, url, linkClass ) {
+
+        if ( ! linkContainer ) {
+            
+            console.error( 'domui.addControlLink() error: link container not created.');
+
+            return;
+
+        }
+
+        if ( ! text || ! url ) {
+
+            console.error( 'domui.addControlLink() error: no text or link supplied.');
+
+            return;
+
+        }
+
+        var link = document.createElement( 'a' );
+
+        link.innerHTML = text;
+
+        link.href = url;
+
+        link.className = linkClass || '';
+
+        linkContainer.appendChild( link );
+
+        return link;
 
     };
 
