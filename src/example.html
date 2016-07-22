@@ -173,9 +173,16 @@ var WebVRConfig = {
       * Progress function, using both library loading and texture/model loading status
       * @param {DOMElement} progElem a <progress> elemet
       * @param {Number} percent the percent of loading
-      * @param {String} msg if not null, use to update the <progress> Ui widget
+      * @param {String|undefined} msg if defined, use to update the <progress> Ui widget
+      * @param {Number|undefined} loadConstant if present
       */
-     function loadStatus ( percent, msg ) {
+     function loadStatus ( percent, msg, loadConstant ) {
+
+        // loadConstant lets us start a a particular %, useful for chaining several loading sequences
+
+        loadConstant = loadConstant || 0;
+
+        percent += loadConstant;
 
         if ( percent >= 100 ) {
 
@@ -188,6 +195,7 @@ var WebVRConfig = {
             // this updates and completes BEFORE texture loading.
 
             domui.updateProgress( progElem, percent, msg );
+
         }
 
      };
@@ -196,33 +204,39 @@ var WebVRConfig = {
 
     WebVRFeatureDetector.load([
       [
-        {name: 'addEventListener', path: 'js/polyfills/ie8.js', poly: true},
-        {name: 'querySelectorAll', path: 'js/polyfills/dom.js', poly: true}
+        { name: 'addEventListener', path: 'js/polyfills/ie8.js', poly: true },
+        { name: 'querySelectorAll', path: 'js/polyfills/dom.js', poly: true }
       ],
       [
-        {name: 'defineProperty', path: 'js/polyfills/es5.js', poly: true},
-        {name: 'typedArray', path: 'js/polyfills/typedarray.js', poly: true},
-        {name: 'promise', path: 'js/polyfills/promise.min.js', poly: true}
+        { name: 'defineProperty', path: 'js/polyfills/es5.js', poly: true },
+        { name: 'typedArray', path: 'js/polyfills/typedarray.js', poly: true },
+        { name: 'promise', path: 'js/polyfills/promise.min.js', poly: true },
+        { name: 'gamepad', path: 'js/polyfills/gamepads.js', poly: true },
+        { name: 'webworkers', path: 'js/polyfills/pseudo-worker.polyfill.min.js', poly: true }
       ],
       [
-        {name: 'WebVRPolyfill', path: 'js/polyfills/webvr-polyfill.js', poly: true}
+        { name: 'WebVRPolyfill', path: 'js/polyfills/webvr-polyfill.js', poly: true }
       ],
       [
-        {name: 'CustomEvent', path: 'js/polyfills/custom-event-polyfill.js', poly: true},
-        {name: 'three', path: 'js/three/three.min.js', poly: false}
+        { name: 'CustomEvent', path: 'js/polyfills/custom-event-polyfill.js', poly: true },
+        { name: 'three', path: 'js/three/three.min.js', poly: false }
       ],
       [
-        {name: 'projector', path: 'js/three/Projector.js', poly: false},
-        {name: 'canvasRenderer', path: 'js/three/CanvasRenderer.js', poly: false},
-        {name: 'OrbitControls', path: 'js/three/OrbitControls.js', poly: false},
-        {name: 'VREffect', path: 'js/three/VREffect.js', poly: false},
-        {name: 'VRControls', path: 'js/three/VRControls.js', poly: false}
+        { name: 'projector', path: 'js/three/Projector.js', poly: false },
+        { name: 'canvasRenderer', path: 'js/three/CanvasRenderer.js', poly: false },
+        { name: 'OrbitControls', path: 'js/three/OrbitControls.js', poly: false },
+        { name: 'VREffect', path: 'js/three/VREffect.js', poly: false },
+        { name: 'VRControls', path: 'js/three/VRControls.js', poly: false }
       ],
       [
-        {name: 'fetch', path: 'js/polyfills/fetch.js', poly: true},
-        {name: 'ui', path: 'js/plutonian.js', poly: false}
+        { name: 'fetch', path: 'js/polyfills/fetch.js', poly: true },
+        { name: 'ui', path: 'js/plutonian.js', poly: false }
       ]
     ], function() { // Main callback function
+
+        //TODO: gamepad-plus polyfill
+        //TODO: pseudo-worker polyfill
+        //TODO: http://javascriptissexy.com/javascript-apply-call-and-bind-methods-are-essential-for-javascript-professionals/
 
         // begin building the world
 
@@ -649,8 +663,8 @@ var WebVRConfig = {
 
         /* 
          * Create the virtual world simulation, loading models and textures. 
-         * While loading libraries, models, and textures, fire loadStatus.
-         * When it is complete, start the animation with start().
+         * While loading libraries, models, and textures, fire loadStatus().
+         * When loading is complete, start the animation with start().
          */
         plutonian.init( scene, camera, renderer, dolly, start, loadStatus.bind( this ) );
 
@@ -658,7 +672,9 @@ var WebVRConfig = {
 
     }, function( percent, msg ) { // Callback - Progress Bar values from WebVRFeatureDetector
 
-        loadStatus( percent, msg ); // callback sees globally-defined loadStatus(), used here and in plutonian.js
+        // callback sees globally-defined loadStatus(), used here and in plutonian.js
+
+        loadStatus( percent / 2, msg ); 
 
     }, function( msg, batch, script, s ) { // Callback - error in WebVRFeatureDetector
 

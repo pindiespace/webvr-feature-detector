@@ -537,7 +537,10 @@ var domui = ( function () {
     }
 
     /** 
-     * Create a Progress dialog, with fallback to text-style presentation.
+     * Create a Progress dialog, with fallback to text-style presentation. It 
+     * creates a container with a <div> for text status, a <progress> bar for 
+     * visual readout, and additional text for browsers that don't support the 
+     * <progress> element.
      * @param {String} className the className CSS class to apply to the element
      * @param {String} containerClassName the className for the container element
      * @param {Number} value the current value of the <progress>
@@ -558,7 +561,7 @@ var domui = ( function () {
 
         }
 
-        // Create a container
+        // Create a container forming a DOM alert
 
         var container = document.createElement( 'div' );
 
@@ -568,7 +571,13 @@ var domui = ( function () {
 
         container.style.display = 'block';
 
-        // Create <progress>
+        // Text readout above <progress> bar
+
+        var progText = document.createElement( 'div' );
+
+        progText.innerHTML = ' ';
+
+        // Create <progress> within the container
 
         var progElem = document.createElement( 'progress' );
 
@@ -580,7 +589,11 @@ var domui = ( function () {
 
         progElem.max = max || 100;
 
+        // Seen only if <progress> not supported by the browser
+
         progElem.innerHTML = '<span>0</span>%';
+
+        container.appendChild( progText );
 
         container.appendChild( progElem );
 
@@ -629,6 +642,12 @@ var domui = ( function () {
         // Handle non-<progress> tags
 
         if ( progElem.tagName.toUpperCase() === 'PROGRESS' ) {
+
+            // get the text element in its enclosing <div>
+
+            progElem.parentNode.getElementsByTagName( 'div' )[0].innerHTML = msg;
+
+            // set the <progress> element
 
             progElem.value = percent;
 

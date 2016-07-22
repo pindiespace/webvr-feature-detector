@@ -39,6 +39,9 @@ canvas {
 /* progress bar container (DOM window) */
 
 .dom-ui-progress-container {
+    font-family: arial, sans-serif;
+    font-size: 80%;
+    color: #ccd;
     position: absolute;
     width: 300px;
     padding: 20px;
@@ -51,6 +54,11 @@ canvas {
     text-align:center;
     z-index:9999;
     display:none;
+}
+
+/* text above the <progress> bar */
+.dom-ui-progress-container div {
+    padding-bottom: 0.5em;
 }
 
 /* actual <progress> bar */

@@ -160,8 +160,8 @@
     os.linux = !os.android && !os.sailfish && !os.tizen && !os.webos && ua.indexOf( 'linux' ) > -1;
 
     /* 
-     * OS Version detects (mobile and netbooks only). Some tests 
-     * adapted from @link https://github.com/faisalman/ua-parser-js/blob/master/src/ua-parser.js
+     * OS Version detects (mobile and netbooks only). Some tests adapted from 
+     * @link https://github.com/faisalman/ua-parser-js/blob/master/src/ua-parser.js
      */
     if ( os.ios ) {
 
@@ -898,7 +898,7 @@
    * Detect support for WebWorkers, used in many 3D libraries, missing in
    * IE < 11, FF < 3.5, Safari < 4, iOS < 5.1, Android < 4.4.
    */
-  tests['workers'] = function () {
+  tests['webworkers'] = function () {
     return !!win.Worker;
   };
 
@@ -1196,7 +1196,7 @@
 
       if (s) {
         gScriptCount++;
-        progressFn( parseInt( 100 * gScriptCount / scriptsToLoad ), s.src );
+        progressFn( parseInt( 100 * gScriptCount / scriptsToLoad ), s.name );
         
         //try {
         //  head.removeChild(s);
@@ -1239,6 +1239,7 @@
           s.charset = 'utf8';
           s.async = true;
           s.src = scr.path;
+          s.name = scr.name; // KLUDGE, saving into script
           // Old IE version.
           if (s.onreadystatechange !== undefined) {
             s.onreadystatechange = function () {

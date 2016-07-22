@@ -233,7 +233,7 @@ var plutonian = (function () {
 
           name: 'neptune',
 
-          path: 'img/neptune_rgb_cyl_1024.png',
+          path: 'img/neptune_rgb_cyl_512.png',
 
           material: new THREE.MeshPhongMaterial( { shininess: "10", emissive:"#272222" } ),
 
@@ -260,7 +260,7 @@ var plutonian = (function () {
      * @link https://gielberkers.com/evenly-distribute-particles-shape-sphere-threejs/
      * @type {Array<Object>}
      */
-    var starData = [
+    var stellarArray = [
 
     ];
 
@@ -517,7 +517,15 @@ var plutonian = (function () {
 
                 // progressCallback used bind() to keep global scope inside this object
 
-                progressCallback( numLoads / totalLoads, planetData.name );
+                console.log( 'numloads:' + numLoads + ' totalLoads:' + totalLoads);
+
+                if ( progressCallback ) {
+
+                    var loaded = parseInt( 100 * numLoads / totalLoads );
+
+                    progressCallback( loaded / 2, planetData.name, 50 );
+
+                }
 
             },
 
@@ -525,11 +533,18 @@ var plutonian = (function () {
 
                 console.log(planetData.name + ' ' + parseInt(xhr.loaded / xhr.total * 100) + '% loaded');
 
+                if ( progressCallback ) {
+
+                    var loaded = parseInt( 100 * numLoads / totalLoads );
+
+                    progressCallback( loaded / 2, planetData.name, 50 );
+
+                }
             },
 
             function ( xhr ) { // Report loading error.
 
-                reject( new Error ('loadPlanet() error:' + xhr + ' An error occurred loading while loading' + planetData.path));
+                reject( new Error ('domui.loadPlanet() error:' + xhr + ' An error occurred loading while loading' + planetData.path));
 
             }
 
@@ -543,11 +558,11 @@ var plutonian = (function () {
      * @param {Function} callback the function to call when initialization is complete
      * @param {Function} progressCallback the function to call after individual objects are loaded
      */
-    function loadPlanets ( scene, callback, progressCallback ) {
+    function loadPlanets ( dataArray, scene, progressCallback, callback ) {
 
         var promiseArray = [];
 
-        plutoArray.forEach( function ( planetData ) {
+        dataArray.forEach( function ( planetData ) {
 
             console.log('domui.loadPlanets(): loading ' + planetData.name + '.');
 
@@ -561,100 +576,96 @@ var plutonian = (function () {
 
         Promise.all( promiseArray ).then( function ( planets ) {
 
-            console.log('domui.loadPlanets(): successfully loaded all Planets.');
+            console.log('domui.loadPlanets(): successfully loaded a batch of Planets.');
 
-            callback(); // this is start() in example.html
+            if( callback ) {
+
+                callback(); // this is start() in example.html
+
+            }
 
         } ).catch ( function ( planetData ) {
 
-            console.log( 'domui.loadPlanets(): error loading a Planet:' + planetData );
+            console.log( 'domui.loadPlanets():' + planetData );
+
+            if ( progressCallback ) {
+
+                progressCallback( 100, 'Error loading ' + planetData.name );
+            }
 
         } );
 
     };
 
     /** 
-     * Load the stars from a stellar position file
+     * Load the Stars from a stellar position file
      * @param {Function} callback the function to call when initialization is complete
      * @param {Function} progressCallback the function to call after individual objects are loaded
      */
-    function loadStars ( callback, progressCallback ) {
-
-        return false;
-
-    };
-
-    /** 
-     * Load the surrounding universe of other Solar System 
-     * Planets, stars, and the galaxy band.
-     * @param {Function} callback the function to call when initialization is complete
-     * @param {Function} progressCallback the function to call after individual objects are loaded
-     */
-    function loadUniverse ( callback, progressCallback ) {
-
-        // Load the non-Plutonian planets
+    function loadStars ( dataArray, scene, progressCallback, callback ) {
 
         var promiseArray = [];
-
-        solarSystemArray.forEach( function ( planet ) { 
-
-            promiseArray.push( new Promise( function ( resolve , reject ) {
-
-                if ( loadSolarSystem( planet ) ) {
-
-                    resolve( planet );
-
-                } else {
-
-                    reject( planet );
-
-                }
-
-            } ) ); // nested .push( new Promise() )
-
-        } ); // foreach
 
         // Load the Stars
 
         promiseArray.push( new Promise ( function ( resolve, reject ) {
 
-            if( loadStars( starData ) ) {
+            var loaded = true;
 
-                resolve( starData );
+            if( loaded ) {
+
+                resolve( dataArray );
 
             } else {
 
-                reject( starData );
+                reject( dataArray );
 
             }
 
         } ) );
 
-        // Load the Galaxy texture
+        // Load the galaxy texture
 
-        promiseArray.push( new Promise ( function ( resolve, reject ) {
+        promiseArray.push ( new Promise ( function ( resolve, reject ) {
 
-            if( loadGalaxy( galaxyTexture ) ) {
+            texLoader.load('img/textures/galaxy.jpg', function ( texture ) {
 
-                resolve( galaxyTexture );
+                console.log( 'in texLoader, galaxy texture in callback...' );
 
-            } else {
+                // TODO: attach this texture to enclosing universe
 
-                reject( galaxyTexture );
+            }, function ( xhr ) { // Report loading progress
 
-            }
+                console.log( 'galaxy loading....' );
+
+                if ( progressCallback ) {
+
+                    var loaded = parseInt( 100 * numLoads / totalLoads );
+
+                    progressCallback( loaded / 2, planetData.name );
+
+                }
+
+            },
+
+            function ( xhr ) { // Report loading error.
+
+                reject( new Error ('loadStars() error:' + xhr + ' An error occurred loading while loading the galaxy texture.'));
+
+            } );
+
 
         } ) );
+
+        // Completion
 
         Promise.all( promiseArray ).then( function ( objects ) {
 
-            console.log('domui.loadUniverse(): successfully loaded all Universe objects.');
+            console.log('domui.loadStars(): successfully loaded all Stellar objects.');
 
         } ).catch ( function ( object ) {
 
-            window.p  =  object;
-
-            console.log( 'domui.loadUniverse(): error loading a Universe object:' + object );
+            console.log( object );
 
         } );
 
@@ -722,15 +733,19 @@ var plutonian = (function () {
 
         // Load texture and model data for Plutonian System
 
-        loadPlanets( scene, callback, progressCallback );
+        loadPlanets( plutoArray, scene, progressCallback, callback );
 
-        // Load texture and model data from the Universe (can happen independently)
+        // Load texture and model data from other Planets (can happen independently)
 
-        loadUniverse( scene, callback, progressCallback );
+        loadPlanets( solarSystemArray, scene, null, null );
 
-        // we load textures for Plutonian and other planets, plus Stars, + 1 Galaxy texture
+        // Load the Stars and Galaxy texture (can happen independently)
 
-        totalLoads = plutoArray.length + solarSystemArray.length + 1;
+        loadStars( stellarArray, scene, null, null );
+
+        // We only count plutoArray as essential, stars and Galaxy texture load after start();
+
+        totalLoads = plutoArray.length;
 
     };
 
