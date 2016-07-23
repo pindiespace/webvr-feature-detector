@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <dwsync>
-<file name="Detector.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131107411914314432" remote="131110881000000000" Dst="2" />
-<file name="CanvasRenderer.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131107411914259426" remote="131110881000000000" Dst="2" />
-<file name="OrbitControls.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131107411914339434" remote="131110881000000000" Dst="2" />
-<file name="Projector.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131107411914404443" remote="131110881000000000" Dst="2" />
-<file name="VRControls.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817504156" remote="131121276600000000" Dst="2" />
-<file name="VREffect.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817544156" remote="131121276600000000" Dst="2" />
-<file name="three.min.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817939609" remote="131121276600000000" Dst="2" />
-<file name="DeviceOrientationControls.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385816398402" remote="131121276600000000" Dst="2" />
-<file name="FlyControls.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817033989" remote="131121276600000000" Dst="2" />
-<file name="StereoEffect.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817479147" remote="131121276600000000" Dst="2" />
+<file name="Detector.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131107411914314432" remote="131137038600000000" Dst="2" />
+<file name="CanvasRenderer.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131107411914259426" remote="131137038600000000" Dst="2" />
+<file name="OrbitControls.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131107411914339434" remote="131137038600000000" Dst="2" />
+<file name="Projector.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131107411914404443" remote="131137038600000000" Dst="2" />
+<file name="VRControls.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817504156" remote="131137038600000000" Dst="2" />
+<file name="VREffect.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817544156" remote="131137038600000000" Dst="2" />
+<file name="three.min.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817939609" remote="131137039200000000" Dst="2" />
+<file name="DeviceOrientationControls.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385816398402" remote="131137038600000000" Dst="2" />
+<file name="FlyControls.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817033989" remote="131137038600000000" Dst="2" />
+<file name="StereoEffect.js" server="server57.web-hosting.com//projects/webvr-feature-detector/" local="131119385817479147" remote="131137038600000000" Dst="2" />
 </dwsync>

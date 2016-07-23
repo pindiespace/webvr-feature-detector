@@ -505,7 +505,10 @@ var domui = ( function () {
 
         if ( ! elem ) {
 
-            console.error( 'domui.removeMessage(): failed to specify DOM element')
+            console.warn( 'domui.removeMessage(): failed to specify DOM element');
+
+            return;
+
         }
 
         elem = getElement( elem );
@@ -531,8 +534,6 @@ var domui = ( function () {
             }
 
         }
-
-        console.error ( 'domui.removeMessage(): could not find message DOM element');
 
     }
 
@@ -575,7 +576,7 @@ var domui = ( function () {
 
         var progText = document.createElement( 'div' );
 
-        progText.innerHTML = ' ';
+        progText.innerHTML = ' . ';
 
         // Create <progress> within the container
 
@@ -906,12 +907,44 @@ var domui = ( function () {
      */
     function showControlPanel () {
 
+        controlPanel.style.display = 'block';
+
     };
 
     /** 
      * Hide the Ui buttons
      */
     function hideControlPanel () {
+
+        controlPanel.style.display = 'none';
+
+    };
+
+    /** 
+     * Set up listening for fullscreen requests. Initially 
+     * it may be null, so check for the event being undefined
+     */
+    function listenFullscreen ( fullscreenChangeFn ) {
+
+        // NOTE: put w3c ahead of others, since they may be non-functional but still available
+
+        if ( 'onfullscreenchange' in document ) {
+
+            document.addEventListener( 'fullscreenchange', fullscreenChangeFn, false );
+
+        } else if ( 'onwebkitfullscreenchange' in document ) {
+
+            document.addEventListener( 'webkitfullscreenchange', fullscreenChangeFn, false );
+
+        } else if ( 'onmozfullscreenchange' in document ) {
+
+            document.addEventListener( 'mozfullscreenchange', fullscreenChangeFn, false );
+
+        } else if ( 'onMSFullscreenChange' in document ) {
+
+            document.addEventListener( 'MSFullscreenChange', fullscreenChangeFn, false );
+
+        }
 
     };
 
@@ -920,6 +953,12 @@ var domui = ( function () {
      * @param DOMElement elem the element to set fullscreen.
      */
     function enterFullscreen ( elem ) {
+
+        // hide the control panel
+
+        hideControlPanel();
+
+        // handle vendor prefixes
 
         if ( elem.requestFullscreen ) {
 
@@ -951,6 +990,54 @@ var domui = ( function () {
 
     };
 
+    /** 
+     * browser fix for checking if we are in fullscreen
+     */
+    function isFullscreen () {
+
+       return document.fullscreenElement || document.webkitFullscreenElement || 
+            document.mozFullScreenElement || document.msFullscreenElement || 
+            document.webkitCurrentFullScreenElement || 
+            ( ! window.screenTop && ! window.screenY ) || false;
+
+    };
+
+    /** 
+     * manually leave fullscreen. In the Fullscreen API, the 
+     * escape key automatically leaves, and generates an 
+     * onfullscreen change. Manually leaving fullscreen with 
+     * a Ui control requires firing the exitFullscreen() function.
+     */
+    function exitFullscreen () {
+
+        if ( document.exitFullscreen ) {
+
+            document.exitFullscreen();
+
+        } else if ( document.webkitExitFullscreen ) {
+
+            document.webkitExitFullscreen();
+
+        } else if ( document.webkitCancelFullScreen ) {
+
+            document.webkitCancelFullScreen();
+
+        } else if ( document.mozCancelFullScreen ) {
+
+            document.mozCancelFullScreen();
+
+        } else if ( document.msExitFullscreen ) {
+
+            document.msExitFullscreen();
+
+        }
+
+        // Restore the Ui
+
+       showControlPanel();
+
+    };
+
     return {
 
         replaceCanvasWithImage: replaceCanvasWithImage,
@@ -971,7 +1058,17 @@ var domui = ( function () {
 
         addControlLink: addControlLink,
 
-        enterFullscreen: enterFullscreen
+        showControlPanel: showControlPanel,
+
+        hideControlPanel: hideControlPanel,
+
+        listenFullscreen: listenFullscreen,
+
+        enterFullscreen: enterFullscreen,
+
+        isFullscreen: isFullscreen,
+
+        exitFullscreen: exitFullscreen
 
     };
 

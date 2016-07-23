@@ -234,10 +234,6 @@ var WebVRConfig = {
       ]
     ], function() { // Main callback function
 
-        //TODO: gamepad-plus polyfill
-        //TODO: pseudo-worker polyfill
-        //TODO: http://javascriptissexy.com/javascript-apply-call-and-bind-methods-are-essential-for-javascript-professionals/
-
         // begin building the world
 
         if ( ! plutonian ) {
@@ -286,11 +282,11 @@ var WebVRConfig = {
 
         }
 
-        // window width and height
+        // window width and height (don't use dpr retina multiple)
 
-        var w = window.innerWidth * dpr;
+        var w = window.innerWidth;;
 
-        var h = window.innerHeight * dpr;
+        var h = window.innerHeight;;
 
         // Additional renderer properties
 
@@ -365,14 +361,8 @@ var WebVRConfig = {
         vrEffect.setSize( w, h );
 
         /* 
-         * World updates and events 
+         * Event handlers 
          */
-
-        // TODO: Need polling here for Texture, Model, WebVR PolyfilL DPI files.
-
-        // Build the Ui
-
-        // Event listeners
 
         /** 
          * Listen for mouseDown
@@ -404,14 +394,9 @@ var WebVRConfig = {
          */
         function onWindowResize ( e ) {
 
-           //w = window.innerWidth;
+            w = window.innerWidth;
 
-            //h = window.innerHeight;
-
-            w = window.innerWidth * dpr;
-
-            h = window.innerHeight * dpr;
-
+            h = window.innerHeight;
 
             console.log( 'Main: Resizing to %s x %s.', w, h );
 
@@ -429,35 +414,107 @@ var WebVRConfig = {
          */
         function onFullscreenChange ( e ) {
 
+            console.log( 'onFullscreenChange()' );
+
+            if ( domui.isFullscreen() ) {
+
+                domui.showControlPanel();
+
+            } else {
+
+                // do nothing
+
+            }
+
         };
 
         /** 
-         * Listen for an orientation change
+         * Listen for an orientation change. If we are on 
+         * mobile, we hide the Ui controls in Landscape mode.
          * @param {Event} e the event
          */
         function onOrientationChange ( e ) {
+
+            switch (window.orientation) {
+
+                case 0:
+
+                    console.log( 'onOrientationChange(): set DOM Mode:' + window.orientation );
+
+                    domui.showControlPanel();
+
+                    break;
+
+                case 90:
+
+                case -90:
+
+                    console.log( 'onOrientationChange(): set VR Mode, orientation:' + window.orientation );
+
+                    domui.hideControlPanel();
+
+                    //vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
+
+                break;
+
+            }
 
         };
 
         // VR specific events
 
+        function onVRDisplayConnected ( e ) {
+
+            console.log( 'onVRDisplayConnected()' );
+
+            vrDisplay.requestPresent( [ { source: renderer.domElement } ] ).then( function ( resolve, reject ) {
+
+                isVR = true;
+
+            } ).then( function ( e ) {
+
+                console.warn( 'onVRDisplayConnected(): failed to connect.' );
+
+            } );
+
+        };
+
+        function onVRDisplayDisconnected ( e ) {
+
+            console.log( 'onVRDisplayDisconnected()' );
+
+            vrDisplay.exitPresent().then( function ( resolve, reject ) {
+
+              isVR = false;
+
+            } ).catch( function ( e ) {
+
+                console.warn( 'onVRDisplayDisconnected(): failed to exit present.');
+
+            } );
+
+        };
+
         function onVRDisplayPresentChange ( e ) {
 
-              onWindowResize();
+            console.log( 'onVRDisplayPresentChange()' );
+
+            if ( vrDisplay && isVR === true ) {
+
+                isVR = false;
+
+            }
+
+            onWindowResize();
 
         };
-
-        function onVRDisplayDeviceParamsChange ( e ) {
-
-        };
-
 
         /**
          * Add event listeners.
          */
         function addListeners () {
 
-            // Add mouse events
+            // add mouse events
 
             renderer.domElement.addEventListener( 'mousedown', onMouseDown, false );
 
@@ -467,33 +524,29 @@ var WebVRConfig = {
 
             renderer.domElement.addEventListener( 'touchend', onMouseUp, false );
 
-            // Escape key
+            // escape key
 
             document.addEventListener( 'keydown', onKeydown, false );
 
-            // Add resize events
+            // add resize events
 
             window.addEventListener( 'resize', onWindowResize, false );
 
-            // Detect fullscreen API changes
+            // detect fullscreen API changes with vendor prefixes
 
-            document.addEventListener( 'webkitfullscreenchange', onFullscreenChange, false );
+            domui.listenFullscreen( onFullscreenChange );
 
-            document.addEventListener( 'mozfullscreenchange', onFullscreenChange, false );
-
-            document.addEventListener( 'fullscreenchange', onFullscreenChange, false );
-
-            document.addEventListener( 'MSFullscreenChange', onFullscreenChange, false );
-
-            // Listen for orientation changes on mobiles
+            // listen for orientation changes on mobiles
 
             window.addEventListener( 'orientationchange', onOrientationChange, false );
 
-            // Bind to VR* specific events
+            // bind to VR-specific events
+
+            window.addEventListener( 'vrdisplayconnected', onVRDisplayConnected, false );
+
+            window.addEventListener( 'vrdisplaydisconnected', onVRDisplayDisconnected, false );
 
             window.addEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange, false );
-
-            window.addEventListener( 'vrdisplaydeviceparamschange', onVRDisplayDeviceParamsChange, false );
 
         };
 
@@ -559,7 +612,7 @@ var WebVRConfig = {
 
             }
 
-        }
+        };
 
         /* 
          * Flags for VR and fullscreen
@@ -574,6 +627,8 @@ var WebVRConfig = {
             'dom-ui-text', 
             'dom-ui-buttons', 
             'dom-ui-links');
+
+        domui.showControlPanel();
 
         /* 
          * create a fullscreen button if Fullscreen API is available (or a shim)
@@ -592,6 +647,8 @@ var WebVRConfig = {
 
         var vrButton = domui.addControlButton( 'VR' ); // Assign the handler elsewhere
 
+        // Add the 'reset pose' button, activate only when we've confirmed WebVR is present
+
         var vrPoseButton = domui.addControlButton( 'Reset Pose' );
 
         // Add hyperlinks to the control bar
@@ -606,60 +663,65 @@ var WebVRConfig = {
          * Note that the native API won't go to VR on desktops (but the 
          * polyfill will with FORCE_ENABLE_VR in its configuration
          */
+
+
         var vrDisplay = null;
 
-        navigator.getVRDisplays().then( function( displays ) {
+        if ( navigator.getVRDisplays ) {
 
-            if ( displays.length > 0 ) {
+            navigator.getVRDisplays().then( function( displays ) {
 
-                vrDisplay = displays[0];
+                if ( displays.length > 0 ) {
 
-                // flag whether this is native API or polyfill
+                    vrDisplay = displays[0];
 
-                if ( vrDisplay.deviceName && vrDisplay.deviceName.indexOf('webvr-polyfill') !== -1 ) {
+                    // flag whether this is native API or polyfill
 
-                    isPolyfill = true;
+                    if ( vrDisplay.deviceName && vrDisplay.deviceName.indexOf('webvr-polyfill') !== -1 ) {
 
-                } else {
+                        isPolyfill = true;
 
-                    isPolyfill = false;
+                    } else {
 
-                }
+                        isPolyfill = false;
 
-                /* 
-                 * activate the VR button if:
-                 * WebVR is native API, and we're on mobile
-                 * WebVR is polyfill
-                 */
-                vrButton.disabled = false;
+                    }
 
-                vrButton.addEventListener( 'click', function ( e ) {
+                    /* 
+                     * Activate the VR button if:
+                     * WebVR is native API, and we're on mobile
+                     * WebVR is polyfill
+                     * 
+                     * Deactivate if we are on desktop with the 
+                     * native API, and no device is plugged in
+                     */
+                    vrButton.disabled = false;
 
-                    // set state flags
+                    vrButton.addEventListener( 'click', function ( e ) {
 
-                    isVR = true;
+                        // set state flags
 
-                    isFullscreen = false;
+                        isVR = true;
+
+                        isFullscreen = false;
 
                     // begin presenting
 
-                    vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
+                        vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
+                    } );
 
-                } );
+                } // end of vrDisplays.length > 0
 
-                vrPoseButton.disabled = false;
+            } ).catch( function ( e ) {
 
-                vrPoseButton.addEventListener( 'click', function ( e ) {
+                console.error( 'navigator.getVRDisplays() error.' );
 
-                    // reset pose
+            } ); //end of navigator.getdisplays
 
-                    vrDisplay.resetPose();
+        } else {
 
-                } );
-
-            }
-
-        } );
+            console.warn( 'navigator.getVRDisplays() not found.' );
+        }
 
         /* 
          * Create the virtual world simulation, loading models and textures. 
@@ -687,7 +749,8 @@ var WebVRConfig = {
 
     } // end of valid browser test
 
-
     </script>
+
   </body>
+
 </html>

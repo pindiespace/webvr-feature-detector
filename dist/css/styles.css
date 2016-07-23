@@ -2,7 +2,10 @@
  * Styles.css
  */
 
-/* basic styles needed for pseudo-fullscreen */
+/* basic styles needed for pseudo-fullscreen  with 
+ an absolutely-positioned control panel on top 
+ @link https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+ */
 
 html, body {
     width: 100%;
@@ -10,7 +13,12 @@ html, body {
     margin: 0px;
     padding: 0;
     overflow: hidden;
-    position: relative; /* TODO: CHECK THIS ONE */
+    /* position: relative; TODO: CHECK THIS ONE */
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
 /* needed for canvas as fullscreen element */
@@ -41,15 +49,16 @@ canvas {
 .dom-ui-progress-container {
     font-family: arial, sans-serif;
     font-size: 80%;
-    color: #ccd;
+    color: #cec4f8;
+    color: rgba(206, 196, 248, 1);
     position: absolute;
     width: 300px;
-    padding: 20px;
+    padding: 10px 10px 20px 10px;
     top: 50%;
     left: 50%;
     margin: 70px 0 0 -170px;
     border-radius: 6px;
-    background-color: #dbf; /* fallback */
+    background-color: #3816BC; /* fallback */
     background-color: rgba(56, 22, 188, 0.9);
     text-align:center;
     z-index:9999;
@@ -63,7 +72,7 @@ canvas {
 
 /* actual <progress> bar */
 .dom-ui-progress {
-
+    width: 80%;
 }
 
 /* control panel */
@@ -79,6 +88,7 @@ canvas {
 /* all children of the control panel */
 .dom-ui-control-panel > * {
     display: inline-block;
+    padding: 0.25em;
 }
 
 /* text sub-container */
@@ -88,12 +98,12 @@ canvas {
 
 /* button sub-container */
 .dom-ui-buttons {
-    
+    width:40%;
+    text-align:center;
 }
 
 /* individual buttons */
 .dom-ui-buttons button {
-
 }
 
 /* disabled buttons */
@@ -104,6 +114,7 @@ canvas {
 
 /* link sub-container */
 .dom-ui-links {
+    text-align: right;
     width: 30%;
 }
 
