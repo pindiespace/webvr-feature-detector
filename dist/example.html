@@ -721,6 +721,8 @@ var WebVRConfig = {
         } else {
 
             console.warn( 'navigator.getVRDisplays() not found.' );
+
+            domui.browserWarn( 'Your browser does not support WebVR 1.0. Only fullscreen mode will work.',failClass );
         }
 
         /* 

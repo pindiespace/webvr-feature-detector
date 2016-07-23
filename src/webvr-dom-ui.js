@@ -718,6 +718,35 @@ var domui = ( function () {
     };
 
     /** 
+     * Post a non-fatal warning to the user
+     * @param {String} msg the message to display
+     * @param {String} className apply CSS styles to alert
+     */
+    function browserWarn ( msg, className ) {
+
+        // Hide any active <progress>
+
+        hideProgress();
+
+        // show a message (without a close button)
+
+        var elem = setMessage( msg, true, false, className );
+
+        showMessage( elem );
+
+        // keep message onscreen for value shown in the delay
+
+        delay( 4000, function () {
+
+            // hide the message with fading, remove when invisible
+
+            hideMessage( elem, removeMessage, true, 0.1 );
+
+        } );
+
+    };
+
+    /** 
      * What to do when we can't load HTML5 canvas, 
      * 3d libraries, or WebVR.
      * @param {String} msg the message to show on failure.
@@ -729,6 +758,10 @@ var domui = ( function () {
     function browserFail ( msg, imgPath, className , container ) {
 
         replaceCanvasWithImage( imgPath, container );
+
+        browserWarn( msg, className );
+
+        /*
 
         // Hide any active <progress>
 
@@ -747,6 +780,8 @@ var domui = ( function () {
             hideMessage( elem, removeMessage, true, 0.1 );
 
         } );
+
+        */
 
     };
 
@@ -1043,6 +1078,8 @@ var domui = ( function () {
         replaceCanvasWithImage: replaceCanvasWithImage,
 
         browserFail: browserFail,
+
+        browserWarn: browserWarn,
 
         createProgress: createProgress,
 
