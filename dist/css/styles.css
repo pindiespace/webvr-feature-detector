@@ -109,7 +109,10 @@ canvas {
 /* disabled buttons */
 .dom-ui-buttons button[disabled=disabled], 
     .dom-ui-buttons button:disabled {
-    
+    pointer-events: none;
+    color: #c0c0c0;
+    background-color: #ffffff;
+
 }
 
 /* link sub-container */

@@ -315,20 +315,24 @@ var WebVRConfig = {
         camera.position.z = 0.0001;
 
         // Create a dolly for moving the VR head-tracking camera
+        // @link http://stackoverflow.com/questions/30511524/three-js-vrcontrols-integration-how-to-move-in-the-scene
 
         var dolly = new THREE.PerspectiveCamera();
 
-        dolly.position.x = 0;
-
-        dolly.position.y = 2;
-
-        dolly.position.z = -8;
-
         dolly.add( camera );
 
+        dolly.position.x = 0;
+
+        dolly.position.y = 0;
+
+        dolly.position.z = 0;
+
+        // 0, 20, -8
         //dolly.rotation.x = Math.PI / 2;
-        //dolly.rotation.y = Math.PI / 2.3; //firefox native webvr
+        //dolly.rotation.y = Math.PI / 2; //firefox native webvr
         //dolly.rotation.z = Math.PI / 2;
+
+        scene.add( dolly );
 
         // Non-VR controls
 
@@ -386,6 +390,13 @@ var WebVRConfig = {
          */
         function onKeydown ( e ) {
 
+            switch ( e.keyCode ) {
+
+                default:
+
+                    break;
+            }
+
         };
 
         /** 
@@ -405,6 +416,18 @@ var WebVRConfig = {
             camera.aspect = w / h ;
 
             camera.updateProjectionMatrix();
+
+            // IE 11 specific fullscreen kludge (onFullscreenChange event doesn't work)
+
+            if ( WebVRFeatureDetector.browser.ie === 11 ) {
+
+                if ( ! domui.isFullscreen() ) {
+
+                    domui.showControlPanel();
+
+                }
+
+            }
 
         };
 
@@ -467,13 +490,11 @@ var WebVRConfig = {
 
             console.log( 'onVRDisplayConnected()' );
 
-            vrDisplay.requestPresent( [ { source: renderer.domElement } ] ).then( function ( resolve, reject ) {
+            vrDisplay.requestPresent( [ { source: renderer.domElement } ] ).then( function ( result ) {
 
-                isVR = true;
+            } ).then( undefined, function ( err ) { // .catch reserved word on old browsers
 
-            } ).then( function ( e ) {
-
-                console.warn( 'onVRDisplayConnected(): failed to connect.' );
+                console.error( 'onVRDisplayConnected() error: device did not connect.' );
 
             } );
 
@@ -483,13 +504,11 @@ var WebVRConfig = {
 
             console.log( 'onVRDisplayDisconnected()' );
 
-            vrDisplay.exitPresent().then( function ( resolve, reject ) {
+            vrDisplay.exitPresent().then( function ( result ) {
 
-              isVR = false;
+            } ).then( undefined, function ( err ) {
 
-            } ).catch( function ( e ) {
-
-                console.warn( 'onVRDisplayDisconnected(): failed to exit present.');
+                console.error( 'onvrDisplayDisconnected() error: VR display did not disconnect.' );
 
             } );
 
@@ -499,9 +518,9 @@ var WebVRConfig = {
 
             console.log( 'onVRDisplayPresentChange()' );
 
-            if ( vrDisplay && isVR === true ) {
+            if ( vrDisplay ) {
 
-                isVR = false;
+              // Do something here (note: isVR already = true)
 
             }
 
@@ -556,10 +575,15 @@ var WebVRConfig = {
 
         // Rendering loop
 
-        function render () {
+        function render ( delta ) {
 
-            var delta = clock.getDelta(); // needed for composer (postprocessing image)
+            vrControls.update();
 
+            controls.update( delta );
+
+            vrEffect.render( scene, camera );
+
+/*
             if ( isVR ) {
 
                 vrControls.update();
@@ -574,13 +598,17 @@ var WebVRConfig = {
 
             }
 
+*/
+
         };
 
         function animate () {
 
             plutonian.update();
 
-            render();
+            var delta = clock.getDelta(); // needed for composer (postprocessing image)
+
+            render( delta );
 
             requestAnimationFrame( animate );
 
@@ -617,7 +645,7 @@ var WebVRConfig = {
         /* 
          * Flags for VR and fullscreen
          */
-        var isVR = false, isFullscreen = false, isPolyfill = false;
+        var isPolyfill = false;
 
         /* 
          * Set up the button Ui, overlay on the <canvas> element
@@ -635,11 +663,7 @@ var WebVRConfig = {
          */
         var fullScreenButton = domui.addControlButton( 'fullscreen', function ( e ) {
 
-            isFullscreen = true;
-
-            isVR = false;
-
-            domui.enterFullscreen( renderer.domElement );
+            domui.enterFullscreen( renderer.domElement, true );
 
         } );
 
@@ -675,9 +699,13 @@ var WebVRConfig = {
 
                     vrDisplay = displays[0];
 
-                    // flag whether this is native API or polyfill
-
-                    if ( vrDisplay.deviceName && vrDisplay.deviceName.indexOf('webvr-polyfill') !== -1 ) {
+                    /* 
+                     * flag whether this is native API or polyfill
+                     * NOTE: this is specific to webvr-polyfill
+                     */
+                    if ( vrDisplay.poseSensor_ && 
+                        vrDisplay.poseSensor_.deviceId && 
+                        vrDisplay.poseSensor_.deviceId.indexOf('polyfill') !== -1 ) {
 
                         isPolyfill = true;
 
@@ -693,36 +721,65 @@ var WebVRConfig = {
                      * WebVR is polyfill
                      * 
                      * Deactivate if we are on desktop with the 
-                     * native API, and no device is plugged in
+                     * native API, and no device is plugged in. IE 11 
+                     * loads polyfill, but doesn't jump to stereo (unlinke 
+                     * Edge)
                      */
-                    vrButton.disabled = false;
+                    if ( WebVRFeatureDetector.browser.ie === 11 ) {
+
+                        vrButton.disabled = true;
+
+                    } else {
+
+                        vrButton.disabled = false;
+
+                    }
+
+                    window.vrDisplay = vrDisplay
 
                     vrButton.addEventListener( 'click', function ( e ) {
 
-                        // set state flags
+                        // begin presenting
 
-                        isVR = true;
+                        console.log( 'navigator.getVRDisplays(): VR Display found, presenting.' );
 
-                        isFullscreen = false;
+                        if ( vrDisplay.capabilities.canPresent ) {
 
-                    // begin presenting
+                            vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
 
-                        vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
+                            /* 
+                              ADDING THE '.then' KILLS the polyfill and Chromium native
+
+                              .then( function () {
+
+                                console.log( 'vrDisplay.RequestPresent(): SUCCESS.' );
+
+                            } );
+
+                            */
+
+                        } else {
+
+                            console.error( 'vrDisplay.requestPresent() error: request failed' );
+                        }
+
                     } );
 
-                } // end of vrDisplays.length > 0
+                }
 
-            } ).catch( function ( e ) {
+            } ).then( undefined, function ( err ) {
 
-                console.error( 'navigator.getVRDisplays() error.' );
+                vrButton.disabled = true;
+
+                console.error( 'navigator.getVRDisplays() error:' + err );
 
             } ); //end of navigator.getdisplays
 
         } else {
 
-            console.warn( 'navigator.getVRDisplays() not found.' );
+            console.error( 'navigator.getVRDisplays() error: not found in this browser.' );
 
-            domui.browserWarn( 'Your browser does not support WebVR 1.0. Only fullscreen mode will work.',failClass );
+            domui.browserWarn( 'Your web browser does not support WebVR 1.0. Only fullscreen mode will work.',failClass );
         }
 
         /* 

@@ -30,12 +30,6 @@ var domui = ( function () {
 
     counter = 0;
 
-    // In VR, DOM or Fullscreen
-
-    var vrMode = false,
-
-    fullscreenMode = false;
-
     /* 
      * Set ids used for DOM elements used in the Ui to a custom value.
      * @param {String} id the base Id value (incremented with counter)
@@ -985,13 +979,18 @@ var domui = ( function () {
 
     /** 
      * Request fullScreen using vendor prefixes.
-     * @param DOMElement elem the element to set fullscreen.
+     * @param {DOMElement} elem the element to set fullscreen.
+     * @param {Boolean} controlFlag if true, hide the controls.
      */
-    function enterFullscreen ( elem ) {
+    function enterFullscreen ( elem, controlFlag ) {
 
         // hide the control panel
 
-        hideControlPanel();
+        if ( controlFlag ) {
+
+            hideControlPanel();
+
+        }
 
         // handle vendor prefixes
 

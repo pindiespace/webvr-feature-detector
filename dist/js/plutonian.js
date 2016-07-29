@@ -27,6 +27,14 @@ var plutonian = (function () {
 
     texLoader.crossOrigin = '';
 
+    // Unit axes
+
+    var XAXIS = new THREE.Vector3( 1, 0, 0 ),
+
+    YAXIS = new THREE.Vector3( 0, 1, 0 ),
+
+    ZAXIS = new THREE.Vector3( 0, 0, 1 );
+
     // Count the number of loads we have to do
 
     var numLoads = 0, totalLoads = 0;
@@ -289,7 +297,81 @@ var plutonian = (function () {
 
     };
 
-    /*
+    /** 
+     * Raycast to find if we are looking at or clicking on a scene object
+     * Explained nicely at this link: 
+     * @http://barkofthebyte.azurewebsites.net/post/2014/05/05/three-js-projecting-mouse-clicks-to-a-3d-scene-how-to-do-it-and-how-it-works
+     */
+    function picker ( camera, objects ) {
+
+        var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   //x
+                                        -( event.clientY / window.innerHeight ) * 2 + 1,  //y
+                                        0.5 );                                            //z
+
+        var raycaster = projector.pickingRay( mouse3D.clone(), camera );
+
+        var intersects = raycaster.intersectObjects( objects );
+
+        // Change color if hit block
+        // TODO: MAKE THIS SELECT IN ANOTHER WAY
+        if ( intersects.length > 0 ) {
+
+            intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
+
+        }
+
+    };
+
+    /** 
+     * Create the avatar body for the VR scene
+     */
+    function createAvatar () {
+
+        var avatar = new THREE.Object3D();
+
+        var avatarBody = makeCube( 'blue' );
+
+        avatarBody.position.y = -1.5;
+
+        avatar.add( characterBody );
+
+        scene.add( avatar );
+
+        return avatar;
+
+    };
+
+    /** 
+     * Move to an object we are looking at
+     * Adapted from the link at:
+     * @link 
+     * @param {THREE.PerspectiveCamera} camera the scene camera
+     * @param {THREE.Object} avatar object representing the user
+     * @param {Number} moveDistance fractional move, e.g. 0.1
+     */
+    function moveAvatarTo ( camera, avatar, moveDistance ) {
+
+        camera.position.copy( avatar.position);
+
+        // move in direction we look at
+
+        var direction = ZAXIS.clone();
+
+        direction.applyQuaternion(camera.quaternion);
+
+        direction.sub( YAXIS.clone().multiplyScalar( direction.dot( YAXIS ) ) );
+
+        direction.normalize();
+
+        // TODO: for a VR scene, this might be moving the whole THREE.Scene
+
+        character.quaternion.setFromUnitVectors( ZAXIS, direction );
+
+        character.translateZ( -moveDistance );
+
+    };
+
+    /**
      * Scale the geometry (rather than scale Scene or Mesh)
      * Similar to: 
      * @link http://learningthreejs.com/data/THREEx/docs/THREEx.GeometryUtils.html
@@ -757,11 +839,4 @@ var plutonian = (function () {
 
     };
 
-})();
-
-
-
-
-
-
-
+} )();
