@@ -45,9 +45,17 @@ main {
   padding: 0 1em 0 1em;
 }
 
+header, footer {
+  background-color: #ddd!important;
+}
+
 header {
-  background-color: #aaa;
   text-align: center;
+  padding-top:1em;
+}
+
+footer {
+  margin-bottom: -1em!important;
 }
 
 header > h1 {
@@ -62,6 +70,15 @@ header > nav {
 header > nav li {
   list-style: none;
   display: inline-block;
+}
+
+header > nav li a {
+  text-decoration: none;
+  color: #fff!important;
+}
+
+header > nav li a:hover {
+  text-decoration: none;
 }
 
 #run-test {
@@ -107,13 +124,12 @@ header > nav li {
     <h1>WebVRFeatureDetector</h1>
     <nav class="menu-links">
       <ul>
-        <li class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Detector Test</li>
-        <li class="btn btn-primary btn-lg active" role="button" aria-pressed="true"><a href="example.html">Sample Using Detector</a></li>
+        <li class="btn btn-primary btn-lg active" role="button" aria-pressed="true" ><a href="example.html">Sample Using Detector</a></li>
       </ul>
     </nav>
     <nav id="test" class="menu-controls">
       <form id="test">
-        <button id="run-test" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">(Re)Test</button>
+        <button id="run-test" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Run Test</button>
       </form>
     </nav>
   </header>
