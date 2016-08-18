@@ -24,6 +24,11 @@ hide the Apple status bar
 <!--
 CSS files
 -->
+
+<!--load Bootstrap styles-->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+
 <link rel="stylesheet" href="css/styles.css">
 <!--
 Additional CSS styles
@@ -32,7 +37,35 @@ Additional CSS styles
 
 /* change this from default overflow:hidden; */
 html, body {
+    margin:0;
     overflow: visible;
+}
+
+main {
+  padding: 0 1em 0 1em;
+}
+
+header {
+  background-color: #aaa;
+  text-align: center;
+}
+
+header > h1 {
+  margin-top:0;
+}
+
+header > nav {
+  margin: 0 auto;
+  display: inline-block;
+}
+
+header > nav li {
+  list-style: none;
+  display: inline-block;
+}
+
+#run-test {
+  border:0;
 }
 
 #test h3 { 
@@ -69,24 +102,26 @@ html, body {
 <!--put polyfills here if you want to see the results after pressing the (Re)test button-->
 </head>
 <body>
-  <main class="page-wrap">
+
   <header>
     <h1>WebVRFeatureDetector</h1>
-    <nav>
+    <nav class="menu-links">
       <ul>
-        <li>Detector Test</li>
-        <li><a href="example.html">Sample Using Detector</a></li>
+        <li class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Detector Test</li>
+        <li class="btn btn-primary btn-lg active" role="button" aria-pressed="true"><a href="example.html">Sample Using Detector</a></li>
       </ul>
     </nav>
-    <nav id="test">
-      <h3>Test</h3>
+    <nav id="test" class="menu-controls">
       <form id="test">
-        <button id="run-test">(Re)Test</button>
+        <button id="run-test" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">(Re)Test</button>
       </form>
     </nav>
   </header>
+  <main class="page-wrap">
   <section id="content">
-    <h2>Detector Tests</h2>
+    <h2>About the Library</h2>
+      <p>WebVRFeatureDetector uses JavaScript-based feature tests to identify web browsers, devices, and operating systems. When no valid feature exists, it defaults back to user-agent analysis. This makes detection more robust than standard &quot;browser-sniffing&quot;</p>
+      <hr>
     <article>
         <h3>Test Results For Your Device</h3>
         <!--results are listed here (CSS float)-->

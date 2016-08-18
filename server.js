@@ -7,6 +7,7 @@
 var favicon = require('serve-favicon');
 var express = require('express');
 var path = require('path');
+var port = 5000;
 
 //make our app.
 var app = express();
@@ -25,5 +26,5 @@ app.get('/*', function(req, res) {
 
 
 // Start serving.
-console.log('server listening at port 4000');
-app.listen(4000);
+console.log('server listening at port ' + port);
+app.listen(port);
