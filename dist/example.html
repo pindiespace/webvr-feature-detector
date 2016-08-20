@@ -60,7 +60,8 @@
 
 <body>
 
-    <!--canvas is dynamically created and fills body-->
+    <!--canvas is dynamically created and fills body. The ui 
+    panel at the top is also dynamically created-->
 
 <script>
 
@@ -519,6 +520,22 @@ var WebVRConfig = {
             console.log( 'onVRDisplayPresentChange()' );
 
             if ( vrDisplay ) {
+
+                if ( vrDisplay.isPresenting ) {
+
+                    if ( vrDisplay.capabilities.hasExternalDisplay ) {
+
+                        // TODO: add a button to manually exit presentation mode
+
+                    }
+
+                } else {
+
+                    if ( vrDisplay.capabilities.hasExternalDisplay ) {
+
+                        // TODO: remove the button to manually exit presentation mode
+                    }
+                }
 
               // Do something here (note: isVR already = true)
 

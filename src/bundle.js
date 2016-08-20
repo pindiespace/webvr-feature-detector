@@ -1158,7 +1158,7 @@
     s.pixelHeight = parseInt(s.height * s.pixelRatio);
     s.retina = (s.pixelRatio > 1);
     s.longest = Math.max(s.width, s.height);
-      return s;
+    return s;
   };
 
   /*

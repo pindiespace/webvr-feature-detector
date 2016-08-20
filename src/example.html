@@ -521,6 +521,22 @@ var WebVRConfig = {
 
             if ( vrDisplay ) {
 
+                if ( vrDisplay.isPresenting ) {
+
+                    if ( vrDisplay.capabilities.hasExternalDisplay ) {
+
+                        // TODO: add a button to manually exit presentation mode
+
+                    }
+
+                } else {
+
+                    if ( vrDisplay.capabilities.hasExternalDisplay ) {
+
+                        // TODO: remove the button to manually exit presentation mode
+                    }
+                }
+
               // Do something here (note: isVR already = true)
 
             }
