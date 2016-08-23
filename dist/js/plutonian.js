@@ -13,6 +13,16 @@ var plutonian = (function () {
 
     var scene, canvas, camera, dolly, keyLight, renderer;
 
+    // An array of the Planet meshes only (not Rings, stars, galaxy skybox)
+
+    var gazeObjects = [];
+
+    var raycaster = new THREE.Raycaster();
+
+    var mouseVector = new THREE.Vector2();
+
+    var gazeVector = new THREE.Vector3();
+
     // VR components
 
     var vrEffect, vrControls, controls;
@@ -298,27 +308,45 @@ var plutonian = (function () {
     };
 
     /** 
-     * Raycast to find if we are looking at or clicking on a scene object
+     * Raycast to find if we are clicking on a scene object
      * Explained nicely at this link: 
-     * @http://barkofthebyte.azurewebsites.net/post/2014/05/05/three-js-projecting-mouse-clicks-to-a-3d-scene-how-to-do-it-and-how-it-works
+     * @link http://barkofthebyte.azurewebsites.net/post/2014/05/05/three-js-projecting-mouse-clicks-to-a-3d-scene-how-to-do-it-and-how-it-works
+     * or use the vrecticle library
+     * @link http://opentechschool-brussels.github.io/webVR-for-3D-graphics-and-music/interacting-within-the-scene.html
+     * @link https://jsfiddle.net/dariukas/zpo7qwt1/
+     * @link http://threejs.org/docs/#Reference/Core/Raycaster
+     * TODO: EMPTY ARRAY
+     * @param {Event} e mousedown event
      */
-    function picker ( camera, objects ) {
+    function mousePicker ( e ) {
 
-        var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   //x
-                                        -( event.clientY / window.innerHeight ) * 2 + 1,  //y
-                                        0.5 );                                            //z
+        mouseVector.x =  ( e.clientX / window.innerWidth ) * 2 - 1;
 
-        var raycaster = projector.pickingRay( mouse3D.clone(), camera );
+        mouseVector.y =  -( ( e.clientY / window.innerHeight ) * 2 + 1 );
 
-        var intersects = raycaster.intersectObjects( objects );
+        raycaster.setFromCamera( mouseVector, camera );
+
+        var intersects = raycaster.intersectObjects( gazeObjects, true );
+
+        console.log(intersects); ///////////////////////
 
         // Change color if hit block
         // TODO: MAKE THIS SELECT IN ANOTHER WAY
+
         if ( intersects.length > 0 ) {
+
+            console.log("Intersected object:", intersects.length);
 
             intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
 
         }
+
+    };
+
+    /** 
+     * raycast to find if we are looking at an object in vr
+     */
+    function gazePicker () {
 
     };
 
@@ -383,7 +411,7 @@ var plutonian = (function () {
 
       for( var i = 0; i < geometry.vertices.length; i++ ) {
 
-        var vertex  = geometry.vertices[i];
+        var vertex  = geometry.vertices[ i ];
 
         vertex.position.multiplySelf( scale );
 
@@ -528,7 +556,7 @@ var plutonian = (function () {
 
                 modLoader.load( planetData.geometry, function ( obj ) {
 
-                    planetData.geometry = obj.children[0].geometry;
+                    planetData.geometry = obj.children[ 0 ].geometry;
 
                     planetData.material.map = texture;
 
@@ -543,6 +571,10 @@ var plutonian = (function () {
                     planetData.geometry.applyMatrix( planetData.translation );
 
                     planetData.group.add( planetData.mesh );
+
+                    // Planet mesh stored for picking (can't pick Rings, Stars, Galaxy)
+
+                    gazeObjects.push( planetData.mesh );
 
                     //  create a visible ring for the planetary orbit
 
@@ -768,7 +800,7 @@ var plutonian = (function () {
 
         for (var i in plutoArray) {
 
-          plutoArray[i].group.rotation.y += plutoArray[i].rotation;
+          plutoArray[ i ].group.rotation.y += plutoArray[ i ].rotation;
 
         }
 
@@ -810,7 +842,8 @@ var plutonian = (function () {
 
         for ( var i = 0, len = plutoArray.length; i < len; i++ ) {
 
-            scene.add( plutoArray[i].group );
+            scene.add( plutoArray[ i ].group );
+
         }
 
         // Load texture and model data for Plutonian System
@@ -835,7 +868,11 @@ var plutonian = (function () {
 
         init: init,
 
-        update: update
+        update: update,
+
+        mousePicker: mousePicker,
+
+        gazePicker: gazePicker
 
     };
 

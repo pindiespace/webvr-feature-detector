@@ -365,6 +365,29 @@ var WebVRConfig = {
 
         vrEffect.setSize( w, h );
 
+
+        /* 
+         * scene picker stuff
+         */
+        var crosshair = new THREE.Mesh(
+
+          new THREE.RingGeometry( 0.02, 0.04, 32 ),
+
+          new THREE.MeshBasicMaterial( {
+
+            color: 0xffffff,
+
+            opacity: 0.5,
+
+            transparent: true
+
+          } )
+        );
+
+        crosshair.position.z = - 2;
+
+        camera.add( crosshair );
+
         /* 
          * Event handlers 
          */
@@ -374,6 +397,10 @@ var WebVRConfig = {
          * @param {Event} e the event
          */
         function onMouseDown ( e ) {
+
+          e.preventDefault();
+
+          plutonian.mousePicker( e );
 
         };
 
