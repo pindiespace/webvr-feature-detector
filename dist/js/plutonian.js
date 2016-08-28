@@ -19,7 +19,7 @@ var plutonian = (function () {
 
     var raycaster = new THREE.Raycaster();
 
-    var mouseVector = new THREE.Vector2();
+    var mouseVector = new THREE.Vector3();
 
     var gazeVector = new THREE.Vector3();
 
@@ -326,6 +326,13 @@ var plutonian = (function () {
 
         raycaster.setFromCamera( mouseVector, camera );
 
+        window.rc = raycaster;
+        window.mv = mouseVector;
+        window.sc = scene.children;
+        window.go = gazeObjects;
+
+        //var intersects = raycaster.intersectObjects( scene.children, true );
+
         var intersects = raycaster.intersectObjects( gazeObjects, true );
 
         console.log(intersects); ///////////////////////
@@ -564,6 +571,8 @@ var plutonian = (function () {
 
                     planetData.geometry.center(); // center model within bounding box
 
+                    window.pd = planetData;
+
                     planetData.mesh = new THREE.Mesh( planetData.geometry, planetData.material );
 
                     planetData.mesh.position.set( 0, 0, 0 );
@@ -614,6 +623,10 @@ var plutonian = (function () {
 
                 planetData.group.add( planetData.mesh );
 
+                // Planet mesh stored for picking (can't pick Rings, Stars, Galaxy)
+
+                gazeObjects.push( planetData.mesh );
+
                 if( texture instanceof THREE.Texture ) {
 
                     resolve( planetData );
@@ -624,6 +637,7 @@ var plutonian = (function () {
                 }
 
             } // End of THREE.Sphere load
+
 
                 // compute the number of loads
 
