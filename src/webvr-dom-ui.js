@@ -28,7 +28,264 @@ var domui = ( function () {
 
     fadeDelay = 5000, // number of seconds until fading alerts begin fading
 
-    counter = 0;
+    counter = 0,
+
+    n, // we store all the childNodes of document.body here
+
+    swap = [], // store elements during DOM swap
+
+    placeholder = null; // used for swapping DOM element positions
+
+    /*
+     * Create a number padding system for adding to CSS
+     * @link http://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
+     */
+
+     /** 
+      * Pad a string, leading (left side) with a character.
+      * @param {Number} len total length desired.
+      * @param {String} the string to pad leading.
+      * @returns {String} the leading-padded string.
+      */
+    String.prototype.padLeading = function( len, c ) {
+
+        var s = '', c = c || ' ',
+
+        len = ( len || 2 ) - this.length;
+
+        while( s.length < len ) { 
+
+            s += c;
+
+        }
+
+        return s + this; 
+
+    };
+
+    /** 
+     * Pad a Number, leading side, with a character.
+     * @param {Number} len total length desired.
+     * @param {String} the string to pad leading.
+     * @returns {String} the leading-padded string.
+     */
+    Number.prototype.padLeading = function( len, c ) {
+
+        return String( this ).padLeading( len, c );
+
+    };
+
+    /** 
+     * Pad a Number, leading side, with zeroes.
+     * @param {Number} the total width of the padded Number.
+     */
+    Number.prototype.padLeadingZeroes = function( len ) {
+
+        return this.padLeading( len, '0' );
+
+    };
+
+    /** 
+     * get a counter variable that is always incremented
+     * @param {Boolean} pad if true, add '00' padding.
+     * @returns {Number} a unique, incremented number
+     */
+    function getCounter ( pad ) {
+
+        counter++;
+
+        if ( pad ) {
+
+            counter.padLeadingZeroes( 5 );
+
+        }
+
+        return counter++;
+
+    };
+
+    /**
+     * Confirm user passed in a DOM element to attach the Ui to.
+     * @param {Object} o object to test
+     * @returns {Boolean} if a DOM object, return true, else false.
+     */
+    function isDOM ( o ) {
+
+        if ( typeof o != 'object' ) { 
+
+            return false;
+
+        }
+
+        return ( /HTML(?:.*)Element/ ).test( Object.prototype.toString.call( o ).slice( 8, -1 ) );
+
+    };
+
+
+    /** 
+     * confirm that object is an HTML5 <canvas> object.
+     * @param {Object} the object to test
+     * @returns {Boolean} if nodeName is canvas, return true, else false.
+     */
+    function isCanvas ( o ) {
+
+        return ( isDOM( o )  && (element.nodeName.toLowerCase() === 'canvas' ) );
+
+    };
+
+    /**
+     * find all the elements on the page to hide
+     * @param {DOMElement} swapElem the <canvas> element to 'fullscreen'
+     */
+    function setupDOMForSwap ( swapElem ) {
+
+        if ( ! isObject( swapElem ) ) {
+
+            console.error('DOM swap element ' + canvas + ' not found');
+
+            return false;
+        }
+
+        n = document.body.childNodes; // assume we're past DOMReady
+
+      // Find all the elements on the page.
+
+        for ( var i = 0, len = n.length; i < len; i++ ) {
+
+            if ( n[i] !== canvas ) {
+
+                swap.push( n[i] );
+
+            }
+
+        }
+
+        // Add an invisible placeholder element in front of all other content for DOM swapping.
+
+        placeholder = document.createElement( 'div' );
+
+        placeholder.id = 'webvr-placeholder';
+
+        placeholder.style.display = 'none';
+
+        document.body.insertBefore( placeholder, document.body.childNodes[0] );
+
+        return true;
+
+    };
+
+    /**
+     * @description swap the DOM element with a placeholder element, moving it 
+     * to the top of the page, and hiding all other DOM elements. This function 
+     * makes a standard DOM page act more like typical 'full window' WebVR 
+     * code. The goal is to integrate WebGL into a standard web page, jumping 
+     * individual DOM elements to fullscreen (or pseudo-fullscreen on mobiles).
+     */
+    function swapDOM ( swapElem ) {
+
+        // Set up the swap.
+
+        if ( ! isCanvas( swapElem ) ) {
+
+            return false;
+
+        }
+
+        setupDOMForSwap( swapElem );
+
+        // get the parent for the swapped element
+
+        var parent = swapElem.parentNode;
+
+        // swap our placeholder ahead of the canvas
+
+        parent.insertBefore( placeholder, swapElem );
+
+        //swap canvas to top of document.body
+
+        document.body.insertBefore( placeHolder, document.body.firstChild );
+
+        //hide everything
+
+        for ( var i = 0, len = n.length; i < len; i++ ) {
+
+            if( n[i].style ) { //not defined for Text nodes
+
+                n[i].oldDisp = n[i].style.display;
+
+                if (n[i] !== canvas ) {
+
+                    n[i].style.display = 'none';
+
+                } else {
+
+                    //nothing to do;
+
+                }
+
+            }
+
+        }
+
+    };
+
+    /**
+     * Restore the (fullscreen) <canvas> back in its original position in the DOM,
+     * and make the rest of the DOM visible again.
+     */
+    function restoreDOM () {
+
+        if( n[0] !== canvas ) {
+
+            console.warn( 'domui.restoreDOM: tried to reset when not set');
+
+            return;
+
+        }
+
+        var parent = placeholder.parentNode;
+
+        //swap our canvas element there.
+
+        parent.insertBefore(canvas, placeholder);
+
+        //move placeholder back to top of document.body
+
+        for (var i = 0, len = n.length; i < len; i++) {
+
+            if (n[i].style) {
+
+            console.log("putting back old display:" + n[i].oldDisp)
+
+            n[i].style.display = n[i].oldDisp;
+
+            } else {
+
+                // Nothing to do.
+
+            }
+
+        }
+
+    };
+
+    /** 
+     * Emulate fullscreen element in browsers (i.e. mobile) that don't support it.
+     */
+    function changeToFullScreen () {
+
+      console.log('changeToFullScreen')
+      var w = parseInt(document.body.clientWidth);
+      var h = parseInt(document.body.clientHeight);
+      swapDOM(canvasContainer);
+      canvas.width = w;
+      canvas.height = h;
+
+      renderer.setViewport(0, 0, w, h); // this sets the drawing area correctly
+      vrEffect.setSize(w, h); // THIS is needed to change size
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    };
 
     /* 
      * Set ids used for DOM elements used in the Ui to a custom value.
@@ -260,6 +517,10 @@ var domui = ( function () {
         counter++;
 
         if ( counter < 10 ) {
+
+            padding = '00';
+
+        } else if ( counter < 100 ) {
 
             padding = '0';
 
@@ -950,8 +1211,131 @@ var domui = ( function () {
     };
 
     /** 
+     * check if Pointer Events are supported.
+     */
+    function hasPointerEvents () {
+
+      if ( pointerEvents !== null ) {
+
+        return pointerEvents;
+
+    }
+
+      var elem = document.createElement( 'x' );
+
+      elem.style.cssText = 'pointer-events:auto';
+
+      var r = elem.style.pointerEvents === 'auto';
+
+      elem = null;
+
+      return ( pointerEvents = r );
+
+    }
+
+    /**
+     * normalize elementFromPoint detection across browsers. Similar to
+     * @link https://github.com/moll/js-element-from-point.
+     * @param {Number} x the x coordinate from mouseclick.
+     * @param {Number} y the y coordinate from mouseclick.
+     * @returns {DOMElement} the underlying page element.
+     */
+    function elemFromPoint ( x, y ) {
+
+        var isRelativeToViewport = function () {
+
+            var x = window.pageXOffset ? window.pageXOffset + window.innerWidth - 1 : 0;
+
+            var y = window.pageYOffset ? window.pageYOffset + window.innerHeight - 1 : 0;
+
+            if ( ! x && ! y ) {
+
+                return true;
+
+            }
+
+            return ! document.elementFromPoint(x, y);
+
+        };
+
+      if ( ! isRelativeToViewport() ) {
+
+        x += window.pageXOffset,
+
+        y += window.pageYOffset;
+
+      }
+
+      return document.elementFromPoint( x, y );
+
+    };
+
+    /**
+     * See if pointerEvents are supported on a DOM element, manually pass
+     * mouseclicks if they are not. It works by briefly hiding the current element,
+     * then checking which underlying element would be clicked on, then restoring
+     * visibility to the element.
+     * @param {DOMElement} elem the element we want to be transparent to clicks.
+     */
+    function makeClickThrough ( elem ) {
+
+        elem.onclick = function( e ) {
+
+        var underneath, disp;
+
+        if ( e && e.target ) {
+
+          disp = e.target.style.display;
+
+          e.target.style.display = 'none';
+
+          underneath = elemFromPoint(e.pageX, e.pageY);
+
+          e.target.style.display = disp;
+
+        } else if ( window.event !== undefined ) {
+
+            disp = window.event.srcElement.style.visibility;
+
+            window.event.srcElement.style.visibility = 'hidden';
+
+            underneath = elemFromPoint(e.pageX, e.pageY);
+
+            window.event.srcElement.style.visibility = disp;
+
+            underneath.click(); // manually fire the 'click' event.
+
+        }
+
+      }
+
+    };
+
+
+    /**
+     * Check if fullScreen element is non-null for browsers that have it.
+     * @returns Boolean if fullScreen element present, return true, else false
+     */
+    function isFullscreen () {
+
+        if ( ! document.fullscreenElement ||
+            ! document.mozFullScreenElement ||
+            ! document.webkitFullscreenElement ||
+            ! document.msFullscreenElement ) {
+
+          return false;
+
+        }
+
+        return true;
+
+    };
+
+
+    /** 
      * Set up listening for fullscreen requests. Initially 
      * it may be null, so check for the event being undefined
+     * @param {function} callback for change in fullscreen status.
      */
     function listenFullscreen ( fullscreenChangeFn ) {
 
