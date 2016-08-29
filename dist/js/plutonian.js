@@ -324,16 +324,20 @@ var plutonian = (function () {
 
         mouseVector.y =  -( ( e.clientY / window.innerHeight ) * 2 + 1 );
 
+        mouseVector.z =  1; // value doesn't seem to matter!
+
         raycaster.setFromCamera( mouseVector, camera );
 
-        window.rc = raycaster;
-        window.mv = mouseVector;
-        window.sc = scene.children;
-        window.go = gazeObjects;
+        // TODO: ONLY WORKS FOR PLUTO, AND ONLY IN UPPER PART OF PLUTO
+        // POSSIBLY GHOST SCENE NEEDED?
+        // USE ORIENTATION DATA, NOT MOUSE VECTOR??
+        // http://stackoverflow.com/questions/15726560/three-js-raycaster-intersection-empty-when-objects-not-part-of-scene 
 
         //var intersects = raycaster.intersectObjects( scene.children, true );
 
-        var intersects = raycaster.intersectObjects( gazeObjects, true );
+        window.gazeObjects = gazeObjects;
+
+        var intersects = raycaster.intersectObjects( gazeObjects );
 
         console.log(intersects); ///////////////////////
 
@@ -344,7 +348,13 @@ var plutonian = (function () {
 
             console.log("Intersected object:", intersects.length);
 
-            intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
+            for ( var i = 0, len = intersects.length; i < len; i++ ) {
+
+                intersects[ i ].object.material.color.setHex( Math.random() * 0xffffff );
+
+                window.selObj = intersects[i].object; /////////////////////////////
+
+            }
 
         }
 
@@ -540,9 +550,11 @@ var plutonian = (function () {
 
         // Using MeshPhongMaterial REQUIRES a DirectionalLight!
 
-        keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        keyLight = new THREE.DirectionalLight( 0xffffff, 1.0 );
 
-        keyLight.position.set(0, 25, 15).normalize();
+        // TODO: determine actual light angle
+
+        keyLight.position.set( 0, 10, 15 ).normalize();
 
         scene.add( keyLight );
 
@@ -567,11 +579,9 @@ var plutonian = (function () {
 
                     planetData.material.map = texture;
 
-                    //planet.geometry.scale( 0.1, 0.1, 0.1 ); // might need later
+                    //planetData.geometry.scale( 10, 10, 10 ); // might need later
 
                     planetData.geometry.center(); // center model within bounding box
-
-                    window.pd = planetData;
 
                     planetData.mesh = new THREE.Mesh( planetData.geometry, planetData.material );
 
@@ -580,6 +590,8 @@ var plutonian = (function () {
                     planetData.geometry.applyMatrix( planetData.translation );
 
                     planetData.group.add( planetData.mesh );
+
+                    planetData.mesh.name = planetData.name;
 
                     // Planet mesh stored for picking (can't pick Rings, Stars, Galaxy)
 
@@ -622,6 +634,8 @@ var plutonian = (function () {
                 planetData.mesh = new THREE.Mesh( planetData.geometry, planetData.material );
 
                 planetData.group.add( planetData.mesh );
+
+                planetData.mesh.name = planetData.name;
 
                 // Planet mesh stored for picking (can't pick Rings, Stars, Galaxy)
 

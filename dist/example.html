@@ -391,6 +391,16 @@ var WebVRConfig = {
         /* 
          * Event handlers 
          */
+        function onMouseOver ( e ) {
+
+            console.log("MOUSEOVER EVENT"); /////////////////////////////
+
+            e.preventDefault();
+
+            plutonian.mousePicker( e );
+
+        };
+
 
         /** 
          * Listen for mouseDown
@@ -582,6 +592,8 @@ var WebVRConfig = {
             renderer.domElement.addEventListener( 'mousedown', onMouseDown, false );
 
             renderer.domElement.addEventListener( 'mouseup', onMouseUp, false );
+
+            renderer.domElement.addEventListener( 'mouseover', onMouseOver, false );
 
             renderer.domElement.addEventListener( 'touchstart', onMouseDown, false );
 
