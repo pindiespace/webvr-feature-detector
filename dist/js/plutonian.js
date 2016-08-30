@@ -320,18 +320,39 @@ var plutonian = (function () {
      */
     function mousePicker ( e ) {
 
+        // Create Point in front of camera, based on click coordinates
+
+        //NO EFFECT scene.updateMatrixWorld(true);
+
+        camera.lookAt(scene.position);
+
         mouseVector.x =  ( e.clientX / window.innerWidth ) * 2 - 1;
 
         mouseVector.y =  -( ( e.clientY / window.innerHeight ) * 2 + 1 );
 
-        mouseVector.z =  1; // value doesn't seem to matter!
+        mouseVector.z =  1; // can be plus or minus!!
+
+//////////////
+        mouseVector.y = 0.001; //MANUALLY!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //THIS MAKES IT WORK. WORKS ON ALL OBJECTS
+        // WHAT WOULD HAPPEN FOR OUT-OF-PLANE OBJECTS?????????????
+//////////////
+
+        console.log("mouse x:" + mouseVector.x + " y:" + mouseVector.y + " z:" + mouseVector.z );
+
+        window.cp = camera.position;
+        window.dp = dolly.position;
+
+        // Convert position of the Point to its position in world space
+
+        /////////mouseVector.unproject( camera );
+        //mouseVector.unproject( dolly );
+
+        // Create a ray 
+        /////////raycaster = new THREE.Raycaster( camera.position, mouseVector.sub( camera.position ).normalize() );
 
         raycaster.setFromCamera( mouseVector, camera );
 
-        // TODO: ONLY WORKS FOR PLUTO, AND ONLY IN UPPER PART OF PLUTO
-        // POSSIBLY GHOST SCENE NEEDED?
-        // USE ORIENTATION DATA, NOT MOUSE VECTOR??
-        // http://stackoverflow.com/questions/15726560/three-js-raycaster-intersection-empty-when-objects-not-part-of-scene 
 
         //var intersects = raycaster.intersectObjects( scene.children, true );
 
