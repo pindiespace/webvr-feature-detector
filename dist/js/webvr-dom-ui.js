@@ -1,4 +1,4 @@
-var domui = ( function () {
+var WebVRDOMUi = ( function () {
 
     // Ui elements
 
@@ -237,7 +237,7 @@ var domui = ( function () {
 
         if( n[0] !== canvas ) {
 
-            console.warn( 'domui.restoreDOM: tried to reset when not set');
+            console.warn( 'WebVRDOMUi.restoreDOM: tried to reset when not set');
 
             return;
 
@@ -326,7 +326,7 @@ var domui = ( function () {
 
             if ( ! e ) {
 
-                console.error( 'domui.getElement():' + elem + ' not found in DOM');
+                console.error( 'WebVRDOMUi.getElement():' + elem + ' not found in DOM');
 
                 e = false;
 
@@ -596,7 +596,7 @@ var domui = ( function () {
 
         if ( ! msg ) {
 
-            console.error( 'domui.setMessage(): failed to specify message')
+            console.error( 'WebVRDOMUi.setMessage(): failed to specify message')
         }
 
         // use existing element, or create new one and add to messages.
@@ -637,7 +637,7 @@ var domui = ( function () {
 
         }
 
-        console.error ( 'domui.setMessage(): could not find message DOM element');
+        console.error ( 'WebVRDOMUi.setMessage(): could not find message DOM element');
 
         return null;
 
@@ -652,7 +652,7 @@ var domui = ( function () {
 
         if ( ! elem ) {
 
-            console.error( 'domui.showMessage(): failed to specify DOM element');
+            console.error( 'WebVRDOMUi.showMessage(): failed to specify DOM element');
         }
 
         // use document.body for centering
@@ -687,7 +687,7 @@ var domui = ( function () {
 
         }
 
-        console.error ( 'domui.setMessage(): could not find message DOM element');
+        console.error ( 'WebVRDOMUi.setMessage(): could not find message DOM element');
 
         return false;
 
@@ -706,7 +706,7 @@ var domui = ( function () {
 
         if ( ! elem ) {
 
-            console.error( 'domui.hideMessage(): failed to specify DOM element')
+            console.error( 'WebVRDOMUi.hideMessage(): failed to specify DOM element')
         }
 
         elem = getElement( elem );
@@ -719,7 +719,7 @@ var domui = ( function () {
 
                     if (inc > 0.99 ) {
 
-                        console.error( 'domui.hideMessage(): invalid fade increment:' + inc );
+                        console.error( 'WebVRDOMUi.hideMessage(): invalid fade increment:' + inc );
 
                         return;
 
@@ -746,7 +746,7 @@ var domui = ( function () {
 
         }
 
-        console.error ( 'domui.setMessage(): could not find message DOM element');
+        console.error ( 'WebVRDOMUi.setMessage(): could not find message DOM element');
 
         return false;
 
@@ -760,7 +760,7 @@ var domui = ( function () {
 
         if ( ! elem ) {
 
-            console.warn( 'domui.removeMessage(): failed to specify DOM element');
+            console.warn( 'WebVRDOMUi.removeMessage(): failed to specify DOM element');
 
             return;
 
@@ -878,7 +878,7 @@ var domui = ( function () {
 
         if ( ! progElem ) {
 
-            console.error( 'domui.updateProgress() error: <progress> element not provided.' );
+            console.error( 'WebVRDOMUi.updateProgress() error: <progress> element not provided.' );
 
             return;
 
@@ -886,7 +886,7 @@ var domui = ( function () {
 
         if ( isNaN( percent ) ) {
 
-            console.error( 'domui.updateProgress() error: supplied % value:' + percent + ' is not a number.');
+            console.error( 'WebVRDOMUi.updateProgress() error: supplied % value:' + percent + ' is not a number.');
 
             return;
 
@@ -927,7 +927,7 @@ var domui = ( function () {
 
         if ( ! progElem ) {
 
-            console.warn( 'domui.hideProgress() error: <progress> element not provided' );
+            console.warn( 'WebVRDOMUi.hideProgress() error: <progress> element not provided' );
 
             return;
 
@@ -1052,7 +1052,7 @@ var domui = ( function () {
 
         if( controlPanel ) {
 
-            console.warn( 'domui.createControlPanel() warning: button container already created' );
+            console.warn( 'WebVRDOMUi.createControlPanel() warning: button container already created' );
 
             return;
 
@@ -1117,7 +1117,7 @@ var domui = ( function () {
 
         if ( ! buttonContainer) {
 
-            console.error( 'domui.addButton(): button container not initialized' );
+            console.error( 'WebVRDOMUi.addButton(): button container not initialized' );
 
             return;
  
@@ -1125,7 +1125,7 @@ var domui = ( function () {
 
         if ( ! text ) {
 
-            console.error( 'domui.addControlButton() error: no button text supplied.');
+            console.error( 'WebVRDOMUi.addControlButton() error: no button text supplied.');
 
             return;
 
@@ -1164,7 +1164,7 @@ var domui = ( function () {
 
         if ( ! linkContainer ) {
             
-            console.error( 'domui.addControlLink() error: link container not created.');
+            console.error( 'WebVRDOMUi.addControlLink() error: link container not created.');
 
             return;
 
@@ -1172,7 +1172,7 @@ var domui = ( function () {
 
         if ( ! text || ! url ) {
 
-            console.error( 'domui.addControlLink() error: no text or link supplied.');
+            console.error( 'WebVRDOMUi.addControlLink() error: no text or link supplied.');
 
             return;
 

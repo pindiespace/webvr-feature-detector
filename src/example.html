@@ -52,10 +52,13 @@
 
     </script>
 
-    <!--webvr API 1.1 shim-->
+    <!--webvr API 1.1 shim from WebVR W3c site 
+    https://github.com/w3c/webvr/blob/gh-pages/js/webvr-1-1.js
+    -->
+
     <script src='js/webvr-1-1.js'></script>
 
-    <!--load ui methods directly-->
+    <!--load DOM ui methods directly, they need to be ready before the 3D world inits-->
 
     <script src='js/webvr-dom-ui.js'></script>
 
@@ -133,21 +136,21 @@ var WebVRConfig = {
     if ( typeof WebVRFeatureDetector === undefined || ! WebVRFeatureDetector.canvas || 
         ! WebVRFeatureDetector.addEventListener ) {
 
-        domui.browserFail( 'Your browser is too old to support 3d or VR (upgrade).', failImg, failClass, document.body );
+        WebVRDOMUi.browserFail( 'Your browser is too old to support 3d or VR (upgrade).', failImg, failClass, document.body );
 
         //alert( 'Your browser does not support this page (upgrade).' );
 
     } else if ( WebVRFeatureDetector.browser.ie && WebVRFeatureDetector.browser.ie < 11 ) {
 
-        domui.browserFail( 'Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
+        WebVRDOMUi.browserFail( 'Old versions of Internet Explorer do not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
 
     } else if (WebVRFeatureDetector.browser.firefox && WebVRFeatureDetector.browser.firefox < 15) {
 
-        domui.browserFail( 'Old versions of Firefox do not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
+        WebVRDOMUi.browserFail( 'Old versions of Firefox do not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
 
     } else if (WebVRFeatureDetector.browser.chrome && WebVRFeatureDetector.browser.chrome == 9) {
 
-        domui.browserFail('This version of Chrome does not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
+        WebVRDOMUi.browserFail('This version of Chrome does not support THREE.js, WebVR cannot run.', failImg, failClass, document.body );
 
     } else {
 
@@ -171,7 +174,7 @@ var WebVRConfig = {
 
      // Start <progress> dialog (updated in callbacks from WebVRFeatureDetector.load() )
 
-     var progElem = domui.createProgress( 'dom-ui-progress-container', 'dom-ui-progress', 0, 100 );
+     var progElem = WebVRDOMUi.createProgress( 'dom-ui-progress-container', 'dom-ui-progress', 0, 100 );
 
      /** 
       * Progress function, using both library loading and texture/model loading status
@@ -190,15 +193,15 @@ var WebVRConfig = {
 
         if ( percent >= 100 ) {
 
-            domui.updateProgress( progElem, percent, msg );
+            WebVRDOMUi.updateProgress( progElem, percent, msg );
 
-            domui.finishProgress( progElem );
+            WebVRDOMUi.finishProgress( progElem );
 
         } else {
 
             // this updates and completes BEFORE texture loading.
 
-            domui.updateProgress( progElem, percent, msg );
+            WebVRDOMUi.updateProgress( progElem, percent, msg );
 
         }
 
@@ -234,7 +237,8 @@ var WebVRConfig = {
       ],
       [
         { name: 'fetch', path: 'js/polyfills/fetch.js', poly: true },
-        { name: 'ui', path: 'js/plutonian.js', poly: false }
+        { name: 'selector', path: 'js/webvr-selector.js', poly: false },
+        { name: 'plutonian', path: 'js/plutonian.js', poly: false }
       ]
     ], function() { // Main callback function
 
@@ -412,7 +416,7 @@ var WebVRConfig = {
 
                 ( e.clientX / window.innerWidth ) * 2 - 1,
 
-                -( ( e.clientY / window.innerHeight ) * 2 + 1 ),
+                0.001, //-( ( e.clientY / window.innerHeight ) * 2 + 1 ),
 
                 0.001 // can be plus or minus!!
 
@@ -429,7 +433,7 @@ var WebVRConfig = {
 
                 ( e.changedTouches[0].pageX / window.innerWidth ) * 2 - 1,
 
-                -( (e.changedTouches[0].pageY / window.innerHeight ) * 2 + 1 ),
+                0.001, //-( (e.changedTouches[0].pageY / window.innerHeight ) * 2 + 1 ),
 
                 0.001
 
@@ -451,7 +455,7 @@ var WebVRConfig = {
 
             e.preventDefault();
 
-            scenePicker( getMouseCoords( e ) );
+            WebVRSelector.scenePicker( scene, camera, getMouseCoords( e ) );
 
             //plutonian.mousePicker( e );
 
@@ -467,7 +471,7 @@ var WebVRConfig = {
 
             e.preventDefault();
 
-            scenePicker( getMouseCoords( e ) );
+            WebVRSelector.scenePicker( scene, camera, getMouseCoords( e ) );
 
         };
 
@@ -477,9 +481,24 @@ var WebVRConfig = {
          */
         function onMouseUp ( e ) {
 
+            console.log("MOUSEUP EVENT");
+
             e.preventDefault();
 
-            scenePicker( getMouseCoords( e ) );
+            WebVRSelector.scenePicker( scene, camera, getMouseCoords( e ) );
+
+        };
+
+        /** 
+         * Listen for click event
+         */
+        function onClick ( e ) {
+
+            console.log("CLICK EVENT");
+
+            e.preventDefault();
+
+            WebVRSelector.scenePicker( scene, camera, getMouseCoords( e ) );
 
         };
 
@@ -489,9 +508,11 @@ var WebVRConfig = {
          */
         function onTouchStart ( e ) {
 
+            console.log("TOUCHSTART EVENT");
+
             e.preventDefault();
 
-            scenePicker( getTouchCoords( e ) );
+            WebVRSelector.scenePicker( scene, camera, getTouchCoords( e ) );
 
         };
 
@@ -501,9 +522,11 @@ var WebVRConfig = {
          */
         function onTouchMove ( e ) {
 
+            console.log("TOUCHMOVE EVENT");
+
             e.preventDefault()
 
-            scenePicker( getTouchCoords( e ) );
+            WebVRSelector.scenePicker( scene, camera, getTouchCoords( e ) );
 
         };
 
@@ -544,9 +567,9 @@ var WebVRConfig = {
 
             if ( WebVRFeatureDetector.browser.ie === 11 ) {
 
-                if ( ! domui.isFullscreen() ) {
+                if ( ! WebVRDOMUi.isFullscreen() ) {
 
-                    domui.showControlPanel();
+                    WebVRDOMUi.showControlPanel();
 
                 }
 
@@ -562,9 +585,9 @@ var WebVRConfig = {
 
             console.log( 'onFullscreenChange()' );
 
-            if ( domui.isFullscreen() ) {
+            if ( WebVRDOMUi.isFullscreen() ) {
 
-                domui.showControlPanel();
+                WebVRDOMUi.showControlPanel();
 
             } else {
 
@@ -587,7 +610,7 @@ var WebVRConfig = {
 
                     console.log( 'onOrientationChange(): set DOM Mode:' + window.orientation );
 
-                    domui.showControlPanel();
+                    WebVRDOMUi.showControlPanel();
 
                     break;
 
@@ -597,7 +620,7 @@ var WebVRConfig = {
 
                     console.log( 'onOrientationChange(): set VR Mode, orientation:' + window.orientation );
 
-                    domui.hideControlPanel();
+                    WebVRDOMUi.hideControlPanel();
 
                     //vrDisplay.requestPresent( [ { source: renderer.domElement } ] );
 
@@ -753,6 +776,8 @@ var WebVRConfig = {
 
             // renderer.domElement.addEventListener( 'mouseover', onMouseOver, false );
 
+            renderer.domElement.addEventListener( 'click', onClick, false );
+
             // touch events
 
             renderer.domElement.addEventListener( 'touchstart', onTouchStart, false );
@@ -770,7 +795,7 @@ var WebVRConfig = {
 
             // detect fullscreen API changes with vendor prefixes
 
-            domui.listenFullscreen( onFullscreenChange );
+            WebVRDOMUi.listenFullscreen( onFullscreenChange );
 
             // listen for orientation changes on mobiles
 
@@ -867,34 +892,34 @@ var WebVRConfig = {
         /* 
          * Set up the button Ui, overlay on the <canvas> element
          */
-        domui.createControlPanel( 'Plutonian', 
+        WebVRDOMUi.createControlPanel( 'Plutonian', 
             'dom-ui-control-panel', 
             'dom-ui-text', 
             'dom-ui-buttons', 
             'dom-ui-links');
 
-        domui.showControlPanel();
+        WebVRDOMUi.showControlPanel();
 
         /* 
          * create a fullscreen button if Fullscreen API is available (or a shim)
          */
-        var fullScreenButton = domui.addControlButton( 'fullscreen', function ( e ) {
+        var fullScreenButton = WebVRDOMUi.addControlButton( 'fullscreen', function ( e ) {
 
-            domui.enterFullscreen( renderer.domElement, true );
+            WebVRDOMUi.enterFullscreen( renderer.domElement, true );
 
         } );
 
         // Add the VR button, activate only when we've confirmed WebVR is present
 
-        var vrButton = domui.addControlButton( 'VR' ); // Assign the handler elsewhere
+        var vrButton = WebVRDOMUi.addControlButton( 'VR' ); // Assign the handler elsewhere
 
         // Add the 'reset pose' button, activate only when we've confirmed WebVR is present
 
-        var vrPoseButton = domui.addControlButton( 'Reset Pose' );
+        var vrPoseButton = WebVRDOMUi.addControlButton( 'Reset Pose' );
 
         // Add hyperlinks to the control bar
 
-        domui.addControlLink( 'home', 'index.html' );
+        WebVRDOMUi.addControlLink( 'home', 'index.html' );
 
         /* 
          * The VR button is only activated when a valid VRDisplay has been 
@@ -999,7 +1024,7 @@ var WebVRConfig = {
 
             console.error( 'navigator.getVRDisplays() error: not found in this browser.' );
 
-            domui.browserWarn( 'Your web browser does not support WebVR 1.0. Only fullscreen mode will work.',failClass );
+            WebVRDOMUi.browserWarn( 'Your web browser does not support WebVR 1.0. Only fullscreen mode will work.',failClass );
         }
 
         /* 
@@ -1021,7 +1046,7 @@ var WebVRConfig = {
 
         console.error( msg  + ' batch#' + batch + ', script#' + script + ', value:' + s );
 
-        domui.hideProgress( progElem );
+        WebVRDOMUi.hideProgress( progElem );
 
     } );
 
