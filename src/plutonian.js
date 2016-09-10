@@ -17,12 +17,6 @@ var plutonian = (function () {
 
     var gazeObjects = [];
 
-    var raycaster = new THREE.Raycaster();
-
-    var mouseVector = new THREE.Vector3();
-
-    var gazeVector = new THREE.Vector3();
-
     // VR components
 
     var vrEffect, vrControls, controls;
@@ -36,14 +30,6 @@ var plutonian = (function () {
     var texLoader = new THREE.TextureLoader();
 
     texLoader.crossOrigin = '';
-
-    // Unit axes
-
-    var XAXIS = new THREE.Vector3( 1, 0, 0 ),
-
-    YAXIS = new THREE.Vector3( 0, 1, 0 ),
-
-    ZAXIS = new THREE.Vector3( 0, 0, 1 );
 
     // Count the number of loads we have to do
 
@@ -87,6 +73,16 @@ var plutonian = (function () {
      * Other non-Plutonian planets are present
      */
     var solarCenter = 100; // TODO: GET RIGHT FIGURE HERE
+
+
+    /** 
+     * Expose the GazeObjects for picking.
+     */
+    function getGazeObjects () {
+
+      return gazeObjects;
+
+    };
 
     /** 
      * Ice dwarf and moon features in detail
@@ -307,86 +303,6 @@ var plutonian = (function () {
 
     };
 
-    /** 
-     * Raycast to find if we are clicking on a scene object
-     * Explained nicely at this link: 
-     * @link http://barkofthebyte.azurewebsites.net/post/2014/05/05/three-js-projecting-mouse-clicks-to-a-3d-scene-how-to-do-it-and-how-it-works
-     * or use the vrecticle library
-     * @link http://opentechschool-brussels.github.io/webVR-for-3D-graphics-and-music/interacting-within-the-scene.html
-     * @link https://jsfiddle.net/dariukas/zpo7qwt1/
-     * @link http://threejs.org/docs/#Reference/Core/Raycaster
-     * TODO: EMPTY ARRAY
-     * @param {Event} e mousedown event
-     */
-    function mousePicker ( e ) {
-
-        // Create Point in front of camera, based on click coordinates
-
-        //NO EFFECT scene.updateMatrixWorld(true);
-
-        camera.lookAt(scene.position);
-
-        mouseVector.x =  ( e.clientX / window.innerWidth ) * 2 - 1;
-
-        mouseVector.y =  -( ( e.clientY / window.innerHeight ) * 2 + 1 );
-
-        mouseVector.z =  1; // can be plus or minus!!
-
-//////////////
-        mouseVector.y = 0.001; //MANUALLY!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //THIS MAKES IT WORK. WORKS ON ALL OBJECTS
-        // WHAT WOULD HAPPEN FOR OUT-OF-PLANE OBJECTS?????????????
-//////////////
-
-        console.log("mouse x:" + mouseVector.x + " y:" + mouseVector.y + " z:" + mouseVector.z );
-
-        window.cp = camera.position;
-        window.dp = dolly.position;
-
-        // Convert position of the Point to its position in world space
-
-        /////////mouseVector.unproject( camera );
-        //mouseVector.unproject( dolly );
-
-        // Create a ray 
-        /////////raycaster = new THREE.Raycaster( camera.position, mouseVector.sub( camera.position ).normalize() );
-
-        raycaster.setFromCamera( mouseVector, camera );
-
-
-        //var intersects = raycaster.intersectObjects( scene.children, true );
-
-        window.gazeObjects = gazeObjects;
-
-        var intersects = raycaster.intersectObjects( gazeObjects );
-
-        console.log(intersects); ///////////////////////
-
-        // Change color if hit block
-        // TODO: MAKE THIS SELECT IN ANOTHER WAY
-
-        if ( intersects.length > 0 ) {
-
-            console.log("Intersected object:", intersects.length);
-
-            for ( var i = 0, len = intersects.length; i < len; i++ ) {
-
-                intersects[ i ].object.material.color.setHex( Math.random() * 0xffffff );
-
-                window.selObj = intersects[i].object; /////////////////////////////
-
-            }
-
-        }
-
-    };
-
-    /** 
-     * raycast to find if we are looking at an object in vr
-     */
-    function gazePicker () {
-
-    };
 
     /** 
      * Create the avatar body for the VR scene
@@ -919,9 +835,7 @@ var plutonian = (function () {
 
         update: update,
 
-        mousePicker: mousePicker,
-
-        gazePicker: gazePicker
+        getGazeObjects: getGazeObjects
 
     };
 

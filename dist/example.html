@@ -52,6 +52,9 @@
 
     </script>
 
+    <!--webvr API 1.1 shim-->
+    <script src='js/webvr-1-1.js'></script>
+
     <!--load ui methods directly-->
 
     <script src='js/webvr-dom-ui.js'></script>
@@ -388,8 +391,59 @@ var WebVRConfig = {
 
         camera.add( crosshair );
 
+
+        var raycaster = new THREE.Raycaster();
+
         /* 
          * Event handlers 
+         */
+
+         /** 
+          * get x and y coordinates from mouse move or click
+          * @param {Event} e the event
+        sceneVector.y = 0.001; //MANUALLY!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //THIS MAKES IT WORK. WORKS ON ALL OBJECTS
+        // WHAT WOULD HAPPEN FOR OUT-OF-PLANE OBJECTS?????????????
+
+          */
+        function getMouseCoords ( e ) {
+
+            return new THREE.Vector3(
+
+                ( e.clientX / window.innerWidth ) * 2 - 1,
+
+                -( ( e.clientY / window.innerHeight ) * 2 + 1 ),
+
+                0.001 // can be plus or minus!!
+
+            );
+
+        };
+
+        /** 
+         * get touch coordinates
+         */
+        function getTouchCoords ( e ) {
+
+            return new THREE.Vector3(
+
+                ( e.changedTouches[0].pageX / window.innerWidth ) * 2 - 1,
+
+                -( (e.changedTouches[0].pageY / window.innerHeight ) * 2 + 1 ),
+
+                0.001
+
+            );
+
+        };
+
+        /* 
+         * Mouse (desktop) event handlers
+         */
+
+        /** 
+         * Listen for mouseOver
+         * @param {Event} e the event
          */
         function onMouseOver ( e ) {
 
@@ -397,10 +451,11 @@ var WebVRConfig = {
 
             e.preventDefault();
 
-            plutonian.mousePicker( e );
+            scenePicker( getMouseCoords( e ) );
+
+            //plutonian.mousePicker( e );
 
         };
-
 
         /** 
          * Listen for mouseDown
@@ -408,9 +463,11 @@ var WebVRConfig = {
          */
         function onMouseDown ( e ) {
 
-          e.preventDefault();
+            console.log("MOUSEDOWN EVENT");
 
-          plutonian.mousePicker( e );
+            e.preventDefault();
+
+            scenePicker( getMouseCoords( e ) );
 
         };
 
@@ -419,6 +476,34 @@ var WebVRConfig = {
          * @param {Event} e the event
          */
         function onMouseUp ( e ) {
+
+            e.preventDefault();
+
+            scenePicker( getMouseCoords( e ) );
+
+        };
+
+        /** 
+         * Listen for touchstart event
+         * @param {Event} e the event
+         */
+        function onTouchStart ( e ) {
+
+            e.preventDefault();
+
+            scenePicker( getTouchCoords( e ) );
+
+        };
+
+        /** 
+         * Listen for touchMove event
+         * @param {Event} e the event
+         */
+        function onTouchMove ( e ) {
+
+            e.preventDefault()
+
+            scenePicker( getTouchCoords( e ) );
 
         };
 
@@ -582,6 +667,79 @@ var WebVRConfig = {
 
         };
 
+
+    /** 
+     * Raycast to find if we are clicking on a scene object
+     * Explained nicely at this link: 
+     * @link http://barkofthebyte.azurewebsites.net/post/2014/05/05/three-js-projecting-mouse-clicks-to-a-3d-scene-how-to-do-it-and-how-it-works
+     * or use the vrecticle library
+     * @link http://opentechschool-brussels.github.io/webVR-for-3D-graphics-and-music/interacting-within-the-scene.html
+     * @link https://jsfiddle.net/dariukas/zpo7qwt1/
+     * @link http://threejs.org/docs/#Reference/Core/Raycaster
+     * TODO: EMPTY ARRAY
+     * @param {Event} e mousedown event
+     */
+    function scenePicker ( sceneVector ) {
+
+        // Create Point in front of camera, based on click coordinates
+
+        //NO EFFECT scene.updateMatrixWorld(true);
+        camera.lookAt(scene.position);
+/*
+
+        sceneVector.x =  ( e.clientX / window.innerWidth ) * 2 - 1;
+
+        sceneVector.y =  -( ( e.clientY / window.innerHeight ) * 2 + 1 );
+
+        sceneVector.z =  1; // can be plus or minus!!
+
+//////////////
+        sceneVector.y = 0.001; //MANUALLY!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //THIS MAKES IT WORK. WORKS ON ALL OBJECTS
+        // WHAT WOULD HAPPEN FOR OUT-OF-PLANE OBJECTS?????????????
+//////////////
+*/
+
+        console.log("mouse x:" + sceneVector.x + " y:" + sceneVector.y + " z:" + sceneVector.z );
+
+        // Convert position of the Point to its position in world space
+
+        /////////sceneVector.unproject( camera );
+        //sceneVector.unproject( dolly );
+
+        // Create a ray 
+        /////////raycaster = new THREE.Raycaster( camera.position, sceneVector.sub( camera.position ).normalize() );
+
+        raycaster.setFromCamera( sceneVector, camera );
+
+
+        //var intersects = raycaster.intersectObjects( scene.children, true );
+
+        window.gazeObjects = plutonian.getGazeObjects();
+
+        var intersects = raycaster.intersectObjects( plutonian.getGazeObjects() );
+
+        console.log( intersects ); ///////////////////////
+
+        // Change color if hit block
+        // TODO: MAKE THIS SELECT IN ANOTHER WAY
+
+        if ( intersects.length > 0 ) {
+
+            console.log("Intersected object:", intersects.length);
+
+            for ( var i = 0, len = intersects.length; i < len; i++ ) {
+
+                intersects[ i ].object.material.color.setHex( Math.random() * 0xffffff );
+
+                window.selObj = intersects[i].object; /////////////////////////////
+
+            }
+
+        }
+
+    };
+
         /**
          * Add event listeners.
          */
@@ -593,11 +751,14 @@ var WebVRConfig = {
 
             renderer.domElement.addEventListener( 'mouseup', onMouseUp, false );
 
-            renderer.domElement.addEventListener( 'mouseover', onMouseOver, false );
+            // renderer.domElement.addEventListener( 'mouseover', onMouseOver, false );
 
-            renderer.domElement.addEventListener( 'touchstart', onMouseDown, false );
+            // touch events
 
-            renderer.domElement.addEventListener( 'touchend', onMouseUp, false );
+            renderer.domElement.addEventListener( 'touchstart', onTouchStart, false );
+
+            renderer.domElement.addEventListener( 'touchend', onTouchMove, false );
+
 
             // escape key
 
@@ -754,6 +915,9 @@ var WebVRConfig = {
                 if ( displays.length > 0 ) {
 
                     vrDisplay = displays[0];
+
+                    // TODO: remove ////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!
+                    window.vrDisplay = vrDisplay;
 
                     /* 
                      * flag whether this is native API or polyfill
