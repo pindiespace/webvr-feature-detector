@@ -138,32 +138,31 @@ WebVRFeatureDetector also has a microloader, written to be ultra-compatible with
 The example (access under dist/polyfilled.html) loads a set of useful polyfills which enable a graceful decay pattern with older browsers. All the polyfills here have NPM versions.
 
     **WebVR API** - not supported in desktops, support in iOS and Android browsers.
-    * @link http://webvr.info
-    * @link https://iswebvrready.org/
-    * Polyfill at: @link https://github.com/borismus/webvr-polyfill
+    * @link [http://webvr.info](http://webvr.info)
+    * @link [https://iswebvrready.org/](https://iswebvrready.org/)
+    * Polyfill at: @link [https://github.com/borismus/webvr-polyfill](https://github.com/borismus/webvr-polyfill)
 
     **Promise API** - supported in recent desktops and mobiles
-    * @link https://davidwalsh.name/promises
-    * Polyfill at: @link https://github.com/taylorhakes/promise-polyfill
+    * @link [https://davidwalsh.name/promises](https://davidwalsh.name/promises)
+    * Polyfill at: @link [https://github.com/taylorhakes/promise-polyfill](https://github.com/taylorhakes/promise-polyfill)
 
     **GamePad API** - supported in recent versions of Chrome desktop
-    @link https://www.smashingmagazine.com/2015/11/gamepad-api-in-web-games/
-    * Polyfill at: https://github.com/MozVR/gamepad-plus
+    @link [https://www.smashingmagazine.com/2015/11/gamepad-api-in-web-games/](https://www.smashingmagazine.com/2015/11/gamepad-api-in-web-games/)
+    * Polyfill at: [https://github.com/MozVR/gamepad-plus](https://github.com/MozVR/gamepad-plus)
 
     **GamePad Vibration API** (proposed)
     **GamePad Pose API** (proposed)
     [**GamePad Touchpad** (proposed)](https://lists.w3.org/Archives/Public/public-webapps/2016AprJun/0052.html)
 
     Fetch API
-    * @link https://davidwalsh.name/fetch
+    * @link [https://davidwalsh.name/fetch](https://davidwalsh.name/fetch)
     Polyfill
-    * @link https://github.com/github/fetch
+    * @link [https://github.com/github/fetch](https://github.com/github/fetch)
 
 ### More on the Example
 
-  This example highlights features of WebVRFeatureDetector for testing the browser 
-  and loading appropriate polyfills in the correct sequence. It will load fallbacks 
-  on less capable browsers:
+  This example highlights features of WebVRFeatureDetector for testing the browser and loading appropriate polyfills in the correct sequence. It will load fallbacks on less capable browsers:
+  
   - HTML5 Canvas but no WebGL: renders one frame 
   - No HTML5 Canvas: fallback GIF image
 
