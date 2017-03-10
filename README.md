@@ -171,14 +171,17 @@ The example (access under dist/polyfilled.html) loads a set of useful polyfills 
   It will load fallbacks on less capable browsers:
   
   - HTML5 Canvas but no WebGL: renders one frame 
+
   - No HTML5 Canvas: fallback GIF image
 
   **Plutonian System Data:**
   
   [Charon] (https://en.wikipedia.org/wiki/Charon_(moon))
+  
   [Pluto](https://en.wikipedia.org/wiki/Pluto)
+  
   [Plutonian System](https://en.wikipedia.org/wiki/Moons_of_Pluto#Scale_model_of_the_Pluto_system)
-
+  
   **The Charon map** is shifted by 30 degrees so rotated to face pluto corrected.
 
   **Asteroid and small Moon Editors**
@@ -189,7 +192,9 @@ The example (access under dist/polyfilled.html) loads a set of useful polyfills 
   **Image sources:**
   
   [SOS](http://laps.noaa.gov/albers/sos/sos.html)
+  
   [SOS Features](http://laps.noaa.gov/albers/sos/features/)
+  
   [Planetary bumpmaps](http://planetpixelemporium.com/earth.html)
 
 
