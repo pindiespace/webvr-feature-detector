@@ -83,13 +83,15 @@ var WebVRSelector = ( function () {
 
     };
 
+    // TODO: Picker from aframe - https://raw.githubusercontent.com/aframevr/aframe/master/dist/aframe.js
+
+    // TODO: THREE.Points.prototype.raycast = ( function () {
 
     // TODO: custom event to exit VR
 
     // TODO: custom event to trigger a hyperlink
 
     // https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
-
 
     return {
 
