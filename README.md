@@ -1,4 +1,4 @@
-# webvr-feature-detector
+# [webvr-feature-detector](docs/images/logo.png)
 
 This is a specialized device and browser detector script which checks for the ability to run a 3d environment and the WebVR api, using scripts compatible with older browsers.
 
