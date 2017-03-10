@@ -4,8 +4,6 @@ This is a specialized device and browser detector script which checks for the ab
 
 ## Example
 
-![WebVR Example]()
-
 Check out [the example here](http://pindiespace.github.io/webvr-feature-detector/index.html).
 
 ## The Problem
