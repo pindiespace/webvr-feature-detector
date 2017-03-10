@@ -3,31 +3,113 @@
 <head>
 <title>WebVRFeatureDetector</title>
 <meta charset="utf-8">
-<!--set the viewport, shrink-to-fit fixes safari bug-->
-<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0 shrink-to-fit=no">
+<!--
+set the viewport, shrink-to-fit fixes safari bug
+-->
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.01 ,minimal-ui">
 <!--handle iOS and android mobile
 http://www.html5rocks.com/en/mobile/fullscreen/ -->
-<!--ios fullscreen-->
+<!--
+ios fullscreen
+-->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<!--android fullscreen-->
+<!--
+android fullscreen
+-->
 <meta name="mobile-web-app-capable" content="yes">
-<!--hide the Apple status bar-->
+<!--
+hide the Apple status bar
+-->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<!--CSS styles-->
+<!--
+CSS files
+-->
+
+<!--load Bootstrap styles-->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="css/styles.css">
+<!--
+Additional CSS styles
+-->
 <style>
+
+/* change this from default overflow:hidden; */
+html, body {
+    margin:0;
+    overflow: visible;
+}
+
+main {
+  padding: 0 1em 0 1em;
+}
+
+header, footer {
+  background-color: #ddd!important;
+}
+
+header {
+  text-align: center;
+  padding-top:1em;
+}
+
+footer {
+  margin-bottom: -1em!important;
+}
+
+header > h1 {
+  margin-top:0;
+}
+
+header > nav {
+  margin: 0 auto;
+  display: inline-block;
+}
+
+header > nav li {
+  list-style: none;
+  display: inline-block;
+}
+
+header > nav li a {
+  text-decoration: none;
+  color: #fff!important;
+}
+
+header > nav li a:hover {
+  text-decoration: none;
+}
+
+#run-test {
+  border:0;
+}
+
+#test h3 { 
+  display: inline;
+  display: inline-block;
+}
+
+#test form {
+  display: inline;
+  display: inline-block;
+}
+
 #ua {
   width: 100%;
+  margin-left: 0.5em;
 }
 #results {
-  width:100%;
-  font-size:1.5em; 
+  width: 100%;
+  font-size: 1.5em; 
 }
 .results-col {
-  width:30%;
-  display:inline; /* old IE */
-  display:inline-block;
-  vertical-align:top;
-  float:left;
+  width: 250px;
+  display: inline; /* old IE */
+  display: inline-block;
+  vertical-align: top;
+  float: left;
+  /* border: 1px solid black; */
 }
 </style>
 <!--add polyfills that should run in head here-->
@@ -37,32 +119,28 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
 <!--put polyfills here if you want to see the results after pressing the (Re)test button-->
 </head>
 <body>
+
   <header>
     <h1>WebVRFeatureDetector</h1>
-    <nav>
+    <nav class="menu-links">
       <ul>
-        <li>Detector Test</li>
-        <li><a href="example.html">Example Loading Polyfills</a></li>
+        <li class="btn btn-primary btn-lg active" role="button" aria-pressed="true" ><a href="example.html">Sample Using Detector</a></li>
       </ul>
     </nav>
+    <nav id="test" class="menu-controls">
+      <form id="test">
+        <button id="run-test" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Run Test</button>
+      </form>
+    </nav>
   </header>
+  <main class="page-wrap">
   <section id="content">
-    <h2>Detector Features</h2>
-    <p>This Detector does three things:</p>
-    <ol>
-      <li>Check if browser supports features needed for WebVR.</li>
-      <li>Tries to determine the specific hardware device it is running on.</li>
-      <li>Optionally, cue polyfills for sequential loading</li>
-    </ol>
-    <p>WebVR Detector is NOT a general-purpose browser or feature detector. Its goal is to find the subset of cellphones which can be used in VR headsets. It has an integration feature so that hardware-specific features needed to set up a VR display can be adapted for the device.</p>
-    <p>To see how to load polyfills and VR worlds, check <a href="example.html">the example</a>.</p>
-    <hr>
+    <h2>About the Library</h2>
+      <p>WebVRFeatureDetector uses JavaScript-based feature tests to identify web browsers, devices, and operating systems. When no valid feature exists, it defaults back to user-agent analysis. This makes detection more robust than standard &quot;browser-sniffing&quot;</p>
+      <hr>
     <article>
-        <h2>Feature Test for Your Device</h2>
-        <form id="test">
-          <button id="run-test">(Re)Test</button>
-        </form>
-        <!--results are listed here-->
+        <h3>Test Results For Your Device</h3>
+        <!--results are listed here (CSS float)-->
         <div id="results"></div>
         <div style="clear:both;"></div>
             <script>
@@ -101,18 +179,21 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
                   if (typeof o != 'function') {
                     if (typeof o == 'object') {
                       ////////console.log('adding object:' + i)
+                      if (i != 'screen') {
+                        list += '</ul><ul class="results-col">'; // new column
+                      }
                       list += '<li>' + '<span>' + i + '</span>:<ul>';
                       list = dumpProps(o, list);
                       list += '</ul>';
                     } else {
                       ///////console.log('adding string:' + i)
                       count++;
-                      if (count > MAX_COL) {
-                        list += '</ul><ul class="results-col">'; // new column
-                        count = 0;
-                      }
                       var prop = toStr(o);
-                      list += '<li>' + '<em ' + styleStr(o) +'>' + i + '</em>:' + prop;
+                      list += '<li>' + '<em ' + styleStr(o) +'>' + i + '</em>:';
+                      if (i.length > 10) { //TODO: change for different type styles!!!
+                        list += '<br>';
+                      }
+                      list += prop;
                     }
                     list += '</li>';
                   }
@@ -140,22 +221,31 @@ http://www.html5rocks.com/en/mobile/fullscreen/ -->
           // User-agent.
           var s = document.createElement('div');
           s.id = 'ua';
-          s.innerHTML = 'Agent:' + navigator.userAgent;
+          s.innerHTML = '<strong>User-Agent:</strong> ' + navigator.userAgent;
           results.appendChild(s);
+          results.appendChild(document.createElement('hr'));
           // Results.
           t = document.createElement('div');
           t.innerHTML = resultsList;
           results.appendChild(t);
-
           // Attach retest event handler
           var runTest = document.getElementById('run-test');
           runTest.onclick = detect;
         </script>
     </article>
     <hr>
+    <p>This Detector does three things:</p>
+    <ol>
+      <li>Check if browser supports features needed for WebVR.</li>
+      <li>Tries to determine the specific hardware device it is running on.</li>
+      <li>Optionally, cue polyfills for sequential loading</li>
+    </ol>
+    <p>WebVR Detector is NOT a general-purpose browser or feature detector. Its goal is to find the subset of cellphones which can be used in VR headsets. It has an integration feature so that hardware-specific features needed to set up a VR display can be adapted for the device.</p>
+    <p>To see how to load polyfills and VR worlds, check <a href="example.html">the example</a>.</p>
   </section>
-  <footer>
-    <p>&copy; Pete Markiewicz.</p>
+  </main>
+  <footer class="page-footer">
+    <p>&copy; <script>document.write(new Date().getFullYear());</script> Pete Markiewicz.</p>
   </footer>
   <!--add additional polyfills here-->
 </body>

@@ -1,111 +1,137 @@
-/* Styles.css Responsive pattern for web page
- * http://mydevice.io/devices/
- * http://learn.shayhowe.com/advanced-html-css/responsive-web-design/
- * https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+/* 
+ * Styles.css
  */
- html {
-   box-sizing: border-box;
- }
- *, *:before, *:after {
-   box-sizing: inherit;
- }
 
-body {
-	margin:0;
-	padding:0;
-	overflow: hidden;
-	height: 100vh;
-}
+/* basic styles needed for pseudo-fullscreen  with 
+ an absolutely-positioned control panel on top 
+ @link https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+ */
 
-/* container for canvas, here a figure element */
-#vr-world {
-	margin:0;
-	width:80%;
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    padding: 0;
+    overflow: hidden;
+    /* position: relative; TODO: CHECK THIS ONE */
+    box-sizing: border-box;
 }
 
-/* make <canvas> respond to window size changes, unless the
-user is in VR mode. Then, fill the screen */
-
-#vr-world canvas: -webkit-full-screen {
-  width:100%;
-	height:100%;
-}
-#vr-world canvas: -moz-full-screen {
-  width:100%;
-	height:100%;
-}
-#vr-world canvas: -ms-fullscreen {
-  width:100%;
-	height:100%;
-}
-#vr-world canvas: fullscreen {
-  width:100%;
-	height:100%;
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
-/* While in fullscreen, hide any children with class 'tohide' */
-:-webkit-full-screen .tohide {
-  display: none;
-}
-:-moz-full-screen .tohide {
-  display: none;
-}
-:-ms-fullscreen .tohide {
-  display: none;
-}
-:fullscreen .tohide {
-  display: none;
-}
-
-/* Default canvas properties */
-#vr-world canvas {
-	border: 4px solid #aaa;
-	margin:0;
-	width: 100%;
-	height: 100%;
-	display:block;    /* remove scrollbars */
-	overflow: hidden;
-}
-
-#vr-world canvas:focus {
-	outline:0; /* remove blue outline around canvas */
+/* needed for canvas as fullscreen element */
+canvas {
+    position: absolute;
+    top: 0;
 }
 
 
-/*
-#vr-world canvas:after {
-	content: "<div style='height:1px;'></div>";
-}
-*/
+/* DOM alert and status windows */
 
-/* Responsive styles (desktop) */
-/*
-@media all and (max-width: 767px) {
-	#vr-world {
-		width: 100%;
-		height: auto;
-		border:2px solid green;
-	}
+.dom-ui-message {
 
 }
 
-@media all and (min-width: 768px) {
-	#vr-world {
-		width: 80%;
-		height: auto;
-		border:2px solid red;
-	}
+/* DOM alert message when the browser can't run the virtual world */
+
+.fail-message {
+    position: absolute;
+    background-color: #ddd;
+    margin: 0 auto;
+    padding: 1em;
+    border-radius: 0.5em;
+}
+
+/* progress bar container (DOM window) */
+
+.dom-ui-progress-container {
+    font-family: arial, sans-serif;
+    font-size: 80%;
+    color: #cec4f8;
+    color: rgba(206, 196, 248, 1);
+    position: absolute;
+    width: 300px;
+    padding: 10px 10px 20px 10px;
+    top: 50%;
+    left: 50%;
+    margin: 70px 0 0 -170px;
+    border-radius: 6px;
+    background-color: #3816BC; /* fallback */
+    background-color: rgba(56, 22, 188, 0.9);
+    text-align:center;
+    z-index:9999;
+    display:none;
+}
+
+/* text above the <progress> bar */
+.dom-ui-progress-container div {
+    padding-bottom: 0.5em;
+}
+
+/* actual <progress> bar */
+.dom-ui-progress {
+    width: 80%;
+}
+
+/* control panel */
+.dom-ui-control-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  background: white;
+  width: 100%;
+}
+
+/* all children of the control panel */
+.dom-ui-control-panel > * {
+    display: inline-block;
+    padding: 0.25em;
+}
+
+/* text sub-container */
+.dom-ui-text {
+    width: 30%;
+}
+
+/* button sub-container */
+.dom-ui-buttons {
+    width:40%;
+    text-align:center;
+}
+
+/* individual buttons */
+.dom-ui-buttons button {
+}
+
+/* disabled buttons */
+.dom-ui-buttons button[disabled=disabled], 
+    .dom-ui-buttons button:disabled {
+    pointer-events: none;
+    color: #c0c0c0;
+    background-color: #ffffff;
 
 }
-*/
-/*
-@media all and (orientation: landscape) {
-	#vr-world canvas {
-		width: 100%;
-		height:100%;
-		overflow: hidden;
-		position:fixed;
-		padding-bottom: 80px;
-	}
+
+/* link sub-container */
+.dom-ui-links {
+    text-align: right;
+    width: 30%;
 }
-*/
+
+/* links */
+.dom-ui-links a {
+
+}
+
+/* fading classes */
+.fade-message {
+    opacity:1;
+    transition: opacity 1s; 
+}
+
+.fade {
+    opacity:0;
+}
