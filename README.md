@@ -2,6 +2,12 @@
 
 This is a specialized device and browser detector script which checks for the ability to run a 3d environment and the WebVR api, using scripts compatible with older browsers.
 
+## Example
+
+![WebVR Example]()
+
+Check out [the example here](http://pindiespace.github.io/webvr-feature-detector/index.html).
+
 ## The Problem
 
 Developing WebVR apps requires that the browser support the WebVR API, either directly, or through the webvr-polyfill library. However, this polyfill (and webvr apps in general) in turn depend on lots of JavaScript APIs currently missing or incomplete in desktop and mobile browsers. 
@@ -34,8 +40,9 @@ webvr-feature-detector implements an ultra-compatible feature detect with a smal
 3. Support for specific event types, automatically testing for those used in VR (deviceMotion, deviceOrientation).
 3. Browser detection via user-agent.
 4. Probable hardware device (useful for smartphone-based WebVR).
-5. A microloader (useful for sequentially loading the required polyfills without adding 
-   additional JS libraries).
+5. A microloader (useful for sequentially loading the required polyfills without adding additional JS libraries) Deliberately old-school.
+
+![WebVR Feature Detector Example](docs/images/webvr-feature-detector-screen.png)
 
 WebVRFeatureDetector is NOT a general-purpose user-agent sniffer, or a comprehensive feature detector. It is focused narrowly on the browser APIs and hardware needed for WebGL and WebVR, with "graceful decay" support for older browsers. The goal is to improve Ux for users with obsolete or outdated browers.
 
@@ -43,11 +50,7 @@ For a currated support list of the state of VR in browsers, check [Is The Web VR
 
 For a general test of Your WebVR ability, try [Hello VR](https://toji.github.io/webvr-samples/00-hello-webvr)
 
-In additon to detecting support for WebVR in the browser, WebVRFeatureDetector tries to match smartphone hardware that could be used by Google Cardboard or other phone-based VR headsets. The list of hardware can be updated.
-
-## Example
-
-Check out [the example here](http://pindiespace.github.io/webvr-feature-detector/index.html).
+In additon to detecting support for WebVR in the browser, WebVRFeatureDetector tries to match smartphone hardware that could be used by Google Cardboard or other phone-based VR headsets. The list of hardware in the JSON file can be updated.
 
 ## Browser Support
 
@@ -161,7 +164,11 @@ The example (access under dist/polyfilled.html) loads a set of useful polyfills 
 
 ### More on the Example
 
-  This example highlights features of WebVRFeatureDetector for testing the browser and loading appropriate polyfills in the correct sequence. It will load fallbacks on less capable browsers:
+  This example highlights features of WebVRFeatureDetector for testing the browser and loading appropriate polyfills in the correct sequence. 
+  
+  ![WebVR Feature Detector Plutonian Example](docs/images/webvr-plutonian-example.png)
+  
+  It will load fallbacks on less capable browsers:
   
   - HTML5 Canvas but no WebGL: renders one frame 
   - No HTML5 Canvas: fallback GIF image
